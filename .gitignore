@@ -1,0 +1,16 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+# Файл .gitignore для проекта на Python, который использует виртуальное окружение и IDE.
+venv/
+.vs_code/
+.idea/
+
+# Папка с дампами базы данных
+dumps/
+
+__pycache__
+
+# Файлы логов
+*.log
+
+# Файл с переменными окружения, который может содержать чувствительную информацию
+.env
