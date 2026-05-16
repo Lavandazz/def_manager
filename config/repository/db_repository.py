@@ -5,7 +5,7 @@ from config.db.models import Case
 
 class CaseAlchemyRepository(AbstractRepository):
     """
-    Класс для работы с базой данных через SQLAlchemy.
+    Класс для работы снепосредственно  базой данных через SQLAlchemy.
     Запись номером дел в базу данных, получение дел по id, обновление и удаление дел
     """
     def __init__(self, session):

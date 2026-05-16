@@ -1,13 +1,11 @@
-from config.repository.db_repository import CaseAlchemyRepository
-
 
 class CaseService:
     """
-    Сервис для работы с репозиторием CaseAlchemyRepository.
+    Сервис для работы с репозиторием (например CaseAlchemyRepository) для api.
     """
     def __init__(self, repository):
-        self.repository: CaseAlchemyRepository = repository
+        self.repository = repository
 
     async def get_all_cases(self, *args,):
-        return self.repository.all_cases()
+        return await self.repository.all_cases()
         

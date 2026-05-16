@@ -1,5 +1,6 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
+from services.case_service import CaseService
 from config.repository.db_repository import CaseAlchemyRepository
 from .dependensy import get_case_repository
 
@@ -7,12 +8,12 @@ from .dependensy import get_case_repository
 router = APIRouter()
 
 
-@router.get("/ping")
-async def ping():
-    return {"ping": "pong!"}
-
-
 @router.get("/cases")
 async def get_cases(repo: Annotated[CaseAlchemyRepository, Depends(get_case_repository)]):
-    cases = await repo.all_cases()
-    return cases
+    """
+    Отображение всех cases номеров из бд.
+    Будет доступно только супер-админу
+    """
+    cases_service = CaseService(repo)
+    return await cases_service.get_all_cases()
+    
