@@ -8,7 +8,7 @@ from .dependensy import get_case_repository
 router = APIRouter()
 
 
-@router.get("/cases")
+@router.get("/admin/cases")
 async def get_cases(repo: Annotated[CaseAlchemyRepository, Depends(get_case_repository)]):
     """
     Отображение всех cases номеров из бд.
@@ -17,3 +17,11 @@ async def get_cases(repo: Annotated[CaseAlchemyRepository, Depends(get_case_repo
     cases_service = CaseService(repo)
     return await cases_service.get_all_cases()
     
+
+@router.get("/user/cases")
+async def get_user_cases(repo: Annotated[CaseAlchemyRepository, Depends(get_case_repository)]):
+    """
+    Отображение всех сases текущего пользователя
+    """
+    cases_service = CaseService(repo)
+    return await cases_service.get_user_cases()

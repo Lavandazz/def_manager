@@ -33,7 +33,7 @@ class CaseAlchemyRepository(AbstractRepository):
         """
         Получение всех дел, отфильтрованных по пользователю
         """
-        stmt = select(Case)
+        stmt = select(Case).where(Case.id_user == user.id)
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
