@@ -26,6 +26,7 @@ class Case(Base):
     debtor: Mapped[str] = mapped_column(Text, nullable=True)
     status: Mapped[int] = mapped_column(Integer, nullable=True, default=0)
 
+
 class ParsDocument(Base):
     __tablename__ = "pars_documents"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -35,6 +36,7 @@ class ParsDocument(Base):
     document: Mapped[str] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(Text, nullable=True, default="not_sent")
 
+
 class CourtSession(Base):
     __tablename__ = "court_sessions"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -42,6 +44,7 @@ class CourtSession(Base):
     date_court: Mapped[date] = mapped_column(Date, nullable=True)
     time_court: Mapped[str] = mapped_column(Text, nullable=True)
     hall_court: Mapped[str] = mapped_column(Text, nullable=True)
+
 
 class SupportTicket(Base):
     __tablename__ = "support_tickets"
@@ -53,3 +56,13 @@ class SupportTicket(Base):
     admin_response: Mapped[str] = mapped_column(Text, nullable=True)
     responded_at: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=True)
     status: Mapped[str] = mapped_column(Text, nullable=True, default="pending")
+
+
+class BlackListToken(Base):
+    """
+    Модель для сохранения токена в черный лист токенов
+    для дальнейшей проверки валидности токенов при входе
+    """
+    __tablename__ = "black_list_token"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token: Mapped[str] = mapped_column(Text, nullable=False)
