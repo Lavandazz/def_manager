@@ -1,5 +1,6 @@
 from datetime import date, datetime
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from typing import Optional
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import Date, ForeignKey, Integer, Text, TIMESTAMP, func, BigInteger
 
 
@@ -17,6 +18,38 @@ class User(Base):
     telephone: Mapped[str] = mapped_column(Text, nullable=True)
     telegram_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=True)
     
+    # связь с ролями через таблицу user_roles
+    user_role: Mapped[Optional["UserRole"]] = relationship(back_populates="user")
+
+class Role(Base):
+    """
+    Модель роли (Админ, Пользователь)
+    """
+    __tablename__ = "roles"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    role: Mapped[str] = mapped_column(Text, unique=True)  # "admin", "user"
+
+    # связь с пользователями через таблицу user_roles
+    # list используется, так как одна роль может быть у нескольких пользователей
+    user_roles: Mapped[list["UserRole"]] = relationship(back_populates="role")
+
+
+class UserRole(Base):
+    """
+    Связь пользователя и роли
+    """
+    __tablename__ = "user_roles"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True)  # Один пользователь может иметь только одну роль
+    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"))
+ 
+    # user_role - связь с пользователем, back_populates указывает на атрибут в модели User, который ссылается на эту модель
+    # role - связь с ролью, back_populates указывает на атрибут в модели Role, который ссылается на эту модель
+    user: Mapped[User] = relationship(back_populates="user_role")
+    role: Mapped["Role"] = relationship(back_populates="user_roles")  
+
 
 class Case(Base):
     __tablename__ = "cases"
