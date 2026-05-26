@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str
     POSTGRES_PORT: int
 
+
+    # JWT токены
+    SECRET_KEY: str
+    REFRESH_SECRET_KEY: str
+    ALGORITHM: str
+
     def get_async_db_url(self):
         return (f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
                 f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_NAME}")

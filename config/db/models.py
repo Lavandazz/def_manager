@@ -21,6 +21,7 @@ class User(Base):
     # связь с ролями через таблицу user_roles
     user_role: Mapped[Optional["UserRole"]] = relationship(back_populates="user")
 
+
 class Role(Base):
     """
     Модель роли (Админ, Пользователь)

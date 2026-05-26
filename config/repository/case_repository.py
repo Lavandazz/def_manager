@@ -1,9 +1,9 @@
 from sqlalchemy import select
-from config.db.abstract_repository import AbstractRepository
+from config.db.abstract_repository import AbstractCaseRepository
 from config.db.models import Case
 
 
-class CaseAlchemyRepository(AbstractRepository):
+class CaseAlchemyRepository(AbstractCaseRepository):
     """
     Класс для работы снепосредственно  базой данных через SQLAlchemy.
     Запись номером дел в базу данных, получение дел по id, обновление и удаление дел
@@ -11,14 +11,15 @@ class CaseAlchemyRepository(AbstractRepository):
     def __init__(self, session):
         self.session = session
 
-    async def add(self, items):
+    async def add(self, param):
         pass
 
-    async def get(self, id_):
+    async def get(self, param):
         """
         Получение данных из таблицы case по id_case
+        param: 
         """
-        return await self.session.get(Case, id_)
+        return await self.session.get(Case, param)
     
     async def all_cases(self):
         """
@@ -37,8 +38,10 @@ class CaseAlchemyRepository(AbstractRepository):
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def update(self, id_):
+    async def update(self, param):
         pass
 
-    async def delete(self, id_):
+    async def delete(self, param):
         pass
+
+

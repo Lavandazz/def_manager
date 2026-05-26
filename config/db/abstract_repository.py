@@ -6,23 +6,63 @@
 
 from abc import ABC, abstractmethod
 
+from config.db.models import User
 
-class AbstractRepository(ABC):
+
+class AbstractCaseRepository(ABC):
     """
     Абстрактный класс для патерна Репозиторий.
     """
     @abstractmethod
-    async def add(self, items):
+    async def add(self, param):
         pass
 
     @abstractmethod
-    async def get(self, id_):
+    async def get(self, param):
         pass
 
     @abstractmethod
-    async def update(self, id_):
+    async def update(self, param):
         pass
 
     @abstractmethod
-    async def delete(self, id_):
+    async def delete(self, param):
+        pass
+
+
+class AbstractTokenRepository(ABC):
+    """
+    Абстрактный класс для патерна Репозиторий.
+    """
+    @abstractmethod
+    async def add(self, token):
+        pass
+
+    @abstractmethod
+    async def exists(self, token) -> bool:
+        pass
+
+    @abstractmethod
+    async def delete(self, token):
+        pass
+
+
+class AbstractUserRepository(ABC):
+    """
+    Абстрактный класс для патерна Репозиторий.
+    """
+    @abstractmethod
+    async def add_user(self, user: User):
+        pass
+
+    @abstractmethod
+    async def get_user(self, email:str, user_id: int):
+        pass
+
+    @abstractmethod
+    async def update_user(self, user: User):
+        pass
+
+    @abstractmethod
+    async def delete_user(self, user: User):
         pass
