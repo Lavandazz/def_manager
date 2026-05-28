@@ -1,5 +1,5 @@
 from config.db.models import User
-from config.logger_config import db_logger
+from config.schemas.user_schemas import UserRegistration
 
 
 class UserService:
@@ -7,8 +7,15 @@ class UserService:
     def __init__(self, repository):
         self.repository = repository
 
-    async def create_user(self, username, name, surname, patronymic, email, password, role_name="user") -> User | None:
-        pass
+    async def create_user(self, user_data: UserRegistration) -> User | None:
+
+        new_user = User(
+                username=user_data.username,
+                email=user_data.email,
+                hashed_password=user_data.password,
+                telegram_id=user_data.telegram_id
+            )
+        await self.repository.create_user(new_user)
 
     async def get_user(self, telegram_id=None, email=None) -> User | None:
         """

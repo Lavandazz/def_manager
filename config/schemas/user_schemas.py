@@ -1,12 +1,14 @@
 from pydantic import BaseModel, EmailStr
 
 
-class UserLogin(BaseModel):
+
+class UserSchema(BaseModel):
     username: str
     telegram_id: int
-    password: str
-    
     email: EmailStr
+
+class UserLogin(UserSchema):
+    password: str
 
 class UserRegistration(UserLogin):
     second_password: str

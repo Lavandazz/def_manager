@@ -33,7 +33,6 @@ class PasswordHasher:
         :param hashed_password: пароль, который хранится в бд (хэш)
         :return: True, если пароль верный, иначе False
         """
-        print("проверка пароля", plain_password, hashed_password)
         return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
 
 

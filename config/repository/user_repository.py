@@ -12,7 +12,8 @@ class UserAlchemyRepository(AbstractUserRepository):
     def __init__(self, session):
         self.session = session
 
-    async def add_user(self, user: User):
+    async def create_user(self, user: User):
+        print("сохраняю юзера", user)
         try:
             self.session.add(user)
             await self.session.commit()
@@ -37,6 +38,7 @@ class UserAlchemyRepository(AbstractUserRepository):
                 user = result.scalar_one_or_none()
                 db_logger.debug("Пользователь по Email: %s", user)
                 return user
+            
         except Exception as e:
             db_logger.exception("Ошибка при получении пользователя: %s", e)
             return None

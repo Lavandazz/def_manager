@@ -21,6 +21,14 @@ class User(Base):
     # связь с ролями через таблицу user_roles
     user_role: Mapped[Optional["UserRole"]] = relationship(back_populates="user")
 
+    def __repr__(self) -> str: # вывод в консоль для отладки
+        return f"User(id={self.id!r}, name={self.username!r}, fullname={self.email!r})"
+    
+    def __str__(self) -> str: # строковое представление для удобства чтения (логгер)
+            return f"Пользователь {self.id}, username {self.username}"
+    
+
+
 
 class Role(Base):
     """

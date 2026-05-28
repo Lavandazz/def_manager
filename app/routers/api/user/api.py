@@ -1,14 +1,16 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.routers.api.user.schemas import UserLogin, UserRegistration
+
 from app.services.token_service import TokenService
 from app.services.user_service import UserService
 from app.utils.auth import PasswordHasher
 from app.utils.dependensy import get_user_repository
+from config.db.models import User
 from config.repository.user_repository import UserAlchemyRepository
 
 from config.logger_config import profile_logger
+from config.schemas.user_schemas import UserLogin, UserRegistration
 
 
 router = APIRouter()
@@ -37,31 +39,43 @@ async def register_user(
         repo: Annotated[UserAlchemyRepository, Depends(get_user_repository)],
         user: UserRegistration
         ):
-    """Регистрация пользователя"""
+    """
+    Регистрация пользователя
+    :param repo: Используется зависимость от репозитория для работы с таблицей users
+    :param user: Используется схема UserRegistration для валидации данных, получаемых от клиента при регистрации
+     Проверяем совпадение паролей, существование пользователя в базе по email и username, хэшируем пароль и сохраняем в базу.
+     В ответ возвращаем сообщение об успешной регистрации и имя пользователя.
+     В случае ошибок возвращаем соответствующие сообщения об ошибках. 
+    """
 
     if user.password != user.second_password:
         raise HTTPException(status_code=400, detail="Пароли не совпадают")
 
     user_service = UserService(repo)
     # Проверяем существование в базе email и username
+    # Регистрация новых пользователей только по email
     try:
         existing_user = await user_service.get_user(email=user.email)
 
         if existing_user:
+            profile_logger.info("Пользователь уже существует: %s`", existing_user)
             raise HTTPException(status_code=400, detail="Пользователь уже существует")
         
-        # Раскомментить когда в бд появится поле для хэша пароля и добавится логика сохранения пароля
-        # else:
-        #     hashed_password = hash_password(password)  # хэш пароля
+        else:
+            hashed_password = PasswordHasher.hash_password(user.password)  # хэш пароля
+            user.password = hashed_password # сохраняем хэш пароля вместо обычного пароля в объекте user, который будет сохранен в базе данных
 
-        #     # Сохраняем в бд
-        #     await user_service.create_user(
-        #         username=user.username, name=user.name, surname=user.surname, patronymic=user.patronymic, email=user.email, password=hashed_password
-        #     )
+            # Сохраняем в бд
+            await user_service.create_user(user_data=user)  # сохраняем пользователя в базе данных
 
-        profile_logger.info("Зарегистрирован новый пользователь")
 
-        return {"message": "Пользователь зарегистрирован", "user": user.username}
+            profile_logger.info("Зарегистрирован новый пользователь")
+
+            return {"message": "Пользователь зарегистрирован", "user": user.username}
+        
+    except HTTPException as http_exc:
+        profile_logger.warning("Ошибка при регистрации пользователя: %s", http_exc.detail)
+        raise http_exc
     
     except Exception as e:
         profile_logger.exception("Ошибка при проверке существования пользователя: %s", e)
