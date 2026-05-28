@@ -1,10 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.services.case_service import CaseService
-from app.utils.dependensy import get_case_repository
-
-
-from config.repository.case_repository import CaseAlchemyRepository
+from app.utils.dependensy import get_case_service
 
 
 
@@ -12,12 +9,13 @@ router = APIRouter()
 
 
 @router.get("/cases")
-async def get_cases(repo: Annotated[CaseAlchemyRepository, Depends(get_case_repository)]):
+async def get_cases(cases_service: Annotated[CaseService, Depends(get_case_service)]):
     """
     Отображение всех cases номеров из бд.
     Будет доступно только супер-админу
+    :param cases_service: Используется зависимость от сервиса для работы с логикой получения всех кейсов.
+
     """
-    cases_service = CaseService(repo)
     cases = await cases_service.get_all_cases()
     if cases:
         return cases

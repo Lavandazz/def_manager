@@ -24,7 +24,6 @@ class UserService:
         :param email: 
         :return: объект User, если найден, иначе None
         """
-        print("получаю юзера", telegram_id, email)
         if telegram_id:
             print("получаю юзера по telegram_id")
             return await self.repository.get_user(telegram_id=telegram_id)

@@ -18,6 +18,8 @@ class TokenAlchemyRepository(AbstractTokenRepository):
         try:
             self.session.add(BlackListToken(token=token))
             await self.session.commit()
+            print("Токен добавлен в черный список:", token)
+            db_logger.debug("Токен добавлен в черный список: %s", token)
         except SQLAlchemyError as e:
             await self.session.rollback()
             db_logger.exception("не удалось сохранить токен в бд: %s", e)
@@ -27,7 +29,10 @@ class TokenAlchemyRepository(AbstractTokenRepository):
             result = await self.session.execute(
                 select(BlackListToken).where(BlackListToken.token == token)
             )
+            db_logger.debug("результат проверки токена: %s", result)
+
             return result.scalar_one_or_none() is not None
+        
         except SQLAlchemyError as e:
             db_logger.exception("Ошибка проверки токена: %s", e)
             return False

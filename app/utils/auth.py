@@ -4,6 +4,8 @@ import bcrypt
 from fastapi import HTTPException
 import jwt
 
+from app.services.token_service import TokenService
+from config.schemas.token_schemas import AuthTokenSchema
 from config.settings_env import settings
 
 
@@ -36,7 +38,7 @@ class PasswordHasher:
         return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
 
 
-class AuthService:
+class AuthTokenService:
     """
     Класс для создания и проверки JWT-токенов."""
 
@@ -44,34 +46,22 @@ class AuthService:
         self.secret_key = settings.SECRET_KEY
         self.refresh_secret_key = settings.REFRESH_SECRET_KEY
 
-    def create_all_token(self, data: dict, secret_k: str):
+    def create_token(self, data: AuthTokenSchema, is_refresh: bool = False) -> str:
         """
-        Создание JSON Web Token
+        :param data: данные для создания токена (id, email, telegram_id)
+        :param is_refresh: флаг, указывающий, является ли токен рефреш-токеном
+        :return: сгенерированный JWT-токен
         """
-        data_to_encode = data.copy()
+        data_to_encode = data.dict()
         live_time = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         data_to_encode.update({"exp": live_time})  # Добавляем в словарь время жизни токена
-        encoded = jwt.encode(data_to_encode, secret_k, algorithm=settings.ALGORITHM)  # Кодируем токен
-
+        if is_refresh:
+            encoded = jwt.encode(data_to_encode, self.refresh_secret_key, algorithm=settings.ALGORITHM)  # Кодируем токен
+        else:
+            encoded = jwt.encode(data_to_encode, self.secret_key, algorithm=settings.ALGORITHM)  # Кодируем токен
+        print("новые  токен:", encoded)
         return encoded
-
-
-    def create_tokens(self, user_id: int, email: str):
-        """
-        Создание основного токена и рефреш
-        """
-        main_token = self.create_all_token({
-            "user_id": user_id,
-            "email": email,
-        }, self.secret_key)
-
-        refresh_token = self.create_all_token({
-            "user_id": user_id,
-            "email": email
-        }, self.refresh_secret_key)
-
-        return {"main_token": main_token, "refresh_token": refresh_token}
-
+    
 
     async def decode_jwt(self, token: str):
         """

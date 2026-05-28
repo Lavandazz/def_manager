@@ -35,7 +35,7 @@ class AbstractTokenRepository(ABC):
     Абстрактный класс для патерна Репозиторий.
     """
     @abstractmethod
-    async def add(self, token):
+    async def add_token(self, token):
         pass
 
     @abstractmethod
