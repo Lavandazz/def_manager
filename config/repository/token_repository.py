@@ -14,7 +14,7 @@ class TokenAlchemyRepository(AbstractTokenRepository):
     def __init__(self, session):
         self.session = session
 
-    async def add(self, token: str) -> None:
+    async def add_token(self, token: str) -> None:
         try:
             self.session.add(BlackListToken(token=token))
             await self.session.commit()

@@ -1,8 +1,10 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.routers.api.user.schemas import UserRegistration
+from app.routers.api.user.schemas import UserLogin, UserRegistration
+from app.services.token_service import TokenService
 from app.services.user_service import UserService
+from app.utils.auth import PasswordHasher
 from app.utils.dependensy import get_user_repository
 from config.repository.user_repository import UserAlchemyRepository
 
@@ -65,3 +67,36 @@ async def register_user(
         profile_logger.exception("Ошибка при проверке существования пользователя: %s", e)
         raise HTTPException(status_code=500, detail="Ошибка сервера") from e
 
+
+
+@router.post("/login", tags=["auth"])
+async def login(
+    repo: Annotated[UserAlchemyRepository, Depends(get_user_repository)],
+    user: UserLogin
+    ):
+    """Авторизация пользователя.
+    Проверяем заполнение всех полей, правильность пароля, существование пользователя в базе.
+    """
+
+    if not user.email or not user.password:
+        raise HTTPException(status_code=400, detail="Заполните все поля")
+
+    user_service = UserService(repo)
+    existing_user = await user_service.get_user(telegram_id=user.telegram_id, email=user.email)
+
+    if not existing_user or not PasswordHasher.verify_password(user.password, existing_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Неверно введены логин или пароль")
+
+    return {
+        "message": "Успешная авторизация",
+        "user": existing_user.username,
+        "email": existing_user.email
+    }
+    # token_service = TokenService(repo)
+    # Создаем токен
+    # tokens = create_tokens(existing_user.id, existing_user.email)
+
+    # return {
+    #     "access_token": tokens["main_token"],
+    #     "token_type": "bearer",
+    # }

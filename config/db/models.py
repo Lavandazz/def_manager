@@ -13,7 +13,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(Text, unique=True, nullable=True)
-    # hashed_password: Mapped[str] = mapped_column(Text)
+    hashed_password: Mapped[str] = mapped_column(Text)
     username: Mapped[str] = mapped_column(Text)
     telephone: Mapped[str] = mapped_column(Text, nullable=True)
     telegram_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=True)

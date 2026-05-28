@@ -10,7 +10,7 @@ class TokenService:
 
     async def add_token(self, token: str):
         """Добавление токена в черный список"""
-        await self.repository.add(token)
+        await self.repository.add_token(token)
 
     async def is_token_black(self, token: str):
         """Проверка токена в черном листе"""

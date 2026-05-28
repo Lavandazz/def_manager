@@ -1,6 +1,6 @@
 """
 Запуск сервера: 
-
+fastapi dev
 """
 from fastapi import FastAPI
 from app.routers.api.api import router as api_router
