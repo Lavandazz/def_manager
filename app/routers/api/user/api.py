@@ -6,9 +6,9 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.services.token_service import TokenService
 from app.services.user_service import UserService
-from app.utils.auth import AuthTokenService, PasswordHasher
-from app.utils.dependensy import get_token_service, get_user_repository, get_user_service
-from config.repository.user_repository import UserAlchemyRepository
+from app.utils.auth.auth_token import AuthTokenService
+from app.utils.auth.password_hasher import PasswordHasher
+from app.utils.dependensy import get_token_service, get_user_service
 
 from config.logger_config import profile_logger
 from config.schemas.token_schemas import AuthTokenSchema
@@ -20,12 +20,11 @@ router = APIRouter()
 
 @router.get("/profile", tags=["profile"])
 async def get_profile(telegram_id: int,
-                      repo: Annotated[UserAlchemyRepository, Depends(get_user_repository)]):
+                      user_service: Annotated[UserService, Depends(get_user_service)]):
     """
     Для отладки передаем id пользователя.
     В последствии заменить на email
     """
-    user_service = UserService(repo)
     profile_logger.info("Получение данных")
     user = await user_service.get_user(telegram_id=telegram_id)
     if user:
@@ -37,8 +36,10 @@ async def get_profile(telegram_id: int,
 
 
 @router.post("/register", tags=["auth"])
+
+
 async def register_user(
-        repo: Annotated[UserAlchemyRepository, Depends(get_user_repository)],
+        user_service: Annotated[UserService, Depends(get_user_service)],
         user: UserRegistration
         ):
     """
@@ -53,7 +54,6 @@ async def register_user(
     if user.password != user.second_password:
         raise HTTPException(status_code=400, detail="Пароли не совпадают")
 
-    user_service = UserService(repo)
     # Проверяем существование в базе email и username
     # Регистрация новых пользователей только по email
     try:
@@ -88,7 +88,6 @@ async def register_user(
 @router.post("/login", tags=["auth"])
 async def login(
     user_service: Annotated[UserService, Depends(get_user_service)],
-    token_service: Annotated[TokenService, Depends(get_token_service)],
     user: UserLogin
     ):
     """
