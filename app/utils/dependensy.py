@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 
 from app.services.auth_service import AuthService
 from app.services.case_service import CaseService

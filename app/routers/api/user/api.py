@@ -1,15 +1,15 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
-
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.services.token_service import TokenService
 from app.services.user_service import UserService
 from app.utils.auth.auth_token import AuthTokenService
 from app.utils.auth.password_hasher import PasswordHasher
-from app.utils.dependensy import get_token_service, get_user_service
+from app.utils.dependensy import get_token_service, get_user_service, get_verify_user
 
+from config.db.models import User
 from config.logger_config import profile_logger
 from config.schemas.token_schemas import AuthTokenSchema
 from config.schemas.user_schemas import UserLogin, UserRegistration
@@ -19,25 +19,21 @@ router = APIRouter()
 
 
 @router.get("/profile", tags=["profile"])
-async def get_profile(telegram_id: int,
-                      user_service: Annotated[UserService, Depends(get_user_service)]):
+async def get_profile(user: User = Depends(get_verify_user)):
     """
     Для отладки передаем id пользователя.
     В последствии заменить на email
     """
-    profile_logger.info("Получение данных")
-    user = await user_service.get_user(telegram_id=telegram_id)
     if user:
         return {
             "username": user.username,
+            "email": user.email,
             "telegram_id": user.telegram_id
         }
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Пользователь не найден')
 
 
 @router.post("/register", tags=["auth"])
-
-
 async def register_user(
         user_service: Annotated[UserService, Depends(get_user_service)],
         user: UserRegistration
