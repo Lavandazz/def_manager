@@ -13,7 +13,11 @@ class AuthService:
         self.user_service = user_service
 
     async def get_current_user(self, token: str) -> User:
-
+        """
+        Метод для получения текущего пользователя по токену.
+        Проверяет токен на валидность и черный список, извлекает данные из токена, получает пользователя из БД и возвращает его.
+        В случае ошибок выбрасывает соответствующие HTTP исключения.
+        """
         if await self.token_service.is_token_black(token):
             raise HTTPException(401, "Токен в черном списке")
         
