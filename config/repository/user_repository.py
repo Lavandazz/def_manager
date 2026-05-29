@@ -21,22 +21,30 @@ class UserAlchemyRepository(AbstractUserRepository):
             await self.session.rollback()
             db_logger.exception("не удалось сохранить токен в бд: %s", e)
 
-    async def get_user(self, telegram_id=None, email=None):
+    async def get_user(self, telegram_id=None, email=None, id=None) -> User | None:
         """
         Получение пользователя по полю email.
         email=None для того, что в первом входе в базе нет данных об email (для теста базы)
         """
         try:
-            if email is None:
+            if telegram_id:
                 result = await self.session.execute(select(User).where(User.telegram_id == telegram_id))
                 user = result.scalar_one_or_none()
                 db_logger.debug("Пользователь по Telegram ID: %s", user)
                 return user
-            else:
+            
+            elif email:
                 db_logger.debug("Поиск пользователя по Email: %s", email)
                 result = await self.session.execute(select(User).where(User.email == email))
                 user = result.scalar_one_or_none()
                 db_logger.debug("Пользователь по Email: %s", user)
+                return user
+            
+            else:
+                db_logger.debug("Поиск пользователя по ID: %s", id)
+                result = await self.session.execute(select(User).where(User.id == id))
+                user = result.scalar_one_or_none()
+                db_logger.debug("Пользователь по ID: %s", user)
                 return user
             
         except Exception as e:

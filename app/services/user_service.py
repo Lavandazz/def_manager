@@ -35,6 +35,14 @@ class UserService:
         else:
             print("параметры не верные")
             return None
+        
+    async def get_user_by_id(self, user_id) -> User | None:
+        """
+        Получаем юзера по id для проверки токена и получения данных юзера из БД при авторизации
+        :param user_id: id пользователя, извлекаемый из токена
+        :return: объект User, если найден, иначе None
+        """
+        return await self.repository.get_user(id=user_id)
 
     async def update_user(self, user):
         pass
