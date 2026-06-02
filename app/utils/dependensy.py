@@ -1,7 +1,8 @@
 from typing import Annotated
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from fastapi import Depends
+from fastapi import Depends, Request
+
 
 from app.services.auth_service import AuthService
 from app.services.case_service import CaseService
@@ -95,4 +96,19 @@ async def get_verify_user(
     """ Функция для DI в api сервисах,
     Получаем токен из заголовка, проверяем его и возвращаем текущего пользователя"""
     auth = AuthService(token_service, auth_token_service, user_service)
+
     return await auth.get_current_user(credentials.credentials) # предаем токен из заголовка в метод get_current_user сервиса AuthService, который проверяет токен и возвращает текущего пользователя или выбрасывает исключение при ошибке проверки.
+
+
+async def get_optional_user(
+    request: Request,
+    token_service=Depends(get_token_service),
+    auth_token_service=Depends(get_auth_token_service),
+    user_service=Depends(get_user_service),):
+    """ Функция для DI в html роутерах"""
+    auth = AuthService(token_service, auth_token_service, user_service)
+    # предаем токен из заголовка в метод get_current_user сервиса AuthService, который проверяет токен и возвращает текущего пользователя 
+    # или выбрасывает исключение при ошибке проверки.
+
+    return await auth.get_user_from_cookie(request) 
+

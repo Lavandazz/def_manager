@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 
 from app.services.token_service import TokenService
 from app.services.user_service import UserService
@@ -36,3 +36,16 @@ class AuthService:
             raise HTTPException(401, "Пользователь не найден")
         
         return user
+    
+    async def get_user_from_cookie(self, request: Request) -> User:
+        """
+        Метод для получения текущего пользователя по токену из cookie.
+        Извлекает токен из cookie, проверяет его и возвращает пользователя.
+        В случае ошибок выбрасывает соответствующие HTTP исключения.
+        """
+        token = request.cookies.get("access_token")
+        if not token:
+            print(401, "Токен не найден в cookie")
+            return None
+        
+        return await self.get_current_user(token)

@@ -4,40 +4,41 @@
 
 
 {% block main %}
+
   {% block navbar %}
     {% include 'components/navbar.html' %}   <!-- вставка навигации -->
   {% endblock %}
 
+  {% block base_content %}
+    <div class="container-fluid mt-3">
 
-  <div class="container-fluid mt-3">
-
-        <div class="mt-4 p-5 bg-primary text-white rounded">
+      <div class="mt-4 p-5 bg-primary text-white rounded">
         <h1>Управление делами</h1>
         <p>Небольшой вступительный текст или описание</p>
+      </div>
+
+      <div class="row m-4">
+
+        <div class="col-3 mt-4">
+          {% block navigation %}
+            {% include "components/navigation.html" %}
+            
+          {% endblock %}
         </div>
 
-    <div class="row m-4">
+        <div class="col-9">
+            <main class="container col-8 mt-4">
+              {% block content %}
 
-      <div class="col-3 mt-4">
-        {% block navigation %}
-          {% include "components/navigation.html" %}
-          
-        {% endblock %}
+              {% endblock content %}
+            </main>
+        </div>
+
       </div>
-
-      <div class="col-9">
-          <main class="container col-8 mt-4">
-            {% block content %}
-
-            {% endblock %}
-          </main>
-      </div>
-
     </div>
-  </div>
+  {% endblock base_content %}
 
-  {% block footer %}
-    {% include "components/footer.html" %}
-  {% endblock %}
+  {% block login %}{% endblock login %}
+
   
 {% endblock main %}

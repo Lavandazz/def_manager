@@ -15,10 +15,13 @@
       <link rel="shortcut icon" href="#" />
   {% endblock %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
   {% block main %}
     {% include "layout.html" %}
+  {% endblock %}
+  {% block footer %}
+    {% include "components/footer.html" %}
   {% endblock %}
 
   <!-- Bootstrap JS -->

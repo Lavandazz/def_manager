@@ -26,7 +26,7 @@ class UserService:
         """
         if telegram_id:
             print("получаю юзера по telegram_id")
-            return await self.repository.get_user(telegram_id=telegram_id)
+            return await self.repository.get_user(telegram_id=int(telegram_id))
         
         elif email:
             print("получаю юзера по мылу")
