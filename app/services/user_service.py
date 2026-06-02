@@ -43,6 +43,12 @@ class UserService:
         :return: объект User, если найден, иначе None
         """
         return await self.repository.get_user(id=user_id)
+    
+    async def get_user_by_name(self, username) -> User | None:
+        """
+        Только для разработки, ускорение авторизации
+        """
+        return await self.repository.get_user_by_name(username=username)
 
     async def update_user(self, user):
         pass

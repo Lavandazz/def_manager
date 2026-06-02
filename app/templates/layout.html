@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+
+{% block main %}
+  {% block navbar %}
+    {% include 'components/navbar.html' %}   <!-- вставка навигации -->
+  {% endblock %}
+
+
+  <div class="container-fluid mt-3">
+
+        <div class="mt-4 p-5 bg-primary text-white rounded">
+        <h1>Управление делами</h1>
+        <p>Небольшой вступительный текст или описание</p>
+        </div>
+
+    <div class="row m-4">
+
+      <div class="col-3 mt-4">
+        {% block navigation %}
+          {% include "components/navigation.html" %}
+          
+        {% endblock %}
+      </div>
+
+      <div class="col-9">
+          <main class="container col-8 mt-4">
+            {% block content %}
+
+            {% endblock %}
+          </main>
+      </div>
+
+    </div>
+  </div>
+
+  {% block footer %}
+    {% include "components/footer.html" %}
+  {% endblock %}
+  
+{% endblock main %}

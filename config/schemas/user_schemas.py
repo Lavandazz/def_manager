@@ -12,3 +12,8 @@ class UserLogin(UserSchema):
 
 class UserRegistration(UserLogin):
     second_password: str
+
+class UserNameSchema(BaseModel):
+    """только для ускорения в разработке"""
+    username: str
+

@@ -12,7 +12,7 @@ from app.utils.dependensy import get_token_service, get_user_service, get_verify
 from config.db.models import User
 from config.logger_config import profile_logger
 from config.schemas.token_schemas import AuthTokenSchema
-from config.schemas.user_schemas import UserLogin, UserRegistration
+from config.schemas.user_schemas import UserLogin, UserRegistration, UserNameSchema
 
 
 router = APIRouter()
@@ -84,7 +84,7 @@ async def register_user(
 @router.post("/login", tags=["auth"])
 async def login(
     user_service: Annotated[UserService, Depends(get_user_service)],
-    user: UserLogin
+    user: UserNameSchema
     ):
     """
     Авторизация пользователя.
@@ -94,20 +94,23 @@ async def login(
     В случае ошибок возвращаем соответствующие сообщения об ошибках.
     """
 
-    if not user.email or not user.password:
-        raise HTTPException(status_code=400, detail="Заполните все поля")
+    # if not user.email or not user.password:
+    #     raise HTTPException(status_code=400, detail="Заполните все поля")
 
-    existing_user = await user_service.get_user(telegram_id=user.telegram_id, email=user.email)
+    # existing_user = await user_service.get_user(telegram_id=user.telegram_id, email=user.email)
 
-    if not existing_user or not PasswordHasher.verify_password(user.password, existing_user.hashed_password):
-        raise HTTPException(status_code=400, detail="Неверно введены логин или пароль")
+    # if not existing_user or not PasswordHasher.verify_password(user.password, existing_user.hashed_password):
+    #     raise HTTPException(status_code=400, detail="Неверно введены логин или пароль")
+    
+    # Для ускорения авторизации передаем только username
+    existing_user = await user_service.get_user_by_name(username=user.username)
 
     auth = AuthTokenService()
     # Создаем токен
     token = auth.create_token(data=AuthTokenSchema(id=existing_user.id, email=existing_user.email))
     refresh_token = auth.create_token(data=AuthTokenSchema(id=existing_user.id, email=existing_user.email), is_refresh=True)
-    
-    print("созданные токены:", token, refresh_token)
+  
+    # print("созданные токены:", token, refresh_token)
 
     return {
         "message": "Успешная авторизация",

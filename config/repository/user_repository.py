@@ -51,7 +51,15 @@ class UserAlchemyRepository(AbstractUserRepository):
             db_logger.exception("Ошибка при получении пользователя: %s", e)
             return None
         
-
+    async def get_user_by_name(self, username) -> User | None:
+        """
+        Только для разработки, ускорение авторизации
+        """
+        result = await self.session.execute(select(User).where(User.username==username))
+        user = result.scalar_one_or_none()
+        db_logger.debug("Пользователь по username: %s", user)
+        return user
+    
     async def update_user(self, user):
         pass
 

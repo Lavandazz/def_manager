@@ -1,6 +1,7 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.orm import selectinload
 from config.db.abstract_repository import AbstractCaseRepository
-from config.db.models import Case
+from config.db.models import Case, ParsDocument
 
 
 class CaseAlchemyRepository(AbstractCaseRepository):
@@ -11,16 +12,37 @@ class CaseAlchemyRepository(AbstractCaseRepository):
     def __init__(self, session):
         self.session = session
 
-    async def add(self, param):
+    async def add_case(self, param):
         pass
 
-    async def get(self, param):
+    async def get_case(self, case_id):
         """
         Получение данных из таблицы case по id_case
-        param: 
+        param: case_id
         """
-        return await self.session.get(Case, param)
+        stmt = select(Case).where(Case.id == case_id).options(selectinload(Case.pars_documents))
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
     
+
+    async def get_case_documents_paginated(self, case_id: int, page: int, size: int):
+        # 1. Общее количество документов для этого дела (нужно для пагинации)
+        total_query = select(func.count(ParsDocument.id)).where(ParsDocument.id_case == case_id)
+        total_result = await self.session.execute(total_query)
+        total_docs = total_result.scalar_one()
+        
+        # 2. Документы для текущей страницы
+        stmt = (
+            select(ParsDocument)
+            .where(ParsDocument.id_case == case_id)
+            .offset((page - 1) * size)
+            .limit(size)
+        )
+        result = await self.session.execute(stmt)
+        documents = result.scalars().all()
+        
+        return documents, total_docs
+
     async def all_cases(self):
         """
         Получение всех cases не зависимо от фильтров
@@ -29,14 +51,15 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         result = await self.session.execute(stmt)
 
         return result.scalars().all()
-    
-    async def get_all_cases_by_user(self, user):
+
+    async def get_all_cases_by_user(self, user_id):
         """
         Получение всех дел, отфильтрованных по пользователю
         """
-        stmt = select(Case).where(Case.id_user == user.id)
+        stmt = select(Case).where(Case.id_user == user_id)
         result = await self.session.execute(stmt)
         return result.scalars().all()
+    
 
     async def update(self, param):
         pass

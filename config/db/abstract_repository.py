@@ -14,11 +14,11 @@ class AbstractCaseRepository(ABC):
     Абстрактный класс для патерна Репозиторий.
     """
     @abstractmethod
-    async def add(self, param):
+    async def add_case(self, param):
         pass
 
     @abstractmethod
-    async def get(self, param):
+    async def get_case(self, case_id):
         pass
 
     @abstractmethod

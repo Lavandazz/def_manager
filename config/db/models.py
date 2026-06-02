@@ -68,6 +68,9 @@ class Case(Base):
     debtor: Mapped[str] = mapped_column(Text, nullable=True)
     status: Mapped[int] = mapped_column(Integer, nullable=True, default=0)
 
+    # связь c документами, back_populates указывает на атрибут в модели ParsDocument, который ссылается на эту модель
+    pars_documents = relationship("ParsDocument", back_populates="case")
+
 
 class ParsDocument(Base):
     __tablename__ = "pars_documents"
@@ -77,6 +80,8 @@ class ParsDocument(Base):
     declarer: Mapped[str] = mapped_column(Text, nullable=True)
     document: Mapped[str] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(Text, nullable=True, default="not_sent")
+
+    case = relationship("Case", back_populates="pars_documents")
 
 
 class CourtSession(Base):
