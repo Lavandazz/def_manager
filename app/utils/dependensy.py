@@ -6,6 +6,7 @@ from fastapi import Depends, Request
 
 from app.services.auth_service import AuthService
 from app.services.case_service import CaseService
+from app.services.court_service import CourtService
 from app.services.token_service import TokenService
 from app.services.user_service import UserService
 
@@ -13,6 +14,7 @@ from app.utils.auth.auth_token import AuthTokenService
 from config.db.models import User
 from config.repository.case_repository import CaseAlchemyRepository
 from config.db.database import UnitOfWork
+from config.repository.court_repositoty import CourtAlchemyRepository
 from config.repository.token_repository import TokenAlchemyRepository
 from config.repository.user_repository import UserAlchemyRepository
 from config.settings_env import settings
@@ -73,6 +75,7 @@ async def get_user_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db
     """
     return UserAlchemyRepository(unit_of_work.session)
 
+
 async def get_user_service(user_repo: Annotated[UserAlchemyRepository, Depends(get_user_repository)]):
     """
     Функция для DI в api сервисах,
@@ -80,6 +83,25 @@ async def get_user_service(user_repo: Annotated[UserAlchemyRepository, Depends(g
     user_service = UserService(session)
     """
     service = UserService(user_repo)
+    return service
+
+
+async def get_court_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]):
+    """
+    Функция для DI в api сервисах,
+    например, в эндпоинте получаем репозиторий и работаем с сервисом,
+    court_service = CourtService(repo)
+    """
+    return CourtAlchemyRepository(unit_of_work.session)
+
+
+async def get_court_service(court_repo: Annotated[CourtAlchemyRepository, Depends(get_court_repository)]):
+    """
+    Функция для DI в api сервисах,
+    Получаем сессию и работаем с сервисом,
+    court_service = CourtService(session)
+    """
+    service = CourtService(court_repo)
     return service
 
 
@@ -110,5 +132,5 @@ async def get_optional_user(
     # предаем токен из заголовка в метод get_current_user сервиса AuthService, который проверяет токен и возвращает текущего пользователя 
     # или выбрасывает исключение при ошибке проверки.
 
-    return await auth.get_user_from_cookie(request) 
+    return await auth.get_user_from_cookie(request)
 

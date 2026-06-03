@@ -30,6 +30,27 @@ class AbstractCaseRepository(ABC):
         pass
 
 
+class AbstractCourtRepository(ABC):
+    """
+    Абстрактный класс для патерна Репозиторий.
+    """
+    @abstractmethod
+    async def add_court(self, param):
+        pass
+
+    @abstractmethod
+    async def get_all_courts(self, user_id):
+        pass
+
+    @abstractmethod
+    async def update(self, param):
+        pass
+
+    @abstractmethod
+    async def delete(self, date):
+        pass
+
+
 class AbstractTokenRepository(ABC):
     """
     Абстрактный класс для патерна Репозиторий.

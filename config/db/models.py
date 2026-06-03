@@ -7,6 +7,19 @@ from sqlalchemy import Date, ForeignKey, Integer, Text, TIMESTAMP, func, BigInte
 class Base(DeclarativeBase):
     pass
 
+class Case(Base):
+    __tablename__ = "cases"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    number_case: Mapped[str] = mapped_column(Text, nullable=True)
+    id_user: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    debtor: Mapped[str] = mapped_column(Text, nullable=True)
+    status: Mapped[int] = mapped_column(Integer, nullable=True, default=0)
+
+    # связь c документами, back_populates указывает на атрибут в модели ParsDocument, который ссылается на эту модель
+    pars_documents = relationship("ParsDocument", back_populates="case")
+    court_sessions = relationship("CourtSession", back_populates="case")
+    user = relationship("User", back_populates="cases", foreign_keys=[id_user])
+
 
 class User(Base):
     __tablename__ = "users"
@@ -20,14 +33,13 @@ class User(Base):
     
     # связь с ролями через таблицу user_roles
     user_role: Mapped[Optional["UserRole"]] = relationship(back_populates="user")
+    cases = relationship("Case", back_populates="user", foreign_keys=[Case.id_user])
 
     def __repr__(self) -> str: # вывод в консоль для отладки
         return f"User(id={self.id!r}, name={self.username!r}, fullname={self.email!r})"
     
     def __str__(self) -> str: # строковое представление для удобства чтения (логгер)
             return f"Пользователь {self.id}, username {self.username}"
-    
-
 
 
 class Role(Base):
@@ -60,18 +72,6 @@ class UserRole(Base):
     role: Mapped["Role"] = relationship(back_populates="user_roles")  
 
 
-class Case(Base):
-    __tablename__ = "cases"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    number_case: Mapped[str] = mapped_column(Text, nullable=True)
-    id_user: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
-    debtor: Mapped[str] = mapped_column(Text, nullable=True)
-    status: Mapped[int] = mapped_column(Integer, nullable=True, default=0)
-
-    # связь c документами, back_populates указывает на атрибут в модели ParsDocument, который ссылается на эту модель
-    pars_documents = relationship("ParsDocument", back_populates="case")
-
-
 class ParsDocument(Base):
     __tablename__ = "pars_documents"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -91,6 +91,8 @@ class CourtSession(Base):
     date_court: Mapped[date] = mapped_column(Date, nullable=True)
     time_court: Mapped[str] = mapped_column(Text, nullable=True)
     hall_court: Mapped[str] = mapped_column(Text, nullable=True)
+
+    case = relationship("Case", back_populates="court_sessions")
 
 
 class SupportTicket(Base):

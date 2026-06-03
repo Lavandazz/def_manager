@@ -2,12 +2,7 @@
 
 {% block title %}{{ title }}{% endblock %}
 
-
 {% block main %}
-
-  {% block navbar %}
-    {% include 'components/navbar.html' %}   <!-- вставка навигации -->
-  {% endblock %}
 
   {% block base_content %}
     <div class="container-fluid mt-3">
@@ -22,7 +17,6 @@
         <div class="col-3 mt-4">
           {% block navigation %}
             {% include "components/navigation.html" %}
-            
           {% endblock %}
         </div>
 
@@ -38,7 +32,5 @@
     </div>
   {% endblock base_content %}
 
-  {% block login %}{% endblock login %}
 
-  
 {% endblock main %}

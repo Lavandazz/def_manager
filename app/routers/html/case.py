@@ -1,19 +1,40 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from starlette import status
 
 from app.services.case_service import CaseService
-from app.services.user_service import UserService
-from app.utils.dependensy import get_case_service, get_user_service, get_verify_user
+from app.services.court_service import CourtService
+from app.utils.dependensy import get_case_service, get_optional_user, get_court_service
 from config.db.models import User
-
-from datetime import datetime
-import time
 
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
+
+
+@router.get("/courts", response_class=HTMLResponse)
+async def get_courts(
+    request: Request,
+    user: User = Depends(get_optional_user),
+    court_service: CourtService = Depends(get_court_service)
+):
+    """
+    Получение всех судебных заседаний для текущего пользователя и отображение их на странице."""
+    if not user:
+        return templates.TemplateResponse(request, "index.html", context={"title": "Главная страница"})
+    
+    courts = await court_service.get_courts(user_id=user.id)
+    for court in courts:
+        print(f"Заседание: {court.date_court} {court.time_court}")
+        print(f"Связанные данные дела: {court.case.number_case if court.case else 'Нет данных о деле'}")
+
+    context = {
+        "request": request,
+        "title": "Календарь судебных заседаний",
+        "user": user,
+        "courts": courts
+    }
+    return templates.TemplateResponse(request, "case/court_detail.html", context)
 
 
 @router.get("/{case_id}", response_class=HTMLResponse)
@@ -22,9 +43,9 @@ async def case_detail(
     case_id: int,
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1),
-    case_service: CaseService = Depends(get_case_service)
+    case_service: CaseService = Depends(get_case_service),
+    user: User = Depends(get_optional_user),
 ):
-    # Получаем само дело (без документов, или с ними, но мы всё равно их не используем)
     case = await case_service.get_case(case_id=case_id)  # должен возвращать Case по id
     
     # Получаем документы с пагинацией
@@ -34,6 +55,7 @@ async def case_detail(
     
     context = {
         "request": request,
+        "user": user,
         "title": case.number_case,
         "case": case,
         "documents": documents,
@@ -43,43 +65,3 @@ async def case_detail(
         "total_docs": total_docs,
     }
     return templates.TemplateResponse(request, "case/case_detail.html", context)
-
-# @router.get("/", response_class=HTMLResponse)
-# async def case_detail(
-#     request: Request,
-#     case_id: int,
-#     page: int =Query(1, ge=1),
-#     size: int =Query(10, ge=1),
-#     user_service: UserService = Depends(get_user_service),
-#     case_service: CaseService = Depends(get_case_service)
-# ):
-#     """
-#     Отображение страницы сданными о деле
-#     """
-#     case = await case_service.get_case(case_id=case_id)
-#     total_docs = len(case.pars_documents)
-#     pages = (total_docs + size - 1) // size  # Вычисляем общее количество страниц
-
-#     context = {
-#         "request": request,
-#         "title": case.number_case,
-#         "case": case,
-        
-#     }
-
-#     return templates.TemplateResponse(request, "case/case_detail.html", context)
-
-
-
-async def timer(func):
-    async def wrapper(*args, **kwargs):
-        start= time.perf_counter()
-        result = await func(*args, **kwargs)
-        end = time.perf_counter()
-        print(f"Время выполнения функции {func.__name__}: {end - start}")
-        return result
-    return wrapper
-
-
-async def total_docs_in_case(case):
-    return len(case.pars_documents)

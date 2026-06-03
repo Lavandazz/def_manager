@@ -15,7 +15,6 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
-
 @router.get("/", response_class=HTMLResponse)
 async def main_page(
     request: Request,
@@ -31,13 +30,13 @@ async def main_page(
         "title": "Главная страница",}
     
     if not user:
-        return templates.TemplateResponse(request, "layout.html", context)
+        return templates.TemplateResponse(request, "index.html", context)
     
     cases = await case_service.get_user_cases(user_id=user.id)
     context["cases"] = cases
     context["user"] = user
 
-    return templates.TemplateResponse(request, "layout.html", context)
+    return templates.TemplateResponse(request, "index.html", context)
 
 
 

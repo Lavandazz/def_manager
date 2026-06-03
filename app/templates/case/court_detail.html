@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+{% if courts %}
+  <ul class="list-group">
+    {% for court in courts %}
+      <li class="list-group-item">
+        <strong>Дело №{{ court.case.number_case }}</strong><br>
+        Дата: {{ court.date_court }} | Время: {{ court.time_court }} | Зал: {{ court.hall_court or "не указан" }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>У вас нет предстоящих судебных заседаний.</p>
+{% endif %}
+{% endblock %}
