@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}Редактирование профиля{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">Редактирование профиля</h3>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ error }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="/user/profile/edit">
+                        <!-- Поле email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email (необязательно)</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                  value="{{ user.email|default('') }}" placeholder="example@mail.ru">
+                            <div class="form-text">Укажите актуальный email.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="telegram_id" class="form-label">Telegram ID (необязательно)</label>
+                            <input type="number" class="form-control" id="telegram_id" name="telegram_id"
+                                  value="{{ user.telegram_id|default('') }}" placeholder="123456789">
+                            <div class="form-text">Ваш числовой идентификатор в Telegram.</div>
+                        </div>
+
+                        <!-- Пароль для подтверждения изменений -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Пароль <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <div class="form-text">Введите текущий пароль для подтверждения изменений.</div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="/user/profile" class="btn btn-secondary me-md-2">Отмена</a>
+                            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

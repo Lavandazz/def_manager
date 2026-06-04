@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.services.case_service import CaseService
@@ -15,7 +15,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/", tags=["html_main"], response_class=HTMLResponse)
 async def main_page(
     request: Request,
     user: User = Depends(get_optional_user),
@@ -40,10 +40,10 @@ async def main_page(
 
 
 
-@router.get("/login", response_class=HTMLResponse)
+@router.get("/login", tags=["html_main"], response_class=HTMLResponse)
 async def login_page(request: Request):
     """
-    Страница логина. Пока просто шаблон, без логики.
+    Отображение страницы логина.
     """
     context = {
         "request": request,
@@ -52,7 +52,7 @@ async def login_page(request: Request):
     return templates.TemplateResponse(request, "user/login.html", context)
 
 
-@router.post("/login", response_class=HTMLResponse)
+@router.post("/login", tags=["html_main"], response_class=HTMLResponse)
 async def login(
     request: Request,
     telegram_id: str = Form(None),   
@@ -94,7 +94,7 @@ async def login(
     return response
 
 
-@router.get("/logout")
+@router.get("/logout", tags=["html_main"])
 async def logout():
     response = RedirectResponse(url="/login")
     response.delete_cookie("access_token")

@@ -19,7 +19,7 @@ from config.schemas.user_schemas import UserLogin, UserRegistration
 router = APIRouter()
 
 
-@router.get("/cases", tags=["case"])
+@router.get("/cases", tags=["api_case"])
 async def get_user_cases(
     user: User = Depends(get_verify_user),
     case_service: CaseService = Depends(get_case_service)

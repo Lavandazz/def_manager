@@ -6,7 +6,7 @@
         <a class="nav-link" href="/">Главная</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/user/homemage">Мои дела</a>
+        <a class="nav-link" href="/user/profile">Мои дела</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="#">Документы</a>
@@ -21,6 +21,9 @@
       {% if user %}
         <li class="nav-item">
           <span class="nav-link disabled">{{ user.username }}</span>  <!-- просто текст -->
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/user/profile">Профиль</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/logout">Выйти</a>

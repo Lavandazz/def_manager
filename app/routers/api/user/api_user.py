@@ -12,13 +12,13 @@ from app.utils.dependensy import get_token_service, get_user_service, get_verify
 from config.db.models import User
 from config.logger_config import profile_logger
 from config.schemas.token_schemas import AuthTokenSchema
-from config.schemas.user_schemas import UserLogin, UserRegistration, UserNameSchema
+from config.schemas.user_schemas import UserLogin, UserRegistration
 
 
 router = APIRouter()
 
 
-@router.get("/profile", tags=["profile"])
+@router.get("/profile", tags=["api_profile"])
 async def get_profile(user: User = Depends(get_verify_user)):
     """
     Для отладки передаем id пользователя.
@@ -33,7 +33,7 @@ async def get_profile(user: User = Depends(get_verify_user)):
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Пользователь не найден')
 
 
-@router.post("/register", tags=["auth"])
+@router.post("/register", tags=["api_auth"])
 async def register_user(
         user_service: Annotated[UserService, Depends(get_user_service)],
         user: UserRegistration
@@ -81,7 +81,7 @@ async def register_user(
 
 
 
-@router.post("/login", tags=["auth"])
+@router.post("/login", tags=["api_auth"])
 async def login(
     user_service: Annotated[UserService, Depends(get_user_service)],
     user: UserLogin
@@ -121,7 +121,7 @@ async def login(
     }
 
 
-@router.post("/logout", tags=["auth"])
+@router.post("/logout", tags=["api_auth"])
 async def logout(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
                  token_service: TokenService = Depends(get_token_service)):
     """Выход из системы - добавление токена в черный список и деактивация"""

@@ -1,5 +1,5 @@
 from config.db.models import User
-from config.schemas.user_schemas import UserRegistration
+from config.schemas.user_schemas import UserRegistration, UserSchema
 
 
 class UserService:
@@ -25,15 +25,12 @@ class UserService:
         :return: объект User, если найден, иначе None
         """
         if telegram_id:
-            print("получаю юзера по telegram_id")
             return await self.repository.get_user(telegram_id=int(telegram_id))
         
         elif email:
-            print("получаю юзера по мылу")
             return await self.repository.get_user(email=email)
         
         else:
-            print("параметры не верные")
             return None
         
     async def get_user_by_id(self, user_id) -> User | None:
@@ -50,8 +47,8 @@ class UserService:
         """
         return await self.repository.get_user_by_name(username=username)
 
-    async def update_user(self, user):
-        pass
+    async def update_user(self, user: User, user_data: UserSchema):
+        return await self.repository.update_user(user, user_data)
 
     async def delete_user(self, email):
         """

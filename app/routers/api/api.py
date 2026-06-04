@@ -8,7 +8,7 @@ from config.db.models import User
 router = APIRouter()
 
 
-@router.get("/cases")
+@router.get("/cases", tags=["api_case"])
 async def get_cases(cases_service: Annotated[CaseService, Depends(get_case_service)],
                     user: User = Depends(get_verify_user)):
     """

@@ -81,7 +81,7 @@ class AbstractUserRepository(ABC):
         pass
 
     @abstractmethod
-    async def update_user(self, user: User):
+    async def update_user(self, user: User, user_data):
         pass
 
     @abstractmethod

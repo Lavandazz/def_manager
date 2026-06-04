@@ -12,7 +12,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
-@router.get("/courts", response_class=HTMLResponse)
+@router.get("/courts", tags=["html_case"], response_class=HTMLResponse)
 async def get_courts(
     request: Request,
     user: User = Depends(get_optional_user),
@@ -37,7 +37,7 @@ async def get_courts(
     return templates.TemplateResponse(request, "case/court_detail.html", context)
 
 
-@router.get("/{case_id}", response_class=HTMLResponse)
+@router.get("/{case_id}", tags=["html_case"], response_class=HTMLResponse)
 async def case_detail(
     request: Request,
     case_id: int,

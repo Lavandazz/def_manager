@@ -1,8 +1,9 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from config.db.abstract_repository import AbstractUserRepository
 from config.db.models import User
 from config.logger_config import db_logger
+from config.schemas.user_schemas import UserSchema
 
 
 class UserAlchemyRepository(AbstractUserRepository):
@@ -60,8 +61,28 @@ class UserAlchemyRepository(AbstractUserRepository):
         db_logger.debug("Пользователь по username: %s", user)
         return user
     
-    async def update_user(self, user):
-        pass
+    async def update_user(self, user: User, user_data: UserSchema):
+        try:
+            db_logger.info("Принимял данные для обновления: %s", user_data)
+            # exclude_unset=True - исключаем поля, которые не были переданы в запросе, чтобы не перезаписывать их значениями по умолчанию
+
+            update_values = user_data.model_dump(exclude_unset=True)
+            if not update_values:
+                return user
+
+            db_logger.info("Обновляю поля: %s", update_values)
+            stmt = update(User).where(User.id == user.id).values(**update_values)
+
+            await self.session.execute(stmt)
+            await self.session.commit()
+            await self.session.refresh(user)  # обновляем объект user после коммита, чтобы получить актуальные данные из БД
+            db_logger.info("Пользователь обновлен: %s", user)
+
+            return user # возвращаем обновленного пользователя, чтобы использовать его данные в ответе
+
+        except Exception as e:
+            await self.session.rollback()
+            db_logger.exception("Ошибка при обновлении пользователя: %s", e)
 
     
     async def delete_user(self, user):

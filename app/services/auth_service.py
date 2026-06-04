@@ -25,13 +25,12 @@ class AuthService:
         # {'id': 11, 'email': 'my@example.com', 'telegram_id': None, 'exp': 1780048439}
         payload = await self.auth_token_service.verify_token(token)
         user_id = payload.get("id")
-        print("payload из токена:", payload, "user_id:", user_id)
 
         if not user_id:
             raise HTTPException(401, "Неверный токен")
         
         user = await self.user_service.get_user_by_id(user_id)
-        print("user из БД:", user, user_id)
+        
         if not user:
             raise HTTPException(401, "Пользователь не найден")
         

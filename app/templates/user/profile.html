@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %}Профиль пользователя{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Ваш профиль</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th>Имя пользователя:</th>
+                            <td>{{ user.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ user.email|default("Не указан") }}</td>
+                        </tr>
+                        <tr>
+                            <th>Telegram ID:</th>
+                            <td>{{ user.telegram_id|default("Не указан") }}</td>
+                        </tr>
+                    </table>
+                    <div class="d-grid gap-2">
+                        <a href="/user/profile/edit" class="btn btn-outline-primary">Редактировать профиль</a>
+                        <a href="/" class="btn btn-secondary">На главную</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
