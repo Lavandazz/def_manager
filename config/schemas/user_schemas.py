@@ -29,3 +29,10 @@ class UserResponseSchema(BaseModel):
     user: UserSchema
 
 
+class CaseSchema(BaseModel):
+    number_case: str
+    debtor: str
+
+class CaseResponseSchema(BaseModel):
+    message: str
+    case: CaseSchema

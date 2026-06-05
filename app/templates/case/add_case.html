@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Добавление нового дела</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/user/cases">
+                    <div class="mb-3">
+                        <label for="number_case" class="form-label">Номер дела *</label>
+                        <input type="text" class="form-control" id="number_case" name="number_case" 
+                               placeholder="Например: А40-12345/2024" required>
+                        <div class="form-text">Обязательное поле. Укажите номер дела в формате, принятом в системе.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="debtor" class="form-label">Должник</label>
+                        <input type="text" class="form-control" id="debtor" name="debtor" 
+                               placeholder="ФИО или наименование должника">
+                        <div class="form-text">Необязательное поле. Можно указать должника по делу.</div>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">Создать дело</button>
+                        <a href="/user/profile" class="btn btn-secondary">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

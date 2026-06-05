@@ -71,27 +71,3 @@ async def update_profile(
     profile_logger.info("Данные профиля обновлены для user_id=%s", user.id)
     
     return RedirectResponse(url="/user/profile", status_code=303)
-
-
-# @router.post("/profile/edit", tags=["profile"], response_class=HTMLResponse)
-# async def update_profile(request: Request,
-#                          update_data: UserSchema,
-#                          password: str,
-#                          user: User = Depends(get_optional_user),
-#                          user_service: UserService = Depends(get_user_service)):
-#     """
-#     Изменение данных в профиле.
-#     Можно изменить email, telegram_id, пароль. Для изменения пароля нужно ввести текущий пароль для подтверждения.
-#     """
-#     if not user:
-#         return templates.TemplateResponse(request, "index.html", {"error": "Не авторизован"}, status_code=401)
-
-
-#     if not PasswordHasher.verify_password(password, user.hashed_password):
-#         return templates.TemplateResponse(request,"/user/profile_edit.html", {"error": "Неверный пароль"}, status_code=400)
-
-#     updated_user = await user_service.update_user(user, update_data)
-
-#     profile_logger.info("Данные в лк обновлены %s", updated_user)
-
-#     return RedirectResponse(url="/user/profile", status_code=303)

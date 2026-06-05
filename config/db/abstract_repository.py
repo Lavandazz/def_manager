@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod
 
-from config.db.models import User
+from config.db.models import User, Case
 
 
 class AbstractCaseRepository(ABC):
@@ -14,11 +14,11 @@ class AbstractCaseRepository(ABC):
     Абстрактный класс для патерна Репозиторий.
     """
     @abstractmethod
-    async def add_case(self, param):
+    async def add_case(self, case: Case):
         pass
 
     @abstractmethod
-    async def get_case(self, case_id):
+    async def get_case(self, case_id: int):
         pass
 
     @abstractmethod

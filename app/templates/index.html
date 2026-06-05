@@ -3,8 +3,14 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
+        {% if agree_message %}
+            <div class="alert alert-success" role="alert">
+                {{ agree_message }}
+            </div>
+        {% else %}
+                <p>Инструкция по использованию портала
 
-        <p>Инструкция по использованию портала</p>
-        <p> Тут будет много текста</p>
+                <p>Тут будет много текста</p>
+        {% endif %}
 
 {% endblock %}

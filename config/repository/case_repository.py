@@ -2,6 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from config.db.abstract_repository import AbstractCaseRepository
 from config.db.models import Case, ParsDocument
+from config.logger_config import db_logger
 
 
 class CaseAlchemyRepository(AbstractCaseRepository):
@@ -12,8 +13,19 @@ class CaseAlchemyRepository(AbstractCaseRepository):
     def __init__(self, session):
         self.session = session
 
-    async def add_case(self, param):
-        pass
+    async def add_case(self, case: Case):
+        """
+        Сохранение дела в базу данных.
+        Передаваемый объект должен быть экземпляром модели Case.
+        """
+        try:
+            self.session.add(case)
+            await self.session.commit()
+            return case
+
+        except Exception as e:
+            await self.session.rollback()
+            db_logger.exception("не удалось сохранить дело в бд: %s", e)
 
     async def get_case(self, case_id):
         """
@@ -24,7 +36,6 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         result = await self.session.execute(stmt)
         return result.scalars().first()
     
-
     async def get_case_documents_paginated(self, case_id: int, page: int, size: int):
         # 1. Общее количество документов для этого дела (нужно для пагинации)
         total_query = select(func.count(ParsDocument.id)).where(ParsDocument.id_case == case_id)
@@ -43,14 +54,6 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         
         return documents, total_docs
 
-    async def all_cases(self):
-        """
-        Получение всех cases не зависимо от фильтров
-        """
-        stmt = select(Case)
-        result = await self.session.execute(stmt)
-
-        return result.scalars().all()
 
     async def get_all_cases_by_user(self, user_id):
         """

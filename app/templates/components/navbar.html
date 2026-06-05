@@ -5,16 +5,22 @@
       <li class="nav-item">
         <a class="nav-link" href="/">Главная</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/user/profile">Мои дела</a>
+      <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Мои дела</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/user/cases/create">Создать дело</a></li>
+              <li><a class="dropdown-item" href="#">Список дел</a></li>
+              <li><a class="dropdown-item" href="#">Link 3</a></li>
+            </ul>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="#">Документы</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/user/case/courts">Заседания</a>
+        <a class="nav-link" href="/user/courts">Заседания</a>
       </li>
     </ul>
+    
 
     <!-- Правая часть меню (пользователь и выход) -->
     <ul class="navbar-nav">
@@ -22,8 +28,12 @@
         <li class="nav-item">
           <span class="nav-link disabled">{{ user.username }}</span>  <!-- просто текст -->
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/user/profile">Профиль</a>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Профиль</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/user/profile">Мой профиль</a></li>
+            <li><a class="dropdown-item" href="/user/profile/edit">Настройки</a></li>
+          </ul>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/logout">Выйти</a>

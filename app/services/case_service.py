@@ -6,6 +6,9 @@ class CaseService:
     def __init__(self, repository):
         self.repository = repository
 
+    async def add_case(self, case):
+        await self.repository.add_case(case)
+
     async def get_case(self, case_id):
         return await self.repository.get_case(case_id)
 
