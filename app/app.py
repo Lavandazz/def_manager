@@ -13,6 +13,7 @@ from app.routers.html.user import router as user_router
 from app.routers.html.case import router as case_router
 from app.routers.html.index import router as main_router
 from app.routers.html.courts import router as court_router
+from app.routers.html.parser import router as parser_router
 
 app = FastAPI(debug=True)
 
@@ -36,4 +37,4 @@ app.include_router(main_router)
 app.include_router(user_router, prefix="/user")
 app.include_router(case_router, prefix="/user/cases")
 app.include_router(court_router, prefix="/user/courts")
-
+app.include_router(parser_router, prefix="/parsing")

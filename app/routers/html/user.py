@@ -23,6 +23,7 @@ async def get_profile(request: Request,
     :param user: данные берутся из data токена
     :return:
     """
+
     # Получаем данные из токена
     if not user:
         return templates.TemplateResponse(request, "index.html", context={"error": "Пользователь не авторизован"})
@@ -34,6 +35,7 @@ async def get_profile(request: Request,
 @router.get("/profile/edit", response_class=HTMLResponse)
 async def edit_profile_form(request: Request, 
                             user: User = Depends(get_optional_user)):
+    
     if not user:
         return templates.TemplateResponse("index.html", {"request": request, "error": "Не авторизован"})
     return templates.TemplateResponse(request, "user/profile_edit.html", {
@@ -71,3 +73,5 @@ async def update_profile(
     profile_logger.info("Данные профиля обновлены для user_id=%s", user.id)
     
     return RedirectResponse(url="/user/profile", status_code=303)
+
+

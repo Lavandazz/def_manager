@@ -4,9 +4,15 @@
   <h2>Дело: {{ case.number_case }}</h2>
   <p><strong>Должник:</strong> {{ case.debtor }}</p>
   <p><strong>Статус:</strong> {{ case.status }}</p>
+  <p><strong>id:</strong> {{ case.id }}</p>
 
+  {# кнопка парсинга для отладки #}
+  <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+    <a href="/parsing/{{ case.id }}" class="btn btn-outline-danger">Start</a>
+  </div>
+  
   <div class="accordion" id="accordionDocs">
-    {% for document in documents %}   {# ← здесь меняем #}
+    {% for document in documents %}   
       <div class="accordion-item">
         <h2 class="accordion-header" id="heading{{ loop.index }}">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
