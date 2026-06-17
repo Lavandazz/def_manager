@@ -7,3 +7,5 @@ def random_sleep_for_search():
 def random_sleep():
     return random.uniform(1.0, 4.3)
 
+def random_start_sleep():
+    return random.uniform(10.0, 15.3)

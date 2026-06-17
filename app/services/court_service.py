@@ -3,7 +3,6 @@ class CourtService:
         self.repository = repository
 
     async def get_courts(self, user_id):
-        print("Получаем заседания для пользователя", user_id)
         return await self.repository.get_all_courts(user_id)
     
     async def get_court_by_case(self, case_id):

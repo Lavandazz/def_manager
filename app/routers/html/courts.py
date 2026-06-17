@@ -22,9 +22,6 @@ async def get_courts(
         return templates.TemplateResponse(request, "index.html", context={"title": "Главная страница"})
     
     courts = await court_service.get_courts(user_id=user.id)
-    for court in courts:
-        print(f"Заседание: {court.date_court} {court.time_court}")
-        print(f"Связанные данные дела: {court.case.number_case if court.case else 'Нет данных о деле'}")
 
     context = {
         "request": request,

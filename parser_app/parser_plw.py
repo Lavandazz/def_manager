@@ -5,10 +5,10 @@ python -m parser.parser_plw
 import asyncio
 from datetime import datetime
 from httpx import TimeoutException
-from playwright.async_api import async_playwright, Page, BrowserContext
+from playwright.async_api import async_playwright, Page, BrowserContext, expect
 
 from config.logger_config import parser_logger
-from parser.utils.sleep import random_sleep_for_search, random_sleep
+from parser_app.utils.sleep import random_sleep_for_search, random_sleep, random_start_sleep
 
 
 class ParserKad:
@@ -151,15 +151,27 @@ class ParserKad:
         """
         try:
             case_number_link = self.page.locator("a[target='_blank'].num_case", has_text=self.case_number)
-            org = page.locator('span.js-rollover.b-newRollover').first
             
-            # Имитируем наведение, чтобы показать скрытый блок
-            await org.hover()
-            # или клик: await org.click()
-            # Теперь скрытый span стал видимым
-            hidden_span = org.locator('span.js-rolloverHtml')
-            inn_text = await hidden_span.inner_text()
-            print(inn_text)  # Содержит ИНН, адрес и т.д.
+            # Проверка содержимого текста респондента на примере дела А40-23673/2024
+            try:
+                respondent_cell = self.page.locator('td.respondent').filter(
+                has_text='ООО "ИТМ ИНЖИНИРИНГ"')
+                print("respondent_cell", await expect(respondent_cell).to_contain_text('ООО "ИТМ ИНЖИНИРИНГ"'))
+                x = expect(respondent_cell).to_contain_text('ООО "ИТМ ИНЖИНИРИНГ"')
+                
+                print("нашел название %s", x)
+                # Имитируем наведение, чтобы показать скрытый блок
+                await respondent_cell.hover()
+                # или клик: await org.click()
+                # Теперь скрытый span стал видимым
+                hidden_span = respondent_cell.locator('span.js-rolloverHtml')
+                # Получаем текст из скрытого содержимого (наименование, адрес, инн)
+                inn_text = await hidden_span.inner_text()
+                print("ИНН",inn_text)  # Содержит ИНН, адрес и т.д.
+
+            except Exception as e:
+                print("Не нашел инн",e)
+                
 
             await asyncio.sleep(random_sleep())
             # ожидаем открытия новой вкладки
@@ -177,13 +189,14 @@ class ParserKad:
             return self.new_page
 
         except Exception as e:
-            parser_logger.error("Ошибка при переходе на новую страницу",
-                                extra={
-                                    "case_number": self.case_number,  # Основной идентификатор
-                                    "step": "click_link_case",
-                                    "error": e,
-                                    "system": "parser",
-                                })
+            parser_logger.error("Ошибка при переходе на новую страницу %s", e)
+            # parser_logger.error("Ошибка при переходе на новую страницу",
+            #                     extra={
+            #                         "case_number": self.case_number,  # Основной идентификатор
+            #                         "step": "click_link_case",
+            #                         "error": e,
+            #                         "system": "parser",
+            #                     })
 
     async def search_red_calendar(self):
         """
@@ -323,18 +336,16 @@ class ParserKad:
 
 
 
-async def process_parsing(browser, case: str, link: str = None):
+async def process_parsing(browser, case: str):
     """ Запуск парсинга """
-
     context = await browser.new_context(
         viewport=None,  # Использовать размер экрана по умолчанию (как у обычного браузера)
         # user_agent=ua  # используем рандомный агент
     )
-    print('case:', case, 'link:', link)
     parser = ParserKad(url='https://kad.arbitr.ru/', case_number=case)
-    parser.context = context  # 👈 передаем context внутрь парсера
+    parser.context = context  # передаем context внутрь парсера
     await parser.run()  # запуск парсера
-    # await asyncio.sleep(random_sleep())
+    await asyncio.sleep(random_start_sleep())
     await context.close()
 
 
@@ -343,42 +354,47 @@ async def delayed_start(func, *args, delay=0):
     await func(*args)
 
 
-async def task_for_parsing(browser, cases_count: int, case_number: str|None = None, if_list: bool = False):
+async def task_for_parsing(browser, cases_count: int, case_number: str|list):
     """ 
     Формирование задачи для парсинга.
     :param case_number：Если передаем только один номер, то if_list оставляем False
     :param if_list: Булево значени, передаем ли список дел (периодический парсинг) или одно при сохранении дела в бд
-    :param cases: список из номеров дел
+    :param case_number: список из номеров дел или одно дело
     :param case_count: Количство, из которого будут строиться пары номеров дел для асинхронного парсинга
     """
-    # cases = [(case.number_case, case.case_link) for case in await Case.all() if case.status != 1]
-
     # А41-16113/2022, А40-23673/2024, А40-96576/2021, А41-22147/2016, А40-206349/2022
+    print("начинаю парсинг")
     cases = []
-    if case_number:
-        cases = [(case_number, "")]
-    len_cases = len(cases)  # сколько в списке номеров, используем для разбивки по группам парсинга
-    for i in range(0, len_cases, cases_count):
-        group = cases[i:i + cases_count]  # срез списка номеров дел
-        print('группа номеров:', group)
-        # Создаем задачи, которые запускаются с задержкой
-        tasks = []
-        sleep = random_sleep_for_search()
-        for idx, (number, link) in enumerate(group):
-            tasks.append(
-                asyncio.create_task(
-                    delayed_start(process_parsing, browser, number, link, delay=int(sleep)* idx)
-                )
-            )
-        await asyncio.gather(*tasks)
+    # Если передается список дел из бд для общего парсинга,
+    # Создаются задачи с таймаутами между парсингом
+    if isinstance(case_number, list):
+        len_cases = len(cases)  # сколько в списке номеров, используем для разбивки по группам парсинга
+        
+        for i in range(0, len_cases, cases_count):
+            group = cases[i:i + cases_count]  # срез списка номеров дел
+            # Создаем задачи, которые запускаются с задержкой
+            tasks = []
+            sleep = random_sleep_for_search()
+            print()
+            # for idx, number in enumerate(group):
+            #     tasks.append(
+            #         asyncio.create_task(
+            #             delayed_start(process_parsing, browser, number, delay=int(sleep)* idx)
+            #         )
+            #     )
+            # await asyncio.gather(*tasks)
 
-        time_sleep = random_sleep_for_search()
-        print("Пауза перед следующей парой cases...", time_sleep)
-        await asyncio.sleep(time_sleep)
+            time_sleep = random_sleep_for_search()
+            print("Пауза перед следующей парой cases...", time_sleep)
+            await asyncio.sleep(time_sleep)
+    else:
+        # Обычныуй случай, где передается номер дела - строка
+        await process_parsing(browser=browser, case=case_number)
 
 
 async def run_playwright_parsing(case_number: str):
     """Обертка для запуска парсера из внешнего кода"""
+    print("Запуск парсинга в run_playwright_parsing", case_number)
     try:
         async with async_playwright() as playwright:
             browser = await playwright.chromium.launch(
@@ -403,4 +419,4 @@ async def run_playwright_parsing(case_number: str):
         await browser.close()
         print('Браузер закрыт')
 
-# asyncio.run(run_playwright_parsing())
+# asyncio.run(run_playwright_parsing("А40-23673/2024"))
