@@ -18,7 +18,7 @@ async def get_cases(cases_service: Annotated[CaseService, Depends(get_case_servi
 
     """
     if user:
-        cases = await cases_service.get_all_cases()
+        cases = await cases_service.get_cases()
         if cases:
             return cases
     

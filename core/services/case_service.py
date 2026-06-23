@@ -15,9 +15,9 @@ class CaseService:
     async def get_case_documents_paginated(self, case_id: int, page: int, size: int):
         return await self.repository.get_case_documents_paginated(case_id, page, size)
     
-    async def get_all_cases(self, *args,):
+    async def get_cases(self, *args,):
         return await self.repository.get_cases()
         
     async def get_user_cases(self, user_id):
-        return await self.repository.get_all_cases_by_user(user_id)
+        return await self.repository.get_cases_by_user(user_id)
     

@@ -28,6 +28,7 @@ celery -A tasks.app flower
 from celery import Celery
 from .settings_env import settings
 
+CASES = []
 
 app = Celery(
     'tasks',
@@ -45,5 +46,11 @@ app.conf.beat_schedule = {
         'schedule': 30.0,
         'args': ("hello",),
         'options': {'queue': 'messages'}, 
+    },
+    'everyday-parsing': {
+        'task': 'celery_app.task_manager.start_parsing',
+        'crontab': [mon, fri],
+        'case_numbers': CASES,
+        'options': {'queue': 'parsing'}, 
     },
 }

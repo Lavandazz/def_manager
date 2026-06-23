@@ -54,7 +54,7 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         
         return documents, total_docs
 
-    async def get_all_cases_by_user(self, user_id):
+    async def get_cases_by_user(self, user_id):
         """
         Получение всех дел, отфильтрованных по пользователю
         """
