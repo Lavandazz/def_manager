@@ -22,6 +22,10 @@ class AbstractCaseRepository(ABC):
         pass
 
     @abstractmethod
+    async def get_cases(self):
+        pass
+
+    @abstractmethod
     async def update(self, param):
         pass
 

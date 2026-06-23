@@ -54,7 +54,6 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         
         return documents, total_docs
 
-
     async def get_all_cases_by_user(self, user_id):
         """
         Получение всех дел, отфильтрованных по пользователю
@@ -63,6 +62,14 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         result = await self.session.execute(stmt)
         return result.scalars().all()
     
+    async def get_cases(self) -> list[Case]:
+        """
+        Получение всех актуальных номеров дел.
+        Case.status == 0 - дело не удалено и считается актуальным
+        """
+        stmt = select(Case).where(Case.status == 0)
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
 
     async def update(self, param):
         pass

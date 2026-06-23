@@ -3,7 +3,6 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from fastapi import Depends, Request
 
-
 from app.services.auth_service import AuthService
 from app.services.case_service import CaseService
 from app.services.court_service import CourtService

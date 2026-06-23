@@ -14,7 +14,7 @@ broker_url = os.environ["CELERY_BROKER_URL"] = f"redis://:{settings.REDIS_PASSWO
 
 # Команда для выполнения в терминале
 # command = ["celery", "-A", "tasks", "flower"]
-command = ["celery", "-A", "app.utils.task_manager", "flower"]
+command = ["celery", "-A", "celery_app.task_manager", "flower"]
 
 # Запускаем процесс в фоне
 process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

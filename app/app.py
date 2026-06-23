@@ -42,5 +42,3 @@ app.include_router(case_router, prefix="/user/cases")
 app.include_router(court_router, prefix="/user/courts")
 
 app.include_router(parser_router, prefix="/parsing")
-
-

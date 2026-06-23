@@ -8,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.services.case_service import CaseService
 from app.utils.dependensy import get_case_service, get_optional_user
-from app.utils.task_manager import parsing_task
+from celery_app.task_manager import parsing_task
 
 from config.db.models import User
 from parser_app.parser_plw import run_playwright_parsing
