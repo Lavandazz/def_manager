@@ -3,19 +3,19 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from fastapi import Depends, Request
 
-from app.services.auth_service import AuthService
-from app.services.case_service import CaseService
-from app.services.court_service import CourtService
-from app.services.token_service import TokenService
-from app.services.user_service import UserService
+from core.services.auth_service import AuthService
+from core.services.case_service import CaseService
+from core.services.court_service import CourtService
+from core.services.token_service import TokenService
+from core.services.user_service import UserService
 
 from app.utils.auth.auth_token import AuthTokenService
 from config.db.models import User
-from config.repository.case_repository import CaseAlchemyRepository
+from core.repository.case_repository import CaseAlchemyRepository
 from config.db.database import UnitOfWork
-from config.repository.court_repositoty import CourtAlchemyRepository
-from config.repository.token_repository import TokenAlchemyRepository
-from config.repository.user_repository import UserAlchemyRepository
+from core.repository.court_repositoty import CourtAlchemyRepository
+from core.repository.token_repository import TokenAlchemyRepository
+from core.repository.user_repository import UserAlchemyRepository
 from config.settings_env import settings
 
 security = HTTPBearer()

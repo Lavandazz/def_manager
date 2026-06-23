@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from app.services.case_service import CaseService
+from core.services.case_service import CaseService
 from app.utils.dependensy import get_case_service, get_optional_user
 from celery_app.task_manager import parsing_task
 from config.db.models import Case, User

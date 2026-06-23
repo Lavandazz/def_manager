@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from app.services.court_service import CourtService
+from core.services.court_service import CourtService
 from app.utils.dependensy import get_court_service, get_optional_user
 from config.db.models import User
 

@@ -1,7 +1,7 @@
 from fastapi import HTTPException, Request
 
-from app.services.token_service import TokenService
-from app.services.user_service import UserService
+from core.services.token_service import TokenService
+from core.services.user_service import UserService
 from app.utils.auth.auth_token import AuthTokenService
 from config.db.models import User
 

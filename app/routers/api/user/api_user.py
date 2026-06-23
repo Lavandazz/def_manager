@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.services.token_service import TokenService
-from app.services.user_service import UserService
+from core.services.token_service import TokenService
+from core.services.user_service import UserService
 from app.utils.auth.auth_token import AuthTokenService
 from app.utils.auth.password_hasher import PasswordHasher
 from app.utils.dependensy import get_token_service, get_user_service, get_verify_user

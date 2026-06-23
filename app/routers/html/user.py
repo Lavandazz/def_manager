@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from app.services.user_service import UserService
+from core.services.user_service import UserService
 from app.utils.dependensy import get_optional_user, get_user_service
 from app.utils.auth.password_hasher import PasswordHasher
 from config.db.models import User

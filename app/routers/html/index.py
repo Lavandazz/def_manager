@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from app.services.case_service import CaseService
-from app.services.user_service import UserService
+from core.services.case_service import CaseService
+from core.services.user_service import UserService
 from app.utils.auth.auth_token import AuthTokenService
 from app.utils.auth.password_hasher import PasswordHasher
 from app.utils.dependensy import get_case_service, get_user_service, get_optional_user
