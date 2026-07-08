@@ -5,20 +5,20 @@
       <li class="nav-item">
         <a class="nav-link" href="/">Главная</a>
       </li>
-      <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Мои дела</a>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="/user/cases/create">Создать дело</a></li>
-              <!-- <li><a class="dropdown-item" href="#">Список дел</a></li> -->
-              <!-- <li><a class="dropdown-item" href="#">Link 3</a></li> -->
-            </ul>
-      </li>
-      <li class="nav-item">
-        <!--  <a class="nav-link" href="#">Документы</a> -->
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/user/courts/">Заседания</a>
-      </li>
+      {% if user %}
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Мои дела</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/user/cases/create">Создать дело</a></li>
+                <li><a class="dropdown-item" href="#">Удалить дело</a></li>
+              </ul>
+        </li>
+        <li class="nav-item">
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/user/courts/">Заседания</a>
+        </li>
+      {% endif %}
     </ul>
     
 

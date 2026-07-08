@@ -26,6 +26,7 @@ celery -A tasks.app flower
 """
 
 from celery import Celery
+from celery.schedules import crontab
 from .settings_env import settings
 
 CASES = []
@@ -49,7 +50,7 @@ app.conf.beat_schedule = {
     },
     'everyday-parsing': {
         'task': 'celery_app.task_manager.start_parsing',
-        'crontab': [mon, fri],
+        'schedule': crontab(hour=7, minute=30, day_of_week=[1, 4]),
         'case_numbers': CASES,
         'options': {'queue': 'parsing'}, 
     },
