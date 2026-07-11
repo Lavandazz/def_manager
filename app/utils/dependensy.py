@@ -1,6 +1,6 @@
 from typing import Annotated
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from config.db.db_config import get_db
 from fastapi import Depends, Request
 
 from core.services.auth_service import AuthService
@@ -16,19 +16,10 @@ from config.db.database import UnitOfWork
 from core.repository.court_repositoty import CourtAlchemyRepository
 from core.repository.token_repository import TokenAlchemyRepository
 from core.repository.user_repository import UserAlchemyRepository
-from config.settings_env import settings
+
 
 security = HTTPBearer()
 
-ADB_URL = settings.get_async_db_url()
-engine = create_async_engine(url=ADB_URL)
-async_sessionmaker = async_sessionmaker(bind=engine, expire_on_commit=False)
-
-
-async def get_db():
-    unit_of_work = UnitOfWork(async_sessionmaker)
-    async with unit_of_work:
-        yield unit_of_work
 
 async def get_case_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]):
     """
@@ -38,6 +29,7 @@ async def get_case_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db
     """
     return CaseAlchemyRepository(unit_of_work.session)
 
+
 async def get_case_service(case_repo: Annotated[CaseAlchemyRepository, Depends(get_case_repository)]):
     """
     Функция для DI в api сервисах,
@@ -45,7 +37,6 @@ async def get_case_service(case_repo: Annotated[CaseAlchemyRepository, Depends(g
     """
     service = CaseService(case_repo)
     return service
-
 
 
 async def get_token_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]):

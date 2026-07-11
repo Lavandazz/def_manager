@@ -8,11 +8,10 @@ celery -A config.tasks_config beat --loglevel=info
 python run_flower.py
 
 """
-
 import asyncio
 from config.tasks_config import app
 
-@app.task(bind=True, max_retries=2, default_retry_delay=60, queue="case_parsing")
+@app.task(bind=True, max_retries=2, default_retry_delay=60, queue="parsing")
 def parsing_task(self, case_number: str):
     # bind=True - флаг для доступа к атрибутам задачи, таким как self.retry
     from parser_app.parser_plw import run_playwright_parsing
@@ -34,5 +33,5 @@ def send_message(arg):
 
 
 @app.task(queue="parsing")
-def start_parsing(self, case_numbers: list):
+def start_parsing(self):
     pass

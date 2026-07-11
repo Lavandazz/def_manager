@@ -335,7 +335,6 @@ class ParserKad:
             await self.new_page.close()
 
 
-
 async def process_parsing(browser, case: str):
     """ Запуск парсинга """
     context = await browser.new_context(
@@ -349,52 +348,8 @@ async def process_parsing(browser, case: str):
     await context.close()
 
 
-async def delayed_start(func, *args, delay=0):
-    await asyncio.sleep(delay)
-    await func(*args)
-
-
-async def task_for_parsing(browser, cases_count: int, case_number: str|list):
-    """ 
-    Формирование задачи для парсинга.
-    :param case_number：Если передаем только один номер, то if_list оставляем False
-    :param if_list: Булево значени, передаем ли список дел (периодический парсинг) или одно при сохранении дела в бд
-    :param case_number: список из номеров дел или одно дело
-    :param case_count: Количство, из которого будут строиться пары номеров дел для асинхронного парсинга
-    """
-    # А41-16113/2022, А40-23673/2024, А40-96576/2021, А41-22147/2016, А40-206349/2022
-    print("начинаю парсинг")
-    cases = []
-    # Если передается список дел из бд для общего парсинга,
-    # Создаются задачи с таймаутами между парсингом
-    if isinstance(case_number, list):
-        len_cases = len(cases)  # сколько в списке номеров, используем для разбивки по группам парсинга
-        
-        for i in range(0, len_cases, cases_count):
-            group = cases[i:i + cases_count]  # срез списка номеров дел
-            # Создаем задачи, которые запускаются с задержкой
-            tasks = []
-            sleep = random_sleep_for_search()
-            print()
-            # for idx, number in enumerate(group):
-            #     tasks.append(
-            #         asyncio.create_task(
-            #             delayed_start(process_parsing, browser, number, delay=int(sleep)* idx)
-            #         )
-            #     )
-            # await asyncio.gather(*tasks)
-
-            time_sleep = random_sleep_for_search()
-            print("Пауза перед следующей парой cases...", time_sleep)
-            await asyncio.sleep(time_sleep)
-    else:
-        # Обычныуй случай, где передается номер дела - строка
-        await process_parsing(browser=browser, case=case_number)
-
-
 async def run_playwright_parsing(case_number: str):
     """Обертка для запуска парсера из внешнего кода"""
-    print("Запуск парсинга в run_playwright_parsing", case_number)
     try:
         async with async_playwright() as playwright:
             browser = await playwright.chromium.launch(
@@ -411,12 +366,9 @@ async def run_playwright_parsing(case_number: str):
                 chromium_sandbox=False,
                 ignore_default_args=["--enable-automation"],  # Отключаем automation флаг
             )
-            cnt = 2
-            await task_for_parsing(browser, cnt, case_number=case_number)
-
-
+            await process_parsing(browser=browser, case=case_number)
     finally:
         await browser.close()
-        print('Браузер закрыт')
+        
 
 # asyncio.run(run_playwright_parsing("А40-23673/2024"))

@@ -45,8 +45,6 @@ async def add_case(
     """
     ###
     ### Переделать форму через пайдантик с валидацией номера дела
-    
-    print("Полученные данные: number_case=%s, debtor=%s", number_case, debtor)
 
     if not user:
         return templates.TemplateResponse("index.html", {"request": request, "error": "Не авторизован"}, status_code=401)
@@ -92,6 +90,9 @@ async def case_detail(
     user: User = Depends(get_optional_user),
 ):
     # fastapi_logger.warning(f"Request from {request.client.host}, UA: {request.headers.get('user-agent')}")
+    if user is None:
+        return templates.TemplateResponse("index.html", {"request": request, "error": "Не авторизован"}, status_code=401)
+    
     case = await case_service.get_case(case_id=case_id)  # должен возвращать Case по id
     
     # Получаем документы с пагинацией

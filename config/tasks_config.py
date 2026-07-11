@@ -42,16 +42,17 @@ app.autodiscover_tasks(['celery_app'])
 
 app.conf.beat_schedule = {
     'add-every-10-seconds': {
-        # 'task': 'tasks.add',  # запуск задачи парсинга
         'task': 'celery_app.task_manager.send_message',
         'schedule': 30.0,
         'args': ("hello",),
         'options': {'queue': 'messages'}, 
     },
-    'everyday-parsing': {
+}
+
+if CASES:
+    app.conf.beat_schedule['parsing-every-second-day'] = {
         'task': 'celery_app.task_manager.start_parsing',
         'schedule': crontab(hour=7, minute=30, day_of_week=[1, 4]),
-        'case_numbers': CASES,
-        'options': {'queue': 'parsing'}, 
-    },
-}
+        'args': CASES,
+        'options': {'queue': 'parsing'},
+    }
