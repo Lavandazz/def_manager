@@ -20,6 +20,10 @@ class UserRegistration(UserLogin):
     username: str
     second_password: str
 
+class UserPasswordSchema(BaseModel):
+    """Только для обновления hashed_password в БД."""
+    hashed_password: str
+
 
 class UserResponseSchema(BaseModel):
     """

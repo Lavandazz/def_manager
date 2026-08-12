@@ -1,5 +1,8 @@
+from hmac import new
+
+from app.utils.auth.password_hasher import PasswordHasher
 from config.db.models import User
-from config.schemas.user_schemas import UserRegistration, UserSchema
+from config.schemas.user_schemas import UserPasswordSchema, UserRegistration, UserSchema
 
 
 class UserService:
@@ -8,7 +11,9 @@ class UserService:
         self.repository = repository
 
     async def create_user(self, user_data: UserRegistration) -> User | None:
-
+        """
+        Регистрация нового пользователя
+        """
         new_user = User(
                 username=user_data.username,
                 email=user_data.email,
@@ -46,6 +51,27 @@ class UserService:
         Только для разработки, ускорение авторизации
         """
         return await self.repository.get_user_by_name(username=username)
+
+    async def set_password(self, user: User, new_password: str) -> User | None:
+        """
+        Добавление пароля
+        Метод применяется в измнении пароля
+        """
+        hashed_password = PasswordHasher.hash_password(new_password)
+        return await self.repository.update_user(user, UserPasswordSchema(hashed_password=hashed_password))
+
+    async def change_password(self, user: User, current_password: str, new_password: str) -> bool:
+        """
+        Изменение пароля пользователя.
+        Если хэши текущего пароля и из бд не совпадают, возвращается False
+        :param current_password: текущий пароль
+        :param new_password: новый пароль
+        :return: bool
+        """
+        if not PasswordHasher.verify_password(current_password, user.hashed_password):
+            return False
+        await self.set_password(user, new_password)
+        return True
 
     async def update_user(self, user: User, user_data: UserSchema):
         return await self.repository.update_user(user, user_data)
