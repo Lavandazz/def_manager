@@ -1,27 +1,89 @@
 services:
   redis:
-      image: redis:alpine
-      container_name: redis_def_manager
-      env_file:
-        - .env
-      ports:
-        - "6380:6379"
-      restart: always
-      command:
-        - /bin/sh
-        - -c
-        - redis-server --requirepass ${REDIS_PASSWORD}
-      volumes:
-        - redis_data:/data
-      deploy:
-        resources:
-          limits:
-            memory: 64M
-            cpus: '0.2'
-      healthcheck:
-        test: [ "CMD", "redis-cli", "ping" ]
-        interval: 10s
-        timeout: 5s
+    image: redis:alpine
+    container_name: redis_def_manager
+    env_file:
+      - .env
+    ports:
+      - "6380:6379"
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.2'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  celery-beat:
+    build: .
+    command: celery -A config.tasks_config beat --loglevel=info
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - PYTHONPATH=/app
+    restart: always
+
+  celery-worker-parsing:
+    build: .
+    volumes:
+      - .:/app   # монтируем текущую папку в /app внутри контейнера
+    command: celery -A config.tasks_config worker -Q parsing --concurrency=1 --hostname=worker-parsing@%h
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - PYTHONPATH=/app
+    restart: always
+
+  celery-worker-messages:
+    build: .
+    command: celery -A config.tasks_config worker -Q messages --concurrency=2 -n=worker-messages@%h
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - PYTHONPATH=/app
+    restart: always
+
+  celery-flower:
+    build: .
+    command: celery -A config.tasks_config flower --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - PYTHONPATH=/app
+    restart: always
 
 volumes:
   redis_data:

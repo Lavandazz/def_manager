@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block title %}Регистрация{% endblock %}
+
+{% block login %}
+<div class="container mt-3 d-flex justify-content-center">
+    <div class="card text-center" style="width:400px">
+        <div class="card-body">
+            {% if error %}
+            <p style="color:red">{{ error }}</p>
+            {% endif %}
+            <h4 class="card-title">Регистрация</h4>
+            <form id="registerForm" method="post" action="/user/register">
+                <p>Создайте аккаунт</p>
+
+                <input type="text" name="username" id="username" placeholder="Имя пользователя" required><br>
+
+                <input type="text" name="telegram_id" id="telegram_id" placeholder="Telegram ID (необязательно)"><br>
+
+                <input type="email" name="email" id="email" placeholder="Email" required><br>
+
+                <input type="password" name="password" id="password" placeholder="Пароль" required><br>
+
+                <input type="password" name="second_password" id="second_password" placeholder="Подтвердите пароль" required><br>
+
+                <button type="submit" class="btn btn-primary m-3">Зарегистрироваться</button>
+            </form>
+            <p class="mt-2">Уже есть аккаунт? <a href="/login">Войти</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const secondPassword = document.getElementById('second_password').value;
+
+        if (username === '') {
+            alert('Пожалуйста, введите имя пользователя');
+            event.preventDefault();
+            return;
+        }
+
+        if (password === '' || secondPassword === '') {
+            alert('Пожалуйста, заполните оба поля с паролем');
+            event.preventDefault();
+            return;
+        }
+
+        if (password !== secondPassword) {
+            alert('Пароли не совпадают');
+            event.preventDefault();
+            return;
+        }
+
+        // Необязательные поля: telegram_id и email — проверка не требуется
+    });
+</script>
+{% endblock %}

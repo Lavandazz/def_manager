@@ -1,7 +1,7 @@
 
 """
-celery -A celery_app.task_manager worker -Q parsing --concurrency=1 --hostname=worker-parsing@%h
-celery -A celery_app.task_manager worker -Q messages --concurrency=2 -n=worker-messages@%h
+celery -A celery_tasks.task_manager worker -Q parsing --concurrency=1 --hostname=worker-parsing@%h
+celery -A celery_tasks.task_manager worker -Q messages --concurrency=2 -n=worker-messages@%h
 
 celery -A config.tasks_config beat --loglevel=info
 

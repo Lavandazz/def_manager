@@ -8,6 +8,7 @@ from httpx import TimeoutException
 from playwright.async_api import async_playwright, Page, BrowserContext, expect
 
 from config.logger_config import parser_logger
+from parser_app.utils.helpers import TextHepler
 from parser_app.utils.sleep import random_sleep_for_search, random_sleep, random_start_sleep
 
 
@@ -41,6 +42,7 @@ class ParserKad:
 
     async def run(self):
         """ Запуск парсера """
+        print("Метод run!!!!!!")
         self.page: Page = await self.setup_for_page(self.context)
         await self.run_full_path()
 
@@ -80,7 +82,7 @@ class ParserKad:
                             })
 
         except Exception as e:
-            parser_logger.error("Ошибка при закрытии всплывающего окна",
+            parser_logger.warning("Ошибка при закрытии всплывающего окна",
                                 extra={
                                     "case_number": self.case_number,  # Основной идентификатор
                                     "step": "popup_close",
@@ -144,6 +146,37 @@ class ParserKad:
             return True  # Возвращаем True, чтобы прервать выполнение
         return False
 
+    async def search_name(self):
+        """
+        Получаем наименование должника из текста страницы. 
+        Если наименование не совпадает, закрываем страницу.
+        Если наименование совпадает, получаем ИНН должника для сохранения в бд
+        """
+        # Проверка содержимого текста респондента на примере дела А40-23673/2024
+        try:
+            respondent_cell = self.page.locator('td.respondent').filter(
+            has_text='ООО "ИТМ ИНЖИНИРИНГ"')
+
+            print("respondent_cell", await expect(respondent_cell).to_contain_text('ООО "ИТМ ИНЖИНИРИНГ"'))
+            # name = expect(respondent_cell).to_contain_text('ООО "ИТМ ИНЖИНИРИНГ"')
+
+            # Имитируем наведение, чтобы показать скрытый блок
+            await respondent_cell.hover()
+            # или клик: await org.click()
+            # Теперь скрытый span стал видимым
+            hidden_span = respondent_cell.locator('span.js-rolloverHtml')
+            # Получаем текст из скрытого содержимого (наименование, адрес, инн)
+            text = await hidden_span.inner_text()
+            # print("ИНН",inn_text)  # Содержит ИНН, адрес и т.д.
+            text = TextHepler.split_text(text)
+
+            name = TextHepler.take_name(text)
+            inn = TextHepler.take_inn(text)
+            print("Получил ИНН и название должника", inn, name)
+
+        except Exception as e:
+            print("Не нашел инн",e)
+
     async def click_link_case(self):
         """
         Обнаружение знака + для раскрытия данных о деле. 
@@ -152,27 +185,9 @@ class ParserKad:
         try:
             case_number_link = self.page.locator("a[target='_blank'].num_case", has_text=self.case_number)
             
-            # Проверка содержимого текста респондента на примере дела А40-23673/2024
-            try:
-                respondent_cell = self.page.locator('td.respondent').filter(
-                has_text='ООО "ИТМ ИНЖИНИРИНГ"')
-                print("respondent_cell", await expect(respondent_cell).to_contain_text('ООО "ИТМ ИНЖИНИРИНГ"'))
-                x = expect(respondent_cell).to_contain_text('ООО "ИТМ ИНЖИНИРИНГ"')
+            # Проверяем текст по названию должника для удостоверения правильности страницы для дальнейшего парсинга
+            await self.search_name()
                 
-                print("нашел название %s", x)
-                # Имитируем наведение, чтобы показать скрытый блок
-                await respondent_cell.hover()
-                # или клик: await org.click()
-                # Теперь скрытый span стал видимым
-                hidden_span = respondent_cell.locator('span.js-rolloverHtml')
-                # Получаем текст из скрытого содержимого (наименование, адрес, инн)
-                inn_text = await hidden_span.inner_text()
-                print("ИНН",inn_text)  # Содержит ИНН, адрес и т.д.
-
-            except Exception as e:
-                print("Не нашел инн",e)
-                
-
             await asyncio.sleep(random_sleep())
             # ожидаем открытия новой вкладки
             async with self.page.context.expect_page() as new_page:
@@ -350,10 +365,11 @@ async def process_parsing(browser, case: str):
 
 async def run_playwright_parsing(case_number: str):
     """Обертка для запуска парсера из внешнего кода"""
+    browser = None
     try:
         async with async_playwright() as playwright:
             browser = await playwright.chromium.launch(
-                headless=False,
+                headless=False,  # True для безголового режима, False для визуального
                 args=[
                     "--start-maximized",  # Окно на весь экран
                     "--disable-blink-features=AutomationControlled",  # Убираем флаг автоматизации
@@ -368,7 +384,8 @@ async def run_playwright_parsing(case_number: str):
             )
             await process_parsing(browser=browser, case=case_number)
     finally:
-        await browser.close()
+        if browser:
+            await browser.close()
         
 
 # asyncio.run(run_playwright_parsing("А40-23673/2024"))

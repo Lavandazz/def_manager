@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
 
 from app.utils.dependensy import get_optional_user
-from celery_app.task_manager import parsing_task
+from celery_tasks.task_manager import parsing_task
 
 from config.db.models import User
 from config.logger_config import fastapi_logger

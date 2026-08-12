@@ -105,9 +105,18 @@ class FastApiLogger(BaseLogger):
         log_file = os.path.join(log_folder, "pstp_logs.log")
         super().__init__(name="fstp_logger", log_file=log_file)
 
+
+class TaskLogger(BaseLogger):
+    def __init__(self):
+        log_folder = "logs"
+        os.makedirs(log_folder, exist_ok=True)
+        log_file = os.path.join(log_folder, "task_logs.log")
+        super().__init__(name="task_logger", log_file=log_file)
+
 reg_logger = RegisterLogger().get_logger()
 admin_logger = AdminLogger().get_logger()
 profile_logger = ProfileLogger().get_logger()
 db_logger = DBLogger().get_logger()
 fastapi_logger = FastApiLogger().get_logger()
 parser_logger = ParserLogger().get_logger()
+task_logger = TaskLogger().get_logger()

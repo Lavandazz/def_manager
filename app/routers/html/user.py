@@ -6,7 +6,7 @@ from core.services.user_service import UserService
 from app.utils.dependensy import get_optional_user, get_user_service
 from app.utils.auth.password_hasher import PasswordHasher
 from config.db.models import User
-from config.schemas.user_schemas import UserSchema
+from config.schemas.user_schemas import UserRegistration, UserSchema
 from config.logger_config import profile_logger
 
 router = APIRouter()
@@ -75,3 +75,78 @@ async def update_profile(
     return RedirectResponse(url="/user/profile", status_code=303)
 
 
+@router.get("/register", response_class=HTMLResponse, tags=["register"])
+async def get_register_form(
+    request: Request,
+        ):
+    """
+    Отображение формы регистрации пользователя
+    """
+    return templates.TemplateResponse(request, "user/register.html", {"request": request})
+
+
+
+@router.post("/register", tags=["register"], response_class=HTMLResponse)
+async def register_user(
+    request: Request,
+    username: str = Form(...),
+    telegram_id: int = Form(None),   
+    email: str = Form(...),        
+    password: str = Form(...), 
+    second_password: str = Form(...),
+    user_service: UserService = Depends(get_user_service),
+    ):
+    """
+    Регистрация пользователя.
+    валидации данных, получаемых от клиента при регистрации
+    Проверяем совпадение паролей, существование пользователя в базе по email и username, хэшируем пароль и сохраняем в базу.
+    При успешной регистрации перенаправляем на страницу логина.
+    В случае ошибок возвращаем на страницу регистрации. 
+    """
+
+    if password != second_password:
+        return templates.TemplateResponse(
+            request, "user/register.html",
+            {"error": "Пароли не совпадают"}
+        )
+
+    # Проверяем существование в базе email и username
+    # Регистрация новых пользователей только по email
+    try:
+        existing_user = await user_service.get_user(email=email)
+
+        if existing_user:
+            profile_logger.info("Пользователь уже существует: %s`", existing_user)
+            return templates.TemplateResponse(
+                request, "user/login.html",
+                {"error": "Пользователь уже существует"}
+            )
+        else:
+            hashed_password = PasswordHasher.hash_password(password)  # хэш пароля
+
+            user = UserRegistration(
+                username=username,
+                email=email,
+                telegram_id=telegram_id if telegram_id else None,
+                password=hashed_password,
+                second_password=second_password
+            )
+
+            # Сохраняем в бд
+            await user_service.create_user(user_data=user)  # сохраняем пользователя в базе данных
+
+
+            profile_logger.info("Зарегистрирован новый пользователь")
+
+            context = {
+                "request": request,
+                "title": "Страница входа"
+            }
+        return templates.TemplateResponse(request, "user/login.html", context)
+        
+    except Exception as e:
+        profile_logger.exception("Ошибка при проверке существования пользователя: %s", e)
+        return templates.TemplateResponse(
+            request, "user/login.html",
+            {"error": "Ошибка сервера"}
+        )

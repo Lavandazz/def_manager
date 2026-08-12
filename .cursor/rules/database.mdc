@@ -1,0 +1,13 @@
+---
+description: Правила для работы с базой данных PostgreSQL
+alwaysApply: false
+globs: "**/*.py"
+---
+
+# Подключение к PostgreSQL
+
+- Для получения данных для подключения всегда используй переменные из `.env`:
+  - `POSTGRES_NAME`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_PORT`
+
+- Никогда не встраивай логин и пароль напрямую в код.
+- Для Django используй настройки из `settings.py`, которые читают переменные окружения.

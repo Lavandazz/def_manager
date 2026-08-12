@@ -3,14 +3,119 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-        {% if agree_message %}
-            <div class="alert alert-success" role="alert">
-                {{ agree_message }}
+
+{% if agree_message %}
+    <div class="alert alert-success" role="alert">
+        {{ agree_message }}
+    </div>
+{% else %}
+
+<div class="landing-page">
+
+    <!-- Вступление -->
+    <p class="lead text-muted mb-4">
+        Портал для юристов, которые ведут дела о банкротстве физических и юридических лиц.
+        Здесь можно отслеживать арбитражные дела с сайта
+        <strong>«Картотека арбитражных дел»</strong> — в одном личном кабинете, без ручного мониторинга.
+    </p>
+
+    <!-- Для кого / Что даёт -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h2 class="h5 card-title text-primary">Для кого</h2>
+                    <p class="card-text mb-0">
+                        Для юристов и юридических команд, которые сопровождают процедуры банкротства
+                        и регулярно следят за ходом арбитражных дел: от подачи заявления до завершения процедуры.
+                    </p>
+                </div>
             </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h2 class="h5 card-title text-primary">Что вы получаете</h2>
+                    <ul class="mb-0 ps-3">
+                        <li>актуальный статус дела;</li>
+                        <li>сведения о судебных заседаниях — дата, время, место;</li>
+                        <li>список документов, поступивших от суда;</li>
+                        <li>все отслеживаемые дела в одном личном кабинете.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Как пользоваться -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light">
+            <h2 class="h5 mb-0">Как пользоваться</h2>
+        </div>
+        <div class="card-body">
+            <ol class="mb-0">
+                <li class="mb-2">
+                    <strong>Войдите</strong> в личный кабинет или
+                    <a href="/user/register">зарегистрируйтесь</a>, если вы здесь впервые.
+                </li>
+                <li class="mb-2">
+                    <strong>Добавьте дело</strong> — укажите номер в формате арбитражного суда
+                    (например, <code>А40-12345/2024</code>).
+                </li>
+                <li class="mb-2">
+                    <strong>Сохраните</strong> дело. Портал начнёт собирать данные с «Картотеки арбитражных дел».
+                </li>
+                <li class="mb-0">
+                    <strong>Откройте личный кабинет</strong> — через некоторое время в списке появится дело
+                    с собранной информацией: документы, заседания, текущий статус.
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Вход и регистрация -->
+    <div class="alert alert-info border-0 shadow-sm mb-4" role="alert">
+        <h2 class="h6 alert-heading mb-2">Вход и регистрация</h2>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <strong>Новые пользователи</strong><br>
+                Регистрация по электронной почте на странице
+                <a href="/user/register" class="alert-link">«Регистрация»</a>.
+            </div>
+            <div class="col-md-6">
+                <strong>Ранее зарегистрированные пользователи</strong><br>
+                Вход по <strong>Telegram ID</strong>. Пароль нужно задать один раз
+                в разделе <a href="/user/profile/edit" class="alert-link">«Настройки профиля»</a>.
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопки -->
+    <div class="d-grid gap-2 d-sm-flex">
+        {% if user %}
+            <a href="/user/cases/create" class="btn btn-primary btn-lg px-4">
+                Добавить дело
+            </a>
+            <a href="/user/profile" class="btn btn-outline-secondary btn-lg px-4">
+                Мои дела
+            </a>
         {% else %}
-                <p>Инструкция по использованию портала
-
-                <p>Тут будет много текста</p>
+            <a href="/login" class="btn btn-primary btn-lg px-4">
+                Войти
+            </a>
+            <a href="/user/register" class="btn btn-outline-primary btn-lg px-4">
+                Зарегистрироваться
+            </a>
         {% endif %}
+    </div>
 
-{% endblock %}
+    <p class="text-muted small mt-4 mb-0">
+        Данные обновляются автоматически. Если дело только что добавлено,
+        подождите — информация появится в личном кабинете после следующей синхронизации.
+    </p>
+
+</div>
+
+{% endif %}
+
+{% endblock content %}
