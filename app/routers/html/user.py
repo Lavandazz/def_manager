@@ -6,14 +6,15 @@ from core.services.user_service import UserService
 from app.utils.dependensy import get_optional_user, get_user_service
 from app.utils.auth.password_hasher import PasswordHasher
 from config.db.models import User
-from config.schemas.user_schemas import UserRegistration, UserSchema
+from config.schemas.user_schemas import UserRegistration, UserSchema, UserUpdateSchema
 from config.logger_config import profile_logger
+
 
 router = APIRouter()
 
 templates = Jinja2Templates(directory="app/templates")
 
-
+MIN_PASSWORD_LENGTH = 8
 
 @router.get("/profile", tags=["profile"], response_class=HTMLResponse)
 async def get_profile(request: Request,
@@ -34,10 +35,16 @@ async def get_profile(request: Request,
 
 @router.get("/profile/edit", response_class=HTMLResponse)
 async def edit_profile_form(request: Request, 
-                            user: User = Depends(get_optional_user)):
-    
+                            user: User = Depends(get_optional_user),
+                            user_service: UserService = Depends(get_user_service),):
+    needs_setup = PasswordHasher.compare_password(user_hashed_password=user.hashed_password)
+    if needs_setup:
+        # Сначала нужно установить пароль на отдельной странице
+        return RedirectResponse(url="/user/profile/password", status_code=303)
+
     if not user:
         return templates.TemplateResponse("index.html", {"request": request, "error": "Не авторизован"})
+
     return templates.TemplateResponse(request, "user/profile_edit.html", {
         "user": user})
         
@@ -45,7 +52,8 @@ async def edit_profile_form(request: Request,
 @router.post("/profile/edit", response_class=HTMLResponse)
 async def update_profile(
     request: Request,
-    email: str = Form(None),
+    username: str = Form(...),
+    email: str = Form(...),
     telegram_id: int = Form(None),
     password: str = Form(...),
     user: User = Depends(get_optional_user),
@@ -56,23 +64,85 @@ async def update_profile(
     
     if not PasswordHasher.verify_password(password, user.hashed_password):
         return templates.TemplateResponse(request, "user/profile_edit.html", {
-
+            "username": username,
             "email": email,
             "telegram_id": telegram_id,
             "error": "Неверный пароль"
         }, status_code=400)
     
+    profile_logger.warning("Данные профиля для обновления %s, %s, %s", username, email, telegram_id)
     # Собираем только переданные поля
     update_dict = {}
-    if email is not None:
+    if email and user.email != email:
         update_dict["email"] = email
-    if telegram_id is not None:
+        profile_logger.warning("Добавляю в словарь email %s", update_dict)
+    if telegram_id:
+        
         update_dict["telegram_id"] = telegram_id if telegram_id != 0 else None
-    
-    await user_service.update_user(user, UserSchema(**update_dict))
+        profile_logger.warning("Добавляю в словарь telegram_id %s", update_dict)
+
+    profile_logger.warning("Передаем словарь!!!! %s", update_dict)
+    await user_service.update_user(user, UserUpdateSchema(**update_dict))
     profile_logger.info("Данные профиля обновлены для user_id=%s", user.id)
     
     return RedirectResponse(url="/user/profile", status_code=303)
+
+
+@router.get("/profile/password", response_class=HTMLResponse)
+async def password_form(
+    request: Request,
+    user: User = Depends(get_optional_user),
+    user_service: UserService = Depends(get_user_service),
+):
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse(request, "user/profile_password.html", {
+        "user": user,
+        "needs_password_setup": user_service.needs_password_setup(user),
+    })
+
+
+@router.post("/profile/password", response_class=HTMLResponse)
+async def update_password(
+    request: Request,
+    new_password: str = Form(...),
+    confirm_password: str = Form(...),
+    current_password: str = Form(None),          # None — при первой установке пароля
+    user: User = Depends(get_optional_user),
+    user_service: UserService = Depends(get_user_service),
+):
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    needs_setup = user_service.needs_password_setup(user)
+    context = {
+        "user": user,
+        "needs_password_setup": needs_setup,
+    }
+    # Валидация
+    if len(new_password) < MIN_PASSWORD_LENGTH:
+        context["error"] = f"Пароль должен быть не короче {MIN_PASSWORD_LENGTH} символов."
+        return templates.TemplateResponse(request, "user/profile_password.html", context, status_code=400)
+    if new_password != confirm_password:
+        context["error"] = "Новые пароли не совпадают."
+        return templates.TemplateResponse(request, "user/profile_password.html", context, status_code=400)
+    # Установка или смена
+    if needs_setup:
+        await user_service.set_password(user, new_password)
+    else:
+        if not current_password:
+            context["error"] = "Введите текущий пароль."
+            return templates.TemplateResponse(request, "user/profile_password.html", context, status_code=400)
+        ok = await user_service.change_password(user, current_password, new_password)
+        if not ok:
+            context["error"] = "Неверный текущий пароль."
+            return templates.TemplateResponse(request, "user/profile_password.html", context, status_code=400)
+    # Письмо об изменении пароля — через Celery
+    if user.email:
+        print("смена пароля успешнаб письмо отправить на почту", user.email)
+        # subject, text, html = build_password_changed_email(user.username)
+        # send_message.delay(user.email, subject, text, html)
+    profile_logger.info("Пароль обновлён для user_id=%s", user.id)
+    return RedirectResponse(url="/user/profile?password_updated=1", status_code=303)
 
 
 @router.get("/register", response_class=HTMLResponse, tags=["register"])

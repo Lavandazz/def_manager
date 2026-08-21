@@ -1,8 +1,7 @@
-from hmac import new
 
 from app.utils.auth.password_hasher import PasswordHasher
 from config.db.models import User
-from config.schemas.user_schemas import UserPasswordSchema, UserRegistration, UserSchema
+from config.schemas.user_schemas import UserPasswordSchema, UserRegistration, UserSchema, UserUpdateSchema
 
 
 class UserService:
@@ -51,6 +50,13 @@ class UserService:
         Только для разработки, ускорение авторизации
         """
         return await self.repository.get_user_by_name(username=username)
+    
+    def needs_password_setup(self, user: User) -> bool:
+        """
+        роверка, сменил ли пользователь стандартный пароль на свой
+        True — пользователь ещё не задавал свой пароль.
+        """
+        return PasswordHasher.compare_password(user_hashed_password=user.hashed_password)
 
     async def set_password(self, user: User, new_password: str) -> User | None:
         """
@@ -73,7 +79,11 @@ class UserService:
         await self.set_password(user, new_password)
         return True
 
-    async def update_user(self, user: User, user_data: UserSchema):
+    async def update_user(self, user: User, user_data: UserUpdateSchema):
+        """
+        Изменение данных ползователей
+        """
+        print("ЮЗЕР ДАТА", user_data)
         return await self.repository.update_user(user, user_data)
 
     async def delete_user(self, email):

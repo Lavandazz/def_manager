@@ -1,14 +1,15 @@
 from pydantic import BaseModel, EmailStr
 
 
-
-# class UserSchema(BaseModel):
-#     # username: str
-#     telegram_id: int | None
-#     email: EmailStr | None
-
 class UserSchema(BaseModel):
+    username: str
     telegram_id: int | None = None   # явно None как значение по умолчанию
+    email: EmailStr | None = None
+
+class UserUpdateSchema(BaseModel):
+    """ Валидация только для редактирования, где все поля опциональны """
+    username: str | None = None 
+    telegram_id: int | None = None   
     email: EmailStr | None = None
 
 

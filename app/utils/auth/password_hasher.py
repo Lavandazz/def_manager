@@ -1,4 +1,5 @@
 import bcrypt
+from config.utils import DEFAULT_MIGRATION_PASSWORD_HASH
 
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -28,3 +29,11 @@ class PasswordHasher:
         :return: True, если пароль верный, иначе False
         """
         return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
+
+    @staticmethod
+    def compare_password(user_hashed_password, old_password_hash=DEFAULT_MIGRATION_PASSWORD_HASH) -> bool:
+        """
+        Сравнение хэша пароля пользователя со стандартным хэшем по умолчанию, либо с хэшем старого паоля
+        """
+        return user_hashed_password == old_password_hash
+

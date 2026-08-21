@@ -7,6 +7,7 @@
 from abc import ABC, abstractmethod
 
 from config.db.models import User, Case
+from config.schemas.user_schemas import UserSchema
 
 
 class AbstractCaseRepository(ABC):
@@ -85,7 +86,7 @@ class AbstractUserRepository(ABC):
         pass
 
     @abstractmethod
-    async def update_user(self, user: User, user_data):
+    async def update_user(self, user: User, user_data: UserSchema) -> User | None:
         pass
 
     @abstractmethod

@@ -3,7 +3,6 @@ from sqlalchemy import select, update
 from config.db.abstract_repository import AbstractUserRepository
 from config.db.models import User
 from config.logger_config import db_logger
-from config.schemas.user_schemas import UserSchema
 
 
 class UserAlchemyRepository(AbstractUserRepository):
@@ -53,7 +52,7 @@ class UserAlchemyRepository(AbstractUserRepository):
             return None
         
     
-    async def update_user(self, user: User, user_data: UserSchema):
+    async def update_user(self, user: User, user_data):
         try:
             db_logger.info("Принимял данные для обновления: %s", user_data)
             # exclude_unset=True - исключаем поля, которые не были переданы в запросе, чтобы не перезаписывать их значениями по умолчанию

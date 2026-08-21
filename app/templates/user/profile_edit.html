@@ -18,11 +18,19 @@
                     {% endif %}
 
                     <form method="post" action="/user/profile/edit">
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Имя пользователя</label>
+                            <input type="text" class="form-control" id="username" name="username"
+                                  value="{{ user.username|default('') }}" placeholder="Имя">
+                            <div class="form-text">Имя пользователя</div>
+                        </div>
+
                         <!-- Поле email -->
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email (необязательно)</label>
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                             <input type="email" class="form-control" id="email" name="email"
-                                  value="{{ user.email|default('') }}" placeholder="example@mail.ru">
+                                  value="{{ user.email|default('') }}" placeholder="example@mail.ru" required>
                             <div class="form-text">Укажите актуальный email.</div>
                         </div>
 
@@ -45,7 +53,13 @@
                             <button type="submit" class="btn btn-primary">Сохранить изменения</button>
                         </div>
                     </form>
+                    <hr>
+                    <p class="mb-2 text-muted small">Управление паролем</p>
+                    <a href="/user/profile/password" class="btn btn-outline-secondary btn-sm">
+                        {% if needs_password_setup %}Установить пароль{% else %}Изменить пароль{% endif %}
+                    </a>
                 </div>
+                
             </div>
         </div>
     </div>
