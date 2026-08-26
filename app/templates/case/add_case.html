@@ -18,6 +18,15 @@
                         <div class="form-text">Обязательное поле. Укажите номер дела в формате, принятом в системе.</div>
                     </div>
                     <div class="mb-3">
+                        <label for="debtor_type" class="form-label">Тип должника *</label>
+                        <select class="form-select" id="debtor_type" name="debtor_type" required>
+                            <option value="" disabled selected>Выберите тип</option>
+                            <option value="legal">Юридическое лицо</option>
+                            <option value="physical">Физическое лицо</option>
+                        </select>
+                        <div class="form-text">Укажите, кем является должник.</div>
+                    </div>
+                    <div class="mb-3">
                         <label for="debtor" class="form-label">Должник</label>
                         <input type="text" class="form-control" id="debtor" name="debtor" 
                                placeholder="ФИО или наименование должника">

@@ -36,12 +36,13 @@ async def add_case_form(
 async def add_case(
     request: Request,
     number_case: str = Form(),
+    debtor_type: str = Form(),
     debtor: str = Form(),
     user: User = Depends(get_optional_user),
     case_service: CaseService = Depends(get_case_service)
     ):
     """
-    Отображение страницы для введения номера дела 
+    Создание номера дела 
     """
     ###
     ### Переделать форму через пайдантик с валидацией номера дела
@@ -63,7 +64,8 @@ async def add_case(
             context,
             status_code=400
         )
-
+    debtor_type = debtor_type  # 'legal' или 'physical'
+    print("тип должника", debtor_type)
     new_case = Case(
     number_case=number_case,
     debtor=debtor,
