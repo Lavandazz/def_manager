@@ -51,6 +51,7 @@ async def add_case(
         return templates.TemplateResponse("index.html", {"request": request, "error": "Не авторизован"}, status_code=401)
     
     if not PATTERN_CASE.match(number_case.strip()) or not number_case or not isinstance(number_case, str):
+        print("Некорректный формат номера дела. Ожидается, например: А40-12345/2024")
         context = {
             "title": "Создание дела",
             "user": user,
@@ -64,11 +65,12 @@ async def add_case(
             context,
             status_code=400
         )
-    debtor_type = debtor_type  # 'legal' или 'physical'
+
     print("тип должника", debtor_type)
     new_case = Case(
     number_case=number_case,
     debtor=debtor,
+    debtor_id=debtor.id,
     id_user=user.id
     )
     case = await case_service.add_case(new_case)
