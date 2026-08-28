@@ -5,6 +5,7 @@
 """
 
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from config.db.models import Debtor, User, Case
 from config.schemas.user_schemas import UserSchema
@@ -99,17 +100,17 @@ class AbstractDebtorRepository(ABC):
     Абстрактный класс для патерна Репозиторий.
     """
     @abstractmethod
-    async def add_debtor(self, debtor: Debtor):
+    async def add_debtor(self, debtor: Debtor) -> Debtor:
         pass
 
     @abstractmethod
-    async def get_debtor(self, debtor_id: int):
+    async def get_debtor(self, debtor_id: int) -> Debtor:
         pass
 
     @abstractmethod
-    async def update_debtor(self, param):
+    async def update_debtor(self, debtor: Debtor) -> Debtor:
         pass
 
     @abstractmethod
-    async def delete_debtor(self, param):
+    async def delete_debtor(self, debtor_id) -> bool:
         pass
