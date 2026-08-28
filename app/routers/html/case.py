@@ -70,7 +70,7 @@ async def add_case(
     new_case = Case(
     number_case=number_case,
     debtor=debtor,
-    debtor_id=debtor.id,
+    # debtor_id=debtor.id,
     id_user=user.id
     )
     case = await case_service.add_case(new_case)
