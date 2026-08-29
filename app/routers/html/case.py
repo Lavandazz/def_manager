@@ -5,9 +5,10 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from core.services.case_service import CaseService
-from app.utils.dependensy import get_case_service, get_optional_user
+from app.utils.dependensy import get_case_service, get_debtor_service, get_optional_user
 from celery_tasks.task_manager import parsing_task
-from config.db.models import Case, User
+from config.db.models import Case, Debtor, User
+from core.services.debtor_service import DebtorService
 
 
 router = APIRouter()
@@ -37,9 +38,10 @@ async def add_case(
     request: Request,
     number_case: str = Form(),
     debtor_type: str = Form(),
-    debtor: str = Form(),
+    debtor_name: str = Form(),
     user: User = Depends(get_optional_user),
-    case_service: CaseService = Depends(get_case_service)
+    case_service: CaseService = Depends(get_case_service),
+    debtor_service: DebtorService = Depends(get_debtor_service)
     ):
     """
     Создание номера дела 
@@ -56,7 +58,7 @@ async def add_case(
             "title": "Создание дела",
             "user": user,
             "number_case": number_case,
-            "debtor": debtor,
+            "debtor": debtor_name,
             "error": "Некорректный формат номера дела. Ожидается, например: А40-12345/2024"
         }
         return templates.TemplateResponse(
@@ -65,12 +67,15 @@ async def add_case(
             context,
             status_code=400
         )
-
     print("тип должника", debtor_type)
+    new_debtor = Debtor(name=debtor_name, debtor_type=debtor_type)
+    debtor = await debtor_service.add_debtor(new_debtor)
+
+    
     new_case = Case(
     number_case=number_case,
     debtor=debtor,
-    # debtor_id=debtor.id,
+    debtor_id=new_debtor.id,
     id_user=user.id
     )
     case = await case_service.add_case(new_case)

@@ -8,7 +8,7 @@ from config.db.models import Debtor
 from config.logger_config import db_logger
 
 
-class DebtorRepository(AbstractDebtorRepository):
+class DebtorAlchemyRepository(AbstractDebtorRepository):
     """Класс для работы с табдицей debtors"""
     def __init__(self, session):
         self.session = session

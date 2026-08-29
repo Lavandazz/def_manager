@@ -1,7 +1,7 @@
 import enum
 from datetime import date, datetime
 
-from typing import Optional
+from typing import List, Optional
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import Date, ForeignKey, Integer, Text, TIMESTAMP, func, BigInteger, Enum as SQLEnum, String
 
@@ -25,6 +25,26 @@ class Case(Base):
     court_sessions = relationship("CourtSession", back_populates="case")
     user = relationship("User", back_populates="cases", foreign_keys=[id_user])
 
+
+class DebtorType(enum.Enum):
+    """
+    Тип должника (юр лицо или физ лицо)
+    """
+    LEGAL = "legal"
+    PHYSICAL = "physical"
+
+
+class Debtor(Base):
+    __tablename__ = "debtors"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    debtor_type: Mapped[DebtorType] = mapped_column(SQLEnum(DebtorType), nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    inn: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)   # для юрлиц обязателен, для физлиц опционален
+    snils: Mapped[Optional[int]] = mapped_column(Integer, nullable=True) # только для физлиц
+    birthday: Mapped[Optional[date]] = mapped_column(Date, nullable=True)   # только для физлиц
+
+    # Обратная связь с делами
+    cases: Mapped[List["Case"]] = relationship("Case", back_populates="debtor")
 
 class User(Base):
     __tablename__ = "users"
@@ -120,22 +140,3 @@ class BlackListToken(Base):
     __tablename__ = "black_list_token"
     id: Mapped[int] = mapped_column(primary_key=True)
     token: Mapped[str] = mapped_column(Text, nullable=False)
-
-
-class DebtorType(enum.Enum):
-    """
-    Тип должника (юр лицо или физ лицо)
-    """
-    LEGAL = "legal"
-    PHYSICAL = "physical"
-
-
-class Debtor(Base):
-    __tablename__ = "debtors"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    type: Mapped[DebtorType] = mapped_column(SQLEnum(DebtorType), nullable=False)
-    name: Mapped[str] = mapped_column(Text, nullable=False)
-    inn: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)   # для юрлиц обязателен, для физлиц опционален
-    snils: Mapped[Optional[int]] = mapped_column(Integer, nullable=True) # только для физлиц
-    birthday: Mapped[Optional[date]] = mapped_column(Date, nullable=True)   # только для физлиц
-

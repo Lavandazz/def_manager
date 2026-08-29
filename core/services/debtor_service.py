@@ -1,8 +1,8 @@
-from core.repository.debtor_repository import DebtorRepository
+from core.repository.debtor_repository import DebtorAlchemyRepository
 
 
 class DebtorService:
-    def __init__(self, repository: DebtorRepository):
+    def __init__(self, repository: DebtorAlchemyRepository):
         self.repository = repository
 
     async def add_debtor(self, debtor):

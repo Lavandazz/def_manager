@@ -3,9 +3,11 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from config.db.db_config import get_db
 from fastapi import Depends, Request
 
+from core.repository.debtor_repository import DebtorAlchemyRepository
 from core.services.auth_service import AuthService
 from core.services.case_service import CaseService
 from core.services.court_service import CourtService
+from core.services.debtor_service import DebtorService
 from core.services.token_service import TokenService
 from core.services.user_service import UserService
 
@@ -38,6 +40,21 @@ async def get_case_service(case_repo: Annotated[CaseAlchemyRepository, Depends(g
     service = CaseService(case_repo)
     return service
 
+async def get_debtor_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]):
+    """
+    Функция для DI в api сервисах,
+
+    """
+    service = DebtorAlchemyRepository(unit_of_work)
+    return service
+
+async def get_debtor_service(debtor_repo: Annotated[DebtorAlchemyRepository, Depends(get_debtor_repository)]):
+    """
+    Функция для DI в api сервисах,
+
+    """
+    service = DebtorService(debtor_repo)
+    return service
 
 async def get_token_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]):
     """
