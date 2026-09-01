@@ -76,7 +76,6 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         """
         stmt = select(Case).where(Case.id_user == user_id).options(selectinload(Case.debtor))
         result = await self.session.execute(stmt)
-
         return result.scalars().all()
     
     async def get_cases(self) -> list[Case]:

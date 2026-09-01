@@ -1,9 +1,11 @@
+import json
 import re
 
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-
+from app.utils.caches_data import get_cases_from_cache
+from config.redis_config import redis_client
 from core.services.case_service import CaseService
 from app.utils.dependensy import get_case_service, get_debtor_service, get_optional_user
 from celery_tasks.task_manager import parsing_task
@@ -107,7 +109,9 @@ async def case_detail(
     documents, total_docs = await case_service.get_case_documents_paginated(case_id, page, size)
     
     total_pages = (total_docs + size - 1) // size if total_docs > 0 else 1
-    
+
+    cached_data = get_cases_from_cache(user_id=user.id) # получаем cases из кэша
+
     context = {
         "request": request,
         "user": user,
@@ -119,6 +123,9 @@ async def case_detail(
         "total_pages": total_pages,
         "total_docs": total_docs,
     }
+    if cached_data:
+        context["cases"] = cached_data
+
     return templates.TemplateResponse(request, "case/case_detail.html", context)
 
 

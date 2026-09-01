@@ -1,6 +1,11 @@
+import json
+
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from app.utils.caches_data import get_cases_from_cache, save_cases_to_cache
+from config.redis_config import redis_client
+from config.schemas.case_schemas import CaseSchema
 from core.services.case_service import CaseService
 from core.services.user_service import UserService
 from app.utils.auth.auth_token import AuthTokenService
@@ -21,18 +26,23 @@ async def main_page(
     user: User = Depends(get_optional_user),
     case_service: CaseService = Depends(get_case_service)
 ):
-    """
-    Главная страница.
-    Будет интсрукция и о чем портал. Для отладки оставляются номера cases
-    """
+    """ Главная страница. Интсрукция и о чем портал. """
     context = {
         "request": request,
         "title": "Главная страница",}
     
     if not user:
         return templates.TemplateResponse(request, "index.html", context)
-    
-    cases = await case_service.get_user_cases(user_id=user.id)
+
+    cases = get_cases_from_cache(user_id=user.id) # получение кэша
+
+    if cases is None:
+        # Получаем из базы
+        cases_orm = await case_service.get_user_cases(user_id=user.id)
+        cases = [CaseSchema.model_validate(c).model_dump() for c in cases_orm]
+        save_cases_to_cache(user_id=user.id, cases=cases)
+
+
     context["cases"] = cases
     context["user"] = user
 

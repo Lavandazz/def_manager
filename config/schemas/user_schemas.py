@@ -41,3 +41,5 @@ class CaseSchema(BaseModel):
 class CaseResponseSchema(BaseModel):
     message: str
     case: CaseSchema
+
+
