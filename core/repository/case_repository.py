@@ -32,25 +32,25 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         Получение данных из таблицы case по id_case
         param: case_id
         """
-        stmt = select(Case).where(Case.id == case_id).options(selectinload(Case.pars_documents))
+        # stmt = select(Case).where(Case.id == case_id).options(selectinload(Case.pars_documents))
+        # result = await self.session.execute(stmt)
+        # return result.scalars().first()
+    
+        stmt = (
+            select(Case)
+            .where(Case.id == case_id)
+            .options(
+                selectinload(Case.pars_documents),
+                selectinload(Case.debtor),          # сам должник
+                selectinload(Case.court_sessions),
+                # Подгружаем пользователя
+                selectinload(Case.user),
+                # счета пользователя
+                # selectinload(Case.debtor).selectinload(Debtor.bank_accounts)
+            )
+        )
         result = await self.session.execute(stmt)
         return result.scalars().first()
-    
-    #     stmt = (
-    #     select(Case)
-    #     .where(Case.id == case_id)
-    #     .options(
-    #         selectinload(Case.pars_documents),
-    #         selectinload(Case.debtor),          # сам должник
-    #         selectinload(Case.court_sessions),
-    #         # если нужен пользователь, тоже можно:
-    #         selectinload(Case.user),
-    #         # а если нужно подгрузить счета внутри должника (если связь есть):
-    #         # selectinload(Case.debtor).selectinload(Debtor.bank_accounts)
-    #     )
-    # )
-    # result = await self.session.execute(stmt)
-    # return result.scalars().first()
     
     async def get_case_documents_paginated(self, case_id: int, page: int, size: int):
         # 1. Общее количество документов для этого дела (нужно для пагинации)
