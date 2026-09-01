@@ -4,7 +4,7 @@
   {% if cases %}
     {% for case in cases %}
       <dl>
-        <dt>{{ case.debtor_name }}</dt>
+        <dt>{{ case.debtor.name }}</dt>
         <dd>
           <a href="/user/cases/{{ case.id }}?page=1&size=10">{{ case.number_case }}</a>
         </dd>

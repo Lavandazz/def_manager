@@ -36,6 +36,22 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         result = await self.session.execute(stmt)
         return result.scalars().first()
     
+    #     stmt = (
+    #     select(Case)
+    #     .where(Case.id == case_id)
+    #     .options(
+    #         selectinload(Case.pars_documents),
+    #         selectinload(Case.debtor),          # сам должник
+    #         selectinload(Case.court_sessions),
+    #         # если нужен пользователь, тоже можно:
+    #         selectinload(Case.user),
+    #         # а если нужно подгрузить счета внутри должника (если связь есть):
+    #         # selectinload(Case.debtor).selectinload(Debtor.bank_accounts)
+    #     )
+    # )
+    # result = await self.session.execute(stmt)
+    # return result.scalars().first()
+    
     async def get_case_documents_paginated(self, case_id: int, page: int, size: int):
         # 1. Общее количество документов для этого дела (нужно для пагинации)
         total_query = select(func.count(ParsDocument.id)).where(ParsDocument.id_case == case_id)
@@ -56,10 +72,11 @@ class CaseAlchemyRepository(AbstractCaseRepository):
 
     async def get_cases_by_user(self, user_id):
         """
-        Получение всех дел, отфильтрованных по пользователю
+        Получение всех дел, отфильтрованных по пользователю.
         """
-        stmt = select(Case).where(Case.id_user == user_id)
+        stmt = select(Case).where(Case.id_user == user_id).options(selectinload(Case.debtor))
         result = await self.session.execute(stmt)
+
         return result.scalars().all()
     
     async def get_cases(self) -> list[Case]:

@@ -3,6 +3,11 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
+{% if message %}
+    <div class="alert alert-success" role="alert">
+        {{ message }}
+    </div>
+{% endif %}
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
         <div class="card shadow-sm">
@@ -21,14 +26,14 @@
                         <label for="debtor_type" class="form-label">Тип должника *</label>
                         <select class="form-select" id="debtor_type" name="debtor_type" required>
                             <option value="" disabled selected>Выберите тип</option>
-                            <option value="legal">Юридическое лицо</option>
-                            <option value="physical">Физическое лицо</option>
+                            <option value="LEGAL">Юридическое лицо</option>
+                            <option value="PHYSICAL">Физическое лицо</option>
                         </select>
                         <div class="form-text">Укажите, кем является должник.</div>
                     </div>
                     <div class="mb-3">
-                        <label for="debtor" class="form-label">Должник</label>
-                        <input type="text" class="form-control" id="debtor" name="debtor" 
+                        <label for="debtor_name" class="form-label">Должник</label>
+                        <input type="text" class="form-control" id="debtor_name" name="debtor_name" 
                                placeholder="ФИО или наименование должника">
                         <div class="form-text">Указать должника по делу.</div>
                     </div>

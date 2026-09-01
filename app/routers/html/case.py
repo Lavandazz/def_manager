@@ -53,39 +53,38 @@ async def add_case(
         return templates.TemplateResponse("index.html", {"request": request, "error": "Не авторизован"}, status_code=401)
     
     if not PATTERN_CASE.match(number_case.strip()) or not number_case or not isinstance(number_case, str):
-        print("Некорректный формат номера дела. Ожидается, например: А40-12345/2024")
         context = {
             "title": "Создание дела",
             "user": user,
             "number_case": number_case,
             "debtor": debtor_name,
-            "error": "Некорректный формат номера дела. Ожидается, например: А40-12345/2024"
-        }
+            "message":"Некорректный формат номера дела. Ожидается, например: А40-12345/2024"
+            }
         return templates.TemplateResponse(
             request,
             "case/add_case.html",
             context,
             status_code=400
         )
-    print("тип должника", debtor_type)
     new_debtor = Debtor(name=debtor_name, debtor_type=debtor_type)
     debtor = await debtor_service.add_debtor(new_debtor)
 
     
     new_case = Case(
     number_case=number_case,
-    debtor=debtor,
-    debtor_id=new_debtor.id,
+    debtor_id=debtor.id,
     id_user=user.id
     )
     case = await case_service.add_case(new_case)
     # Создается таска для парсинга дела
 
     task = parsing_task.delay(case_number=number_case)
-    print("Дело успешно добавлено %s", number_case, case)
-    print("Запускаю парсинг по делу %s", number_case, task)
 
-    context = {"agree_message": "Дело успешно добавлено"}
+    print("Дело успешно добавлено","Запускаю парсинг по делу %s", number_case, task)
+
+    context = {"message":"Дело успешно добавлено",
+               "user": user}
+
     return templates.TemplateResponse(request, "index.html", context, status_code=201)
 
 

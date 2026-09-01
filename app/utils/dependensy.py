@@ -45,8 +45,7 @@ async def get_debtor_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_
     Функция для DI в api сервисах,
 
     """
-    service = DebtorAlchemyRepository(unit_of_work)
-    return service
+    return DebtorAlchemyRepository(unit_of_work.session) # передаем сессию
 
 async def get_debtor_service(debtor_repo: Annotated[DebtorAlchemyRepository, Depends(get_debtor_repository)]):
     """

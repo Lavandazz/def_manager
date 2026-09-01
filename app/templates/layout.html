@@ -23,6 +23,11 @@
         <div class="col-9">
             <main class="container col-8 mt-4">
               {% block content %}
+                {% if message %}
+                    <div class="alert alert-success" role="alert">
+                        {{ message }}
+                    </div>
+                {% else %}
 
               {% endblock content %}
             </main>

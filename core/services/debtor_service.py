@@ -6,7 +6,7 @@ class DebtorService:
         self.repository = repository
 
     async def add_debtor(self, debtor):
-        await self.repository.add_debtor(debtor)
+        return await self.repository.add_debtor(debtor)
 
 
     async def get_debtor(self, debtor_id):
