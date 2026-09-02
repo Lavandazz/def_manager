@@ -22,6 +22,7 @@ from app.routers.html.parser_rout import router as parser_router
 
 app = FastAPI(debug=True)
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.add_middleware(
     CORSMiddleware,

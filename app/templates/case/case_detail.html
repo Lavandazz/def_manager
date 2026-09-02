@@ -3,15 +3,16 @@
 {% block content %}
   <h2>Дело: {{ case.number_case }}</h2>
   <p><strong>Должник:</strong> {{ case.debtor.name }}</p>
-  <p><strong>Статус:</strong> {{ case.status }}</p>
-  <p><strong>id:</strong> {{ case.id }}</p>
-
+  <p>
+    <strong class="tooltip-trigger" data-bs-toggle="tooltip" data-bs-placement="top" title="Статус показывает актуально ли дело">Статус:</strong> {{ "В работе" if case.status == 0 else "Не активно" }}
+  </p>
   {# кнопка парсинга для отладки #}
   <div class="d-grid gap-2 d-md-flex justify-content-md-end">
     <a href="/parsing/{{ case.number_case }}" class="btn btn-outline-danger">Start</a>
   </div>
   
   <div class="accordion" id="accordionDocs">
+    <p><strong>Наименование полученного документа:</strong></p>
     {% for document in documents %}   
       <div class="accordion-item">
         <h2 class="accordion-header" id="heading{{ loop.index }}">
@@ -24,7 +25,7 @@
         <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" 
              data-bs-parent="#accordionDocs" aria-labelledby="heading{{ loop.index }}">
           <div class="accordion-body">
-            <p><strong>Дата документа:</strong> {{ document.date.strftime('%d.%m.%Y') }}</p>
+            <p><strong class="tooltip-trigger" data-bs-toggle="tooltip" data-bs-placement="top" title="Дата ответа от суда">Дата документа:</strong> {{ document.date.strftime('%d.%m.%Y') }}</p>
             <p><strong>Суд:</strong> {{ document.declarer }}</p>
           </div>
         </div>
