@@ -13,6 +13,7 @@ class CaseService:
         return await self.repository.get_case(case_id)
 
     async def get_case_documents_paginated(self, case_id: int, page: int, size: int):
+
         return await self.repository.get_case_documents_paginated(case_id, page, size)
     
     async def get_cases(self, *args,):

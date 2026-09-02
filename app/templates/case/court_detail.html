@@ -8,7 +8,7 @@
     {% for court in courts %}
       <li class="list-group-item">
         <strong>Дело №{{ court.case.number_case }}</strong><br>
-        Дата: {{ court.date_court }} | Время: {{ court.time_court }} | Зал: {{ court.hall_court or "не указан" }}
+        Дата: {{ court.date_court.strftime("%d.%m.%Y") }} | Время: {{ court.time_court }} | Зал: {{ court.hall_court or "не указан" }}
       </li>
     {% endfor %}
   </ul>

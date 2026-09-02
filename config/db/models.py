@@ -101,7 +101,7 @@ class ParsDocument(Base):
     __tablename__ = "pars_documents"
     id: Mapped[int] = mapped_column(primary_key=True)
     id_case: Mapped[int] = mapped_column(ForeignKey("cases.id"), nullable=True)
-    date: Mapped[str] = mapped_column(Text, nullable=True)
+    date: Mapped[date] = mapped_column(Date, nullable=True)
     declarer: Mapped[str] = mapped_column(Text, nullable=True)
     document: Mapped[str] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(Text, nullable=True, default="not_sent")

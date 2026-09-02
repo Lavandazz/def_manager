@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from app.utils.caches_data import get_cases_from_cache
 from config.redis_config import redis_client
+from config.schemas import documents_schema
 from core.services.case_service import CaseService
 from app.utils.dependensy import get_case_service, get_debtor_service, get_optional_user
 from celery_tasks.task_manager import parsing_task
@@ -100,14 +101,16 @@ async def case_detail(
     user: User = Depends(get_optional_user),
 ):
     # fastapi_logger.warning(f"Request from {request.client.host}, UA: {request.headers.get('user-agent')}")
-    if user is None:
-        return templates.TemplateResponse("index.html", {"request": request, "error": "Не авторизован"}, status_code=401)
-    
+    if not user:
+        return templates.TemplateResponse(request, "index.html", 
+                                          context={"title": "Главная страница",
+                                                   "message": "Необходимо авторизоваться"})
     case = await case_service.get_case(case_id=case_id)  # возврат Case по id
     
     # Получаем документы с пагинацией
     documents, total_docs = await case_service.get_case_documents_paginated(case_id, page, size)
-    
+    for document in documents:
+        print(document.date if document.id == 12 else type(document.date))
     total_pages = (total_docs + size - 1) // size if total_docs > 0 else 1
 
     cached_data = get_cases_from_cache(user_id=user.id) # получаем cases из кэша
