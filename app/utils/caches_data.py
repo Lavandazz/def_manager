@@ -9,7 +9,7 @@ def get_cases_from_cache(user_id) -> list | None:
     if cached_data:
         try:
             cases = json.loads(cached_data) # type: ignore
-            print("оплучил дела из кеша")
+            print("получил дела из кеша")
             return cases
         
         except Exception as e:

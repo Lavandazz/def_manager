@@ -103,7 +103,7 @@ async def case_detail(
     if user is None:
         return templates.TemplateResponse("index.html", {"request": request, "error": "Не авторизован"}, status_code=401)
     
-    case = await case_service.get_case(case_id=case_id)  # должен возвращать Case по id
+    case = await case_service.get_case(case_id=case_id)  # возврат Case по id
     
     # Получаем документы с пагинацией
     documents, total_docs = await case_service.get_case_documents_paginated(case_id, page, size)

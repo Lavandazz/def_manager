@@ -1,5 +1,6 @@
-from sqlalchemy import func, select
+from sqlalchemy import desc, func, select
 from sqlalchemy.orm import selectinload
+from sqlalchemy import cast, Date
 from config.db.abstract_repository import AbstractCaseRepository
 from config.db.models import Case, ParsDocument
 from config.logger_config import db_logger
@@ -32,10 +33,6 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         Получение данных из таблицы case по id_case
         param: case_id
         """
-        # stmt = select(Case).where(Case.id == case_id).options(selectinload(Case.pars_documents))
-        # result = await self.session.execute(stmt)
-        # return result.scalars().first()
-    
         stmt = (
             select(Case)
             .where(Case.id == case_id)
@@ -53,15 +50,16 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         return result.scalars().first()
     
     async def get_case_documents_paginated(self, case_id: int, page: int, size: int):
-        # 1. Общее количество документов для этого дела (нужно для пагинации)
+        # Общее количество документов для этого дела (нужно для пагинации)
         total_query = select(func.count(ParsDocument.id)).where(ParsDocument.id_case == case_id)
         total_result = await self.session.execute(total_query)
         total_docs = total_result.scalar_one()
         
-        # 2. Документы для текущей страницы
+        # Документы для текущей страницы
         stmt = (
             select(ParsDocument)
             .where(ParsDocument.id_case == case_id)
+            .order_by(desc(ParsDocument.date)) # сортировка в обратном порядке по дате
             .offset((page - 1) * size)
             .limit(size)
         )
