@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from core.services.court_service import CourtService
@@ -19,8 +19,10 @@ async def get_courts(
     """
     Получение всех судебных заседаний для текущего пользователя и отображение их на странице."""
     if not user:
-        return templates.TemplateResponse(request, "index.html", context={"title": "Главная страница"})
-    
+        return templates.TemplateResponse(request, "index.html", 
+                                          context={"title": "Главная страница",
+                                                   "message": "Для отображения календаря войдите или зарегистрируйтесь"})
+
     courts = await court_service.get_courts(user_id=user.id)
 
     context = {

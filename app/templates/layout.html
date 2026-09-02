@@ -9,7 +9,7 @@
 
       <div class="mt-4 p-5 bg-primary text-white rounded">
         <h1>Мониторинг арбитражных дел о банкротстве</h1>
-        <p>Небольшой вступительный текст или описание</p>
+        <p>Простота в использовании. Скорость получения информации.</p>
       </div>
 
       <div class="row m-4">
@@ -22,13 +22,12 @@
 
         <div class="col-9">
             <main class="container col-8 mt-4">
-              {% block content %}
                 {% if message %}
                     <div class="alert alert-success" role="alert">
                         {{ message }}
                     </div>
                 {% endif %}
-
+              {% block content %}
               {% endblock content %}
             </main>
         </div>
