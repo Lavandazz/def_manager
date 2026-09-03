@@ -15,8 +15,13 @@ class CourtSessionAlchemyRepository(AbstractCourtRepository):
     def __init__(self, session):
         self.session = session
 
-    async def add_court(self, param):
-        pass
+    async def add_court(self, court_session: CourtSession):
+        try:
+            self.session.add(court_session)
+            await self.session.commit()
+            return court_session
+        except Exception as e:
+            db_logger.error("Ошибка сохранения даты, места суда",)
 
     async def get_courts(self, user_id) -> list[CourtSession]:
         db_logger.info("Поиск заседаний")

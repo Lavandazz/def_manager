@@ -6,7 +6,7 @@ from fastapi import Depends, Request
 from core.repository.debtor_repository import DebtorAlchemyRepository
 from core.services.auth_service import AuthService
 from core.services.case_service import CaseService
-from core.services.court_service import CourtService
+from core.services.court_session_service import CourtSessionService
 from core.services.debtor_service import DebtorService
 from core.services.token_service import TokenService
 from core.services.user_service import UserService
@@ -96,7 +96,7 @@ async def get_court_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_d
     """
     Функция для DI в api сервисах,
     например, в эндпоинте получаем репозиторий и работаем с сервисом,
-    court_service = CourtService(repo)
+    court_service = CourtSessionService(repo)
     """
     return CourtSessionAlchemyRepository(unit_of_work.session)
 
@@ -105,9 +105,9 @@ async def get_court_service(court_repo: Annotated[CourtSessionAlchemyRepository,
     """
     Функция для DI в api сервисах,
     Получаем сессию и работаем с сервисом,
-    court_service = CourtService(session)
+    court_service = CourtSessionService(session)
     """
-    service = CourtService(court_repo)
+    service = CourtSessionService(court_repo)
     return service
 
 

@@ -41,7 +41,7 @@ class AbstractCourtRepository(ABC):
     Абстрактный класс для патерна Репозиторий.
     """
     @abstractmethod
-    async def add_court(self, param):
+    async def add_court(self, court_session):
         pass
 
     @abstractmethod
