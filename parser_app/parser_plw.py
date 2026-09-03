@@ -30,9 +30,7 @@ class ParserKad:
         page: Page = await context.new_page()
         try:
             await page.goto (self.url, timeout=10000)
-            user_agent = await page.evaluate("() => navigator.userAgent")
-
-            print("User-Agent:", user_agent)
+            # user_agent = await page.evaluate("() => navigator.userAgent")
             return page
         
         except Exception as e:
@@ -42,7 +40,6 @@ class ParserKad:
 
     async def run(self):
         """ Запуск парсера """
-        print("Метод run!!!!!!")
         self.page: Page = await self.setup_for_page(self.context)
         await self.run_full_path()
 
@@ -60,7 +57,7 @@ class ParserKad:
         # Если search_red_calendar вернул True – дальше не идём
         if await self.search_red_calendar():
             return
-        await self.date_of_the_court_session()
+        # await self.date_of_the_court_session()
         await self.click_online_case()
         await self.parse_mod()
         await self.close_page()
@@ -157,7 +154,7 @@ class ParserKad:
             respondent_cell = self.page.locator('td.respondent').filter(
             has_text='ООО "ИТМ ИНЖИНИРИНГ"')
 
-            print("respondent_cell", await expect(respondent_cell).to_contain_text('ООО "ИТМ ИНЖИНИРИНГ"'))
+            # print("respondent_cell", await expect(respondent_cell).to_contain_text('ООО "ИТМ ИНЖИНИРИНГ"'))
             # name = expect(respondent_cell).to_contain_text('ООО "ИТМ ИНЖИНИРИНГ"')
 
             # Имитируем наведение, чтобы показать скрытый блок
@@ -186,7 +183,7 @@ class ParserKad:
             case_number_link = self.page.locator("a[target='_blank'].num_case", has_text=self.case_number)
             
             # Проверяем текст по названию должника для удостоверения правильности страницы для дальнейшего парсинга
-            await self.search_name()
+            # await self.search_name()
                 
             await asyncio.sleep(random_sleep())
             # ожидаем открытия новой вкладки
@@ -205,13 +202,7 @@ class ParserKad:
 
         except Exception as e:
             parser_logger.error("Ошибка при переходе на новую страницу %s", e)
-            # parser_logger.error("Ошибка при переходе на новую страницу",
-            #                     extra={
-            #                         "case_number": self.case_number,  # Основной идентификатор
-            #                         "step": "click_link_case",
-            #                         "error": e,
-            #                         "system": "parser",
-            #                     })
+
 
     async def search_red_calendar(self):
         """
@@ -227,7 +218,9 @@ class ParserKad:
 
                     # Необходимо дополнить поиском наименования суда и добавить в базу, чтоб связать суд с заседанием
                     # span class "instantion-name" в строке с заседанием
-                    print("==== Искомое заседание в строках",text)
+                    print("==== Искомое заседание в строках")
+                    court_name = TextHepler.take_court_name(text=text)
+                    print("Наименование суда", court_name)
 
                     collapse_block = line.locator('.b-collapse[title*="ознакомиться"]')
                     plus_button = collapse_block.locator('i.b-sicon')
@@ -240,7 +233,11 @@ class ParserKad:
                                            "step": "search_red_calendar",
                                            "system": "parser",
                                        })
+                    # поочередно вызываем сохранение дат заседаний
+                    await self.date_of_the_court_session()
+
                     return False # продолжаем парсинг
+                
                  # Если цикл закончился и строка не найдена
             parser_logger.info("Текста 'Следующее заседание' - нет. Закрываю дело.",
                            extra={
@@ -261,7 +258,7 @@ class ParserKad:
 
     async def date_of_the_court_session(self):
         """
-        Поиск дат заседаний
+        Поиск и сохранение дат заседаний
         """
         try:
             # ожидаем появления элементов
@@ -269,10 +266,11 @@ class ParserKad:
             dates_court = await self.new_page.locator('.additional-info').all_inner_texts()
             if dates_court:
                 for el in dates_court:
-                    if 'Дата и время' in el:
-                        # сохраняем в базу
+                    if 'дата и время' in el.lower():
+                        TextHepler.take_court_date(el)
+                        # сохраняем в базу наименование суда в Court и CourtSession
                         # await save_court_date(el, self.case_number)
-                        print("охраняю дату и время", el)
+                        
 
             parser_logger.info("Заседаний нет")
             return False
@@ -330,9 +328,9 @@ class ParserKad:
             declarers = await self.new_page.locator('.b-case-chrono-ed-item-declarers').all_inner_texts()
             documents = await self.new_page.locator('.b-case-chrono-ed-item-link').all_inner_texts()
 
-            for i, date in enumerate(date_items):
+            # for i, date in enumerate(date_items):
                 # await save_documents(self.case_number, date, declarers[i], documents[i])
-                parser_logger.info("тветы от судов %s", date)
+                # parser_logger.info("Ответы от судов %s", date)
 
         except Exception as e:
             parser_logger.error("Ошибка парсинга ответов",

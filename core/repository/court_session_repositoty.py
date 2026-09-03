@@ -7,7 +7,7 @@ from config.logger_config import db_logger
 from config.db.models import Case
 
 
-class CourtAlchemyRepository(AbstractCourtRepository):
+class CourtSessionAlchemyRepository(AbstractCourtRepository):
     """
     Класс для работы снепосредственно  базой данных через SQLAlchemy.
     Запись номером дел в базу данных, получение дел по id, обновление и удаление дел
@@ -18,7 +18,7 @@ class CourtAlchemyRepository(AbstractCourtRepository):
     async def add_court(self, param):
         pass
 
-    async def get_all_courts(self, user_id) -> list[CourtSession]:
+    async def get_courts(self, user_id) -> list[CourtSession]:
         db_logger.info("Поиск заседаний")
 
         stmt = (

@@ -15,7 +15,7 @@ from app.utils.auth.auth_token import AuthTokenService
 from config.db.models import User
 from core.repository.case_repository import CaseAlchemyRepository
 from config.db.database import UnitOfWork
-from core.repository.court_repositoty import CourtAlchemyRepository
+from core.repository.court_session_repositoty import CourtSessionAlchemyRepository
 from core.repository.token_repository import TokenAlchemyRepository
 from core.repository.user_repository import UserAlchemyRepository
 
@@ -98,10 +98,10 @@ async def get_court_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_d
     например, в эндпоинте получаем репозиторий и работаем с сервисом,
     court_service = CourtService(repo)
     """
-    return CourtAlchemyRepository(unit_of_work.session)
+    return CourtSessionAlchemyRepository(unit_of_work.session)
 
 
-async def get_court_service(court_repo: Annotated[CourtAlchemyRepository, Depends(get_court_repository)]):
+async def get_court_service(court_repo: Annotated[CourtSessionAlchemyRepository, Depends(get_court_repository)]):
     """
     Функция для DI в api сервисах,
     Получаем сессию и работаем с сервисом,

@@ -35,7 +35,9 @@ async def start_parser(request: Request,
         print(f"Запуск задачи парсинга для дела {number_case}")
         await run_playwright_parsing(number_case)
         
-        context = {"message": "Запуск парсинга"}
+        context = {
+            "user": user,
+            "message": "Запуск парсинга"}
 
         return templates.TemplateResponse(request, "index.html", context=context, status_code=201)
 

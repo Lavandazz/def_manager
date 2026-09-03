@@ -45,7 +45,7 @@ class AbstractCourtRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_all_courts(self, user_id):
+    async def get_courts(self, user_id):
         pass
 
     @abstractmethod
@@ -114,3 +114,6 @@ class AbstractDebtorRepository(ABC):
     @abstractmethod
     async def delete_debtor(self, debtor_id) -> bool:
         pass
+
+
+    
