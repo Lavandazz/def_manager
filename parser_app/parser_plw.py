@@ -221,10 +221,14 @@ class ParserKad:
         try:
             await asyncio.sleep(random_sleep_for_search())
             search_lines = await self.new_page.locator('.b-chrono-item-header').all()
-
             for line in search_lines:
                 text = await line.inner_text()
                 if 'Следующее заседание:' in text:
+
+                    # Необходимо дополнить поиском наименования суда и добавить в базу, чтоб связать суд с заседанием
+                    # span class "instantion-name" в строке с заседанием
+                    print("==== Искомое заседание в строках",text)
+
                     collapse_block = line.locator('.b-collapse[title*="ознакомиться"]')
                     plus_button = collapse_block.locator('i.b-sicon')
                     await collapse_block.scroll_into_view_if_needed()

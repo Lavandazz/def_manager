@@ -109,8 +109,6 @@ async def case_detail(
     
     # Получаем документы с пагинацией
     documents, total_docs = await case_service.get_case_documents_paginated(case_id, page, size)
-    for document in documents:
-        print(document.date if document.id == 12 else type(document.date))
     total_pages = (total_docs + size - 1) // size if total_docs > 0 else 1
 
     cached_data = get_cases_from_cache(user_id=user.id) # получаем cases из кэша

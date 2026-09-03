@@ -10,3 +10,4 @@ class TextHepler:
     @staticmethod
     def take_name(text: list) -> str:
         return text[0] 
+

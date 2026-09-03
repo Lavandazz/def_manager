@@ -109,6 +109,13 @@ class ParsDocument(Base):
     case = relationship("Case", back_populates="pars_documents")
 
 
+class Court(Base):
+    __tablename__ = "courts"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(Text, nullable=True, unique=True)
+    court_sessions = relationship("CourtSession", back_populates="court")
+
+
 class CourtSession(Base):
     __tablename__ = "court_sessions"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -117,7 +124,10 @@ class CourtSession(Base):
     time_court: Mapped[str] = mapped_column(Text, nullable=True)
     hall_court: Mapped[str] = mapped_column(Text, nullable=True)
 
+    court_id: Mapped[int] = mapped_column(ForeignKey("courts.id"), nullable=True)
+
     case = relationship("Case", back_populates="court_sessions")
+    court = relationship("Court", back_populates="court_sessions")
 
 
 class SupportTicket(Base):
