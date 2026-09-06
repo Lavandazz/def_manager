@@ -75,6 +75,13 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         stmt = select(Case).where(Case.id_user == user_id).options(selectinload(Case.debtor))
         result = await self.session.execute(stmt)
         return result.scalars().all()
+
+    async def find_case_by_number(self, number):
+        """Получение дела по номеру дела"""
+        stmt = select(Case).where(Case.number_case == number)
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
     
     async def get_cases(self) -> list[Case]:
         """

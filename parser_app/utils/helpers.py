@@ -1,6 +1,6 @@
-from ast import pattern
+
 from datetime import date, datetime, timedelta
-import re
+
 
 
 class TextHepler:
@@ -28,19 +28,24 @@ class TextHepler:
         return " ".join(court_name)
 
     @staticmethod
-    def take_court_date(text: str):
-        """Получение даты заседания из текста"""
+    def take_court_date(text: str) -> tuple[date, str, str] | None:
+        """
+        Получение даты заседания из текста.
+        :return: date, str, str
+        """
         print("ТЕКСТ ДЛЯ ВЫЯСНЕНИЯ ДАТЫ", text)
         list_text = text.split()
         find_index = list_text.index('Дата')
         find_text = list_text[find_index:]
-        text_date, text_time, text_hall = find_text[5].replace(",", ""), find_text[6].replace(",", ""), find_text[-1]
-        print(f"дата суда: {text_date}, время: {text_time}, место: {text_hall}")
-
+        text_date, time_court, hall_court = find_text[5].replace(",", ""), find_text[6].replace(",", ""), find_text[-1]
         date_of_court = datetime.strptime(text_date, '%d.%m.%Y').date()
-        print("date_of_court", date_of_court)
+        print(f"дата суда: {date_of_court}, время: {time_court}, место: {hall_court}")
+
         if check_date(date_of_court):
             print("дата подходит для сохранения", date_of_court)
+            return (date_of_court, time_court, hall_court) 
+        
+        return None
 
 
 def check_date(date_of_court: date):

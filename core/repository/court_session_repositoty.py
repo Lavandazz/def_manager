@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
@@ -9,7 +11,7 @@ from config.db.models import Case
 
 class CourtSessionAlchemyRepository(AbstractCourtRepository):
     """
-    Класс для работы снепосредственно  базой данных через SQLAlchemy.
+    Класс для работы с непосредственно  базой данных через SQLAlchemy.
     Запись номером дел в базу данных, получение дел по id, обновление и удаление дел
     """
     def __init__(self, session):
@@ -36,14 +38,32 @@ class CourtSessionAlchemyRepository(AbstractCourtRepository):
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def get_court_by_case(self, case_id):
+    async def get_court(self, case_id):
         """
-        Получение данных из таблицы court по id_case
+        Получение данных(наименования) из таблицы court по id_case
         param: case_id
         """
         stmt = select(CourtSession).where(CourtSession.id_case == case_id)
         result = await self.session.execute(stmt)
         return result.scalars().all()
+
+    async def exists_court_session(self, case_id: int, court_id: int, date_court: date, time_court: str, hall_court: str) -> bool:
+        """Получаение данных о суде для проверки перед сохранением"""
+        print("проверка в бд")
+        stmt = (
+            select(CourtSession)
+            .where(
+                CourtSession.id_case == case_id,
+                CourtSession.court_id == court_id,
+                CourtSession.date_court == date_court,
+                CourtSession.time_court == time_court,
+                CourtSession.hall_court == hall_court
+            )
+        )
+
+        result = await self.session.execute(stmt.limit(1))
+        print("прошла проверка")
+        return result.scalar() is not None
 
     async def update(self, param):
         pass

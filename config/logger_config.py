@@ -48,7 +48,7 @@ class BaseLogger:
         self.logger.propagate = False  # чтобы aiogram не перекрывал логи, иначе видно только логи мидлваров
 
         # Логируем успешную настройку
-        self.logger.info(f"Логирование для '{self.name}' настроено успешно.")
+        # self.logger.info(f"Логирование для '{self.name}' настроено успешно.")
 
     def get_logger(self):
         """Возвращает настроенный логгер"""
