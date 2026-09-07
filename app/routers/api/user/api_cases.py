@@ -30,7 +30,7 @@ async def get_user_cases(
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Данных нет или нет зарегистрированных дел')
 
 
-@router.post("/cases/add_case", tags=["api_case"])
+@router.post("/add_case", tags=["api_case"])
 async def add_case(
     case: CaseSchema,
     user: User = Depends(get_verify_user),
@@ -47,3 +47,21 @@ async def add_case(
 
         return {"message": "Дело успешно добавлено", "case": exist_case}
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Пользователь не найден')
+
+
+@router.delete("/{case_id}", tags=["api_case"])
+async def delete_case(
+    case_id: int,
+    user: User = Depends(get_verify_user),
+    case_service: CaseService = Depends(get_case_service)
+):
+    # Проверим, что дело принадлежит пользователю
+    # Для этого нужно получить дело и проверить user.id
+    case = await case_service.get_case(case_id) 
+    if not case:
+        raise HTTPException(status_code=404, detail="Дело не найдено")
+    if case.id_user != user.id:
+        raise HTTPException(status_code=403, detail="Нет прав на удаление этого дела")
+    # Удаляем
+    await case_service.delete_case(case_id)
+    return {"message": f"Дело {case_id} успешно удалено"}

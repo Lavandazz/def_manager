@@ -28,6 +28,9 @@ class UnitOfWork(DatabaseAbstract):
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        # При входе создаёт сессию.
+        # При выходе (если не было исключений) – автоматически делает commit.
+        # Если было исключение – делает rollback.
         if exc_type is not None:
             await self.session.rollback()
         else:

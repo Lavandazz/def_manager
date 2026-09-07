@@ -1,6 +1,6 @@
-from sqlalchemy import desc, func, select
+
+from sqlalchemy import desc, func, select, update
 from sqlalchemy.orm import selectinload
-from sqlalchemy import cast, Date
 from config.db.abstract_repository import AbstractCaseRepository
 from config.db.models import Case, ParsDocument
 from config.logger_config import db_logger
@@ -14,18 +14,16 @@ class CaseAlchemyRepository(AbstractCaseRepository):
     def __init__(self, session):
         self.session = session
 
-    async def add_case(self, case: Case):
+    async def add_case(self, case: Case) -> Case | None:
         """
         Сохранение дела в базу данных.
         Передаваемый объект должен быть экземпляром модели Case.
         """
         try:
             self.session.add(case)
-            await self.session.commit()
             return case
 
         except Exception as e:
-            await self.session.rollback()
             db_logger.exception("не удалось сохранить дело в бд: %s", e)
 
     async def get_case(self, case_id):
@@ -50,7 +48,7 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         return result.scalars().first()
     
     async def get_case_documents_paginated(self, case_id: int, page: int, size: int):
-        # Общее количество документов для этого дела (нужно для пагинации)
+        """ Общее количество документов для этого дела (нужно для пагинации)"""
         total_query = select(func.count(ParsDocument.id)).where(ParsDocument.id_case == case_id)
         total_result = await self.session.execute(total_query)
         total_docs = total_result.scalar_one()
@@ -72,9 +70,12 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         """
         Получение всех дел, отфильтрованных по пользователю.
         """
-        stmt = select(Case).where(Case.id_user == user_id).options(selectinload(Case.debtor))
-        result = await self.session.execute(stmt)
-        return result.scalars().all()
+        try:
+            stmt = select(Case).where(Case.id_user == user_id).options(selectinload(Case.debtor))
+            result = await self.session.execute(stmt)
+            return result.scalars().all()
+        except Exception as e:
+            db_logger.exception(f"Не получилось отфильтровать дела по пользователю: {e}")
 
     async def find_case_by_number(self, number):
         """Получение дела по номеру дела"""
@@ -95,7 +96,15 @@ class CaseAlchemyRepository(AbstractCaseRepository):
     async def update(self, param):
         pass
 
-    async def delete(self, param):
-        pass
+    async def delete_case(self, case_id):
+        """Мягкое удаление дела. Проставляем статус 1"""
+        stmt = update(Case).where(Case.id == case_id, Case.status == 0).values(status=1)
+        result = await self.session.execute(stmt)
+        # Проверяем, была ли обновлена хотя бы одна запись
+        if result.rowcount == 0:
+            # Дело не найдено или уже удалено (статус не 0)
+            return False
+        return True
+        
 
 

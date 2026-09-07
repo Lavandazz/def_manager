@@ -1,12 +1,10 @@
-import json
+
 import re
 
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from app.utils.caches_data import get_cases_from_cache
-from config.redis_config import redis_client
-from config.schemas import documents_schema
 from core.services.case_service import CaseService
 from app.utils.dependensy import get_case_service, get_debtor_service, get_optional_user
 from celery_tasks.task_manager import parsing_task
@@ -129,4 +127,38 @@ async def case_detail(
 
     return templates.TemplateResponse(request, "case/case_detail.html", context)
 
+
+@router.post("/{case_id}/delete", tags=["html_case"], response_class=HTMLResponse)
+async def delete_case(
+    request: Request,
+    case_id: int,
+    case_service: CaseService = Depends(get_case_service),
+    user: User = Depends(get_optional_user),
+):
+    if not user:
+            return templates.TemplateResponse(request, "index.html", 
+                                            context={"title": "Главная страница",
+                                                    "message": "Необходимо авторизоваться"})
+    cached_data = get_cases_from_cache(user_id=user.id) # получаем cases из кэша
+    delete_case = await case_service.delete_case(case_id=case_id)
+    
+    context = {
+            "request": request,
+            "user": user,
+        }
+    if cached_data:
+        context["cases"] = cached_data
+    if delete_case:
+            message = "<span>Дело удалено.</span>" \
+            "Если Вы удалили дело по ошибке, обратитесь к администратору портала или напишите ваше обращено на электронную почту:" \
+            "nepomnu89@ya.ru " \
+            "или в telegram:" \
+            "@itLavandazz"
+
+            context["message"] = message
+    
+            
+    return templates.TemplateResponse(request, "index.html", context, status_code=200)
+
+    
 

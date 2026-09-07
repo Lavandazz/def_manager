@@ -67,4 +67,16 @@
   {% endif %}
 
   <p class="text-muted text-center">Показано {{ documents|length }} из {{ total_docs }} документов</p>
-{% endblock %}
+
+  <div class="alert alert-secondary mt-3 d-grid gap-2 d-md-flex justify-content-md-end">
+      <span> <!-- Оборачиваем весь текст в один контейнер -->
+          <strong>Будьте внимательны при удалении дела.</strong> 
+          Восстановить дело можно только обратившись к администратору!
+      </span>
+      <form method="post" action="/user/cases/{{ case.id }}/delete" onsubmit="return confirm('Вы уверены, что хотите удалить дело №{{ case.number_case }}?');" style="display:inline;">
+        <!-- если нужна защита CSRF, добавьте токен -->
+        <button type="submit" class="btn btn-danger">Удалить дело</button>
+    </form>
+  </div>
+
+  {% endblock %}

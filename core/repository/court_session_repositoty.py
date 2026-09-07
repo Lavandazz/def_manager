@@ -26,52 +26,64 @@ class CourtSessionAlchemyRepository(AbstractCourtRepository):
             db_logger.error("Ошибка сохранения даты, места суда",)
 
     async def get_courts(self, user_id) -> list[CourtSession]:
-        db_logger.info("Поиск заседаний")
+        """Поиск заседаний с фильтрацией по пользователю"""
+        try:
+            stmt = (
+            select(CourtSession)
+            .join(Case, CourtSession.id_case == Case.id)
+            .where(Case.id_user == user_id)
+            .options(selectinload(CourtSession.case))
+            .order_by(CourtSession.date_court, CourtSession.time_court)
+        )
+            result = await self.session.execute(stmt)
+            return result.scalars().all()
+        except Exception as e:
+            db_logger.error("Ошибка при получении списка дат судов", e)
 
-        stmt = (
-        select(CourtSession)
-        .join(Case, CourtSession.id_case == Case.id)
-        .where(Case.id_user == user_id)
-        .options(selectinload(CourtSession.case))
-        .order_by(CourtSession.date_court, CourtSession.time_court)
-    )
-        result = await self.session.execute(stmt)
-        return result.scalars().all()
 
     async def get_court(self, case_id):
         """
         Получение данных(наименования) из таблицы court по id_case
         param: case_id
         """
-        stmt = select(CourtSession).where(CourtSession.id_case == case_id)
-        result = await self.session.execute(stmt)
-        return result.scalars().all()
+        try:
+            stmt = select(CourtSession).where(CourtSession.id_case == case_id)
+            result = await self.session.execute(stmt)
+            return result.scalars().all()
+        
+        except Exception as e:
+            db_logger.error("Ошибка при получении даты суда")
 
     async def exists_court_session(self, case_id: int, court_id: int, date_court: date, time_court: str, hall_court: str) -> bool:
         """Получаение данных о суде для проверки перед сохранением"""
-        print("проверка в бд")
-        stmt = (
-            select(CourtSession)
-            .where(
-                CourtSession.id_case == case_id,
-                CourtSession.court_id == court_id,
-                CourtSession.date_court == date_court,
-                CourtSession.time_court == time_court,
-                CourtSession.hall_court == hall_court
+        try:
+            stmt = (
+                select(CourtSession)
+                .where(
+                    CourtSession.id_case == case_id,
+                    CourtSession.court_id == court_id,
+                    CourtSession.date_court == date_court,
+                    CourtSession.time_court == time_court,
+                    CourtSession.hall_court == hall_court
+                )
             )
-        )
+            db_logger.info("Проверка дат заседаний",)
+            result = await self.session.execute(stmt.limit(1))
+            return result.scalar() is not None
+        except Exception as e:
+            db_logger.error("Ошибка при проверке даты суда", e)
 
-        result = await self.session.execute(stmt.limit(1))
-        print("прошла проверка")
-        return result.scalar() is not None
 
     async def update(self, param):
         pass
 
     async def delete(self, date):
-        stmt = select(CourtSession).where(CourtSession.date_court < date)
-        result = await self.session.execute(stmt)
-        # return result.scalars().delete()
-        db_logger.info("На удаление %s старых заседаний суда", result.rowcount)
-        return result.scalars().all()
+        try:
+            stmt = select(CourtSession).where(CourtSession.date_court < date)
+            result = await self.session.execute(stmt)
+            # return result.scalars().delete()
+            db_logger.info("На удаление %s старых заседаний суда", result.rowcount)
+            return result.scalars().all()
+        except Exception as e:
+            db_logger.error("Ошибка при удалении даты суда", e)
     

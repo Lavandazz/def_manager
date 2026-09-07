@@ -5,7 +5,6 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from config.db.models import Debtor, User, Case
 from config.schemas.user_schemas import UserSchema
@@ -16,15 +15,15 @@ class AbstractCaseRepository(ABC):
     Абстрактный класс для патерна Репозиторий.
     """
     @abstractmethod
-    async def add_case(self, case: Case):
+    async def add_case(self, case: Case) -> Case | None:
         pass
 
     @abstractmethod
-    async def get_case(self, case_id: int):
+    async def get_case(self, case_id: int) -> Case:
         pass
 
     @abstractmethod
-    async def get_cases(self):
+    async def get_cases(self) -> list[Case]:
         pass
 
     @abstractmethod
@@ -32,7 +31,7 @@ class AbstractCaseRepository(ABC):
         pass
 
     @abstractmethod
-    async def delete(self, param):
+    async def delete_case(self, case_id: int) -> bool:
         pass
 
 
