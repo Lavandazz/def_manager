@@ -1,5 +1,8 @@
 
 from datetime import date, datetime, timedelta
+import stat
+
+from click.core import F
 
 
 
@@ -47,8 +50,30 @@ class TextHepler:
         
         return None
 
+    @staticmethod
+    def check_date_earlier(check_date: date) -> bool:
+        """Проверка даты - 1 месяц"""
+        current_month = datetime.now().date()
+        date_earlier = current_month - timedelta(days=30)
+        if check_date.month in (
+            date_earlier.month, current_month.month) and check_date.year == current_month.year:
+            return True
+        return False
 
-def check_date(date_of_court: date):
+    @staticmethod
+    def check_name_document(check_name: str) -> bool | None:
+        """
+        Поиск слов в названии документа, если есть слово "удовлетворить" - необходимо проставить статус
+        """
+        texts = ("удовлетворить",)
+        for i in check_name.split(" "):
+            if i.lower() in texts:
+                print("Необходимо проставить статус. Есть слово Удовлетворить ")
+                return True
+
+
+
+def check_date(date_of_court: date) -> bool:
     """Проверка даты + 2 месяца"""
     date_now = date.today()
     one_month = date_now + timedelta(days=30)
@@ -64,5 +89,19 @@ def check_date(date_of_court: date):
     else:
         print(f'Даты не сохранил: {date_of_court}')
         return False
+
+def check_date_earlier(check_date: date) -> bool:
+    """Проверка даты - 1 месяц"""
+    current_month = datetime.now()
+    date_earlier = current_month - timedelta(days=30)
+    if check_date in (
+        date_earlier.month, current_month.month and 
+        check_date.year == current_month.year or check_date.year + 1
+        ):
+        return True
+    return False
+
+
+    
 
 

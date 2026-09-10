@@ -1,3 +1,4 @@
+
 from sqlalchemy import select
 
 from config.db.models import Court
@@ -17,7 +18,6 @@ class CourtRepository:
             
             court = Court(name=court_name)
             self.session.add(court)
-            await self.session.commit()
             return court
         except Exception as e:
             db_logger.error(f"Ошибка при сохранении наименования суда {e}")

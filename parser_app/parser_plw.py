@@ -4,10 +4,9 @@ python -m parser.parser_plw
 """
 import asyncio
 from datetime import datetime
-import time
+
 from httpx import TimeoutException
 from playwright.async_api import async_playwright, Page, BrowserContext, expect
-from tomlkit import date
 
 from config.db.db_config import get_db
 from config.logger_config import parser_logger
@@ -35,20 +34,28 @@ class ParserKad:
 
     async def setup_for_page(self, context):
         """ Открытие страницы """
-        page: Page = await context.new_page()
+        page = await context.new_page()
         try:
             await page.goto (self.url, timeout=10000)
             # user_agent = await page.evaluate("() => navigator.userAgent")
             return page
         
         except Exception as e:
+            # Когда браузер открывает страницу, но не может закрыть всплывающее окно,
+            # возникает ошибка TimeoutError: Timeout 10000ms exceeded.
+            # Чтобы не прерывать работу парсера, мы перезагружаем страницу и продолжаем работу.
             parser_logger.error("Не удалось открыть страницу; Дело № %s: Ошибка %s", self.case_number, e)
-            await page.close()
-            return None
+            # await page.close()
+            await page.reload()
+            return page
+            # return None
 
     async def run(self):
         """ Запуск парсера """
-        self.page: Page = await self.setup_for_page(self.context)
+        self.page = await self.setup_for_page(self.context) # type: ignore
+        if self.page is None:
+            raise RuntimeError(f"Не удалось открыть страницу для {self.case_number}")
+    
         await self.run_full_path()
 
     async def run_full_path(self):
@@ -58,14 +65,20 @@ class ParserKad:
         if await self.check_page():
             return
         await self.click_link_case()
-        # Если не удалось перейти на новую страницу – завершаем
+        # Если не удалось перейти на новую страницу – завершаем и закрываем парсер
         if not self.new_page:
             await self.close_page()
             return
+        
+        # Раздел - поиск дат заседаний
+
+        # Данный раздел закомментирован, так как если нет заседаний, то все-равно необходимо проверить документы
         # Если search_red_calendar вернул True – дальше не идём
-        if await self.search_red_calendar():
-            return
-        # await self.date_of_the_court_session()
+        # if await self.search_red_calendar():
+        #     return
+        await self.search_red_calendar()
+        
+        # Раздел с поиском документа
         await self.click_online_case()
         await self.parse_mod()
         await self.close_page()
@@ -75,6 +88,12 @@ class ParserKad:
         Метод для закрытия всплывающего окна.
         Окно появляется не всегда, игнорируем ошибку 
         """
+        if self.page is None:
+            parser_logger.warning(
+                "promo_notification_popup_close: page is None, пропускаем",
+                extra={"case_number": self.case_number, "step": "popup_close", "system": "parser"},
+            )
+            return
         try:
             close_btn = self.page.locator('a.b-promo_notification-popup-close')
             await close_btn.wait_for(state='visible')
@@ -87,13 +106,14 @@ class ParserKad:
                             })
 
         except Exception as e:
-            parser_logger.warning("Ошибка при закрытии всплывающего окна",
+            parser_logger.warning(f"Ошибка при закрытии всплывающего окна: {e}",
                                 extra={
                                     "case_number": self.case_number,  # Основной идентификатор
                                     "step": "popup_close",
                                     "error": e,
                                     "system": "parser",
                                 })
+            # await self.page.reload()  # обновляем страницу, если окно не закрылось
 
     async def enter_case_number(self, retries: int = 3):
         """
@@ -107,18 +127,29 @@ class ParserKad:
                 parser_logger.info(f"Попытка {attempt} — ищу поле для ввода номера дела: {self.case_number}")
 
                 # Явное ожидание появления поля
-                input_field = self.page.get_by_placeholder('например, А50-5568/08')
-                await input_field.fill(self.case_number)
-                await asyncio.sleep(2)
-                await input_field.press('Enter')
+                try:
+                    input_field = self.page.get_by_placeholder('например, А50-5568/08')
 
-                parser_logger.info("✅ Ввод номера дела успешно выполнен",
-                                   extra={
-                                       "case_number": self.case_number,
-                                       "step": "enter_case_number",
-                                       "system": "parser",
-                                   })
-                return  # успех — выходим
+                except AttributeError as attr_err:
+                    parser_logger.error("Ошибка при поиске поля ввода номера дела: %s", attr_err)
+                    await self.page.reload()
+                    continue
+                if input_field:
+                    await input_field.fill(self.case_number)
+                    await asyncio.sleep(2)
+                    await input_field.press('Enter')
+
+                    parser_logger.info("✅ Ввод номера дела успешно выполнен",
+                                    extra={
+                                        "case_number": self.case_number,
+                                        "step": "enter_case_number",
+                                        "system": "parser",
+                                    })
+                    return  # успех — выходим
+                else:
+                    parser_logger.warning("Поле для ввода номера дела не найдено на странице. Попытка %s", attempt)
+                    await self.page.reload()
+                    await asyncio.sleep(5)  # время на подгрузку
 
             except Exception as e:
                 parser_logger.warning(f"⚠️ Ошибка при вводе номера дела на попытке {attempt}: {e}")
@@ -226,7 +257,6 @@ class ParserKad:
                     # span class "instantion-name" в строке с заседанием
                     # Достаем наименование суда из текста
                     court_name = TextHepler.take_court_name(text=text)
-                    print("Наименование суда", court_name)
 
                     collapse_block = line.locator('.b-collapse[title*="ознакомиться"]')
                     plus_button = collapse_block.locator('i.b-sicon') # поиск плюсика для раскрытия всех заседаний и доков
@@ -257,7 +287,7 @@ class ParserKad:
             return True  # прерываем парсинг
 
         except Exception as e:
-            parser_logger.exception("Ошибка в search_red_calendar",
+            parser_logger.exception(f"Ошибка в search_red_calendar {e}",
                         extra={"case_number": self.case_number, "step": "search_red_calendar", "system": "parser"})
 
     async def date_of_the_court_session(self) -> list | bool | None:
@@ -333,7 +363,6 @@ class ParserKad:
                                })
         
         except TimeoutException as e:
-            print("TimeoutException Ошибка сохранения календаря %s", e)
             parser_logger.error("Ошибка сохранения календаря %s", e,
                                 extra={
                                     "case_number": self.case_number,  # Основной идентификатор
@@ -343,24 +372,38 @@ class ParserKad:
                                 })
             
         except Exception as e:
-            print("Ошибка сохранения календаря %s", e)
+            parser_logger.error("Ошибка сохранения календаря %s", e,)
 
     async def parse_mod(self):
         """
         Сбор информации об ответах от судов
+        Дата ответа, наименование суда, наименование документа
         """
         await asyncio.sleep(random_sleep_for_search())
-        current_month = datetime.now()
-        # date_earlier = current_month - timedelta(days=30)
-
         try:
             date_items = await self.new_page.locator(".b-case-chrono-ed-item-date").all_inner_texts()
             declarers = await self.new_page.locator('.b-case-chrono-ed-item-declarers').all_inner_texts()
             documents = await self.new_page.locator('.b-case-chrono-ed-item-link').all_inner_texts()
+            cnt = 0
+            for i, date in enumerate(date_items):
+                date = datetime.strptime(date, "%d.%m.%Y").date()
+                # parser_logger.debug("+++++++ проверяю ответ от суда с датой %s", date)
+                if TextHepler.check_date_earlier(date):
+                    cnt += 1
+                    TextHepler.check_name_document(check_name=documents[i])
 
-            # for i, date in enumerate(date_items):
-                # await save_documents(self.case_number, date, declarers[i], documents[i])
-                # parser_logger.info("Ответы от судов %s", date)
+                    parser_logger.debug(f"Сохраняю ответ с датой {date}")
+                    
+                    await self.data_saver.save_documents(
+                        case_number=self.case_number, 
+                        date=date, 
+                        declarer=declarers[i], 
+                        document_name=documents[i]
+                        )
+                    parser_logger.info("Ответы сохранил %s", date)
+            if cnt == 0:     
+                parser_logger.info("Подходящих ответов нет")
+            
 
         except Exception as e:
             parser_logger.error("Ошибка парсинга ответов",
@@ -375,7 +418,7 @@ class ParserKad:
         """
         Принудительное закрытие страницы
         """
-        print('закрываю парсер, страницы', self.case_number)
+        parser_logger.info(f'Закрываю парсер, страницы, {self.case_number}')
         if self.page:
             await self.page.close()
         if self.new_page:

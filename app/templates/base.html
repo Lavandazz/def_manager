@@ -2,40 +2,40 @@
 <html lang="en">
 <head>
 
-<title>{% block title %}{% endblock %} - My Webpage</title>
+<title>{% block title %}{% endblock %}</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
-{% block styles %}
-  <link href="/static/css/style.css" rel="stylesheet">
+  {% block styles %}
+    <link href="/static/css/style.css" rel="stylesheet">
 
-{% endblock %}
+  {% endblock %}
 
-{% block favicon %}
+  {% block favicon %}
 
-{% endblock %}
-</head>
+  {% endblock %}
+  </head>
 <body class="d-flex flex-column min-vh-100">
 
-{% block navbar %}
-  {% include 'components/navbar.html' %}   <!-- вставка навигации -->
-{% endblock %}
+  {% block navbar %}
+    {% include 'components/navbar.html' %}   <!-- вставка навигации -->
+  {% endblock %}
 
-{% block main %}
-  {# основное содержимое страницы #}
-{% endblock %}
-{% block login %}{% endblock login %}
+  {% block main %}
+    {# основное содержимое страницы #}
+  {% endblock %}
+  {% block login %}{% endblock login %}
 
-{% block footer %}
-  {% include "components/footer.html" %}
-{% endblock %}
+  {% block footer %}
+    {% include "components/footer.html" %}
+  {% endblock %}
 
-{% block scripts %}
-<!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/static/main.js"></script>
+  {% block scripts %}
+  <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/main.js"></script>
 
-{% endblock %}
+  {% endblock %}
 </body>
 </html>

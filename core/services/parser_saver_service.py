@@ -1,4 +1,4 @@
-from config.db.models import CourtSession
+from config.db.models import CourtSession, ParsDocument
 from core.services.case_service import CaseService
 from core.services.court_service import CourtService
 from core.services.court_session_service import CourtSessionService
@@ -26,7 +26,7 @@ class ParserDataSaver:
         court = await self.court_service.get_or_create_court(court_name) # получаем или сохраняем наименование суда
         case = await self._get_id_case(case_number)
         if not court:
-            print("ошибка в сохранении или получении наименования суда")
+            print("court не передан для сохранения")
             return None
         if not case:
             print(f"Ошибка: дело {case_number} не найдено")
@@ -41,4 +41,22 @@ class ParserDataSaver:
             )
         print("ParserDataSaver: сохранил court_data")
         await self.court_session_service.add_court(court_session=court_data)
-        
+
+    async def save_documents(self, case_number, date, declarer, document_name):
+        print(f"Режим сохранения документа для {case_number}, дата: {date}, суд: {declarer}, документ: {document_name}")
+        case = await self._get_id_case(case_number=case_number)
+        print(f"ParserDataSaver: case.id: {case.id if case else None}")
+        document_data = ParsDocument(
+            id_case=case.id,
+            date=date,
+            declarer=declarer,
+            document=document_name
+        )
+        doc_save = await self.pars_document_service.add_document(case_id=case.id, document=document_data)
+        if doc_save:
+            print("ParserDataSaver: сохранил документ")
+            return True
+        else:
+            print("ParserDataSaver: doc_save вернул false")
+            return False
+

@@ -14,23 +14,16 @@
 #     user = result.scalars().first()
 #     print("User", user.username)
 
+from datetime import date, datetime, timedelta
 
-st = [
-    57237.30,
-    54366.30,
-    17943.05,
-    5570.53,
-    34633.33,
-    5475.91,
-    8624.56,
-    27263.00,
-    27554,
-    2121.92,
-    10609.58,
-    2053.47,
-    38730.75,
-    42573.55
 
-]
-print(sum(st))
-print(len(st))
+def check_date_earlier(check_date: date) -> bool:
+    """Проверка даты - 1 месяц"""
+    current_month = datetime.now().date()
+    date_earlier = current_month - timedelta(days=30)
+    if check_date.month in (
+        date_earlier.month, current_month.month) and check_date.year == current_month.year:
+        return True
+    return False
+
+

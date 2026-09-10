@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlalchemy import desc, func, select
 from sqlalchemy.orm import selectinload
 from config.db.models import ParsDocument
@@ -18,12 +20,29 @@ class ParsDocumentAlchemyRepository:
         Сохраняет новый документ в БД.
         """
         try:
+            db_logger.info(f"Сохраняю документ {document.document}")
             self.session.add(document)
-            await self.session.commit()
+            db_logger.info(f"Сохранен документ {document.document}")
             return document
         except Exception as e:
-            await self.session.rollback()
             db_logger.exception("Не удалось сохранить документ в БД: %s", e)
+
+    async def exists_document(self, case_id: int, date: date, declarer: str, document_name: str) -> bool:
+        try:
+            db_logger.info("Начинается проверка документа перед сохранением")
+            stmt = select(ParsDocument).where(
+                ParsDocument.id_case == case_id,
+                ParsDocument.date == date,
+                ParsDocument.declarer == declarer,
+                ParsDocument.document == document_name)
+            result = await self.session.execute(stmt.limit(1))
+            db_logger.info(f"Окончена проверка документа перед сохранением: {result}")
+            return result.scalar() is not None
+        
+        except Exception as e:
+            db_logger.error(f"Ошибка при проверке документа: {e}")
+            return False
+
 
     async def get_document(self, document_id: int) -> ParsDocument | None:
         """
@@ -108,3 +127,5 @@ class ParsDocumentAlchemyRepository:
             await self.session.rollback()
             db_logger.exception("Не удалось удалить документ (id=%s): %s", document_id, e)
             return False
+
+        

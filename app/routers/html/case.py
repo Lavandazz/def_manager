@@ -149,7 +149,7 @@ async def delete_case(
     if cached_data:
         context["cases"] = cached_data
     if delete_case:
-            message = "<span>Дело удалено.</span>" \
+            message = "Дело удалено." \
             "Если Вы удалили дело по ошибке, обратитесь к администратору портала или напишите ваше обращено на электронную почту:" \
             "nepomnu89@ya.ru " \
             "или в telegram:" \

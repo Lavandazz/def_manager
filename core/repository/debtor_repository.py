@@ -1,7 +1,6 @@
-from typing import Any, Dict, Optional
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select
+
 from config.db.abstract_repository import AbstractDebtorRepository
 
 from config.db.models import Debtor
@@ -16,7 +15,6 @@ class DebtorAlchemyRepository(AbstractDebtorRepository):
     async def add_debtor(self, debtor: Debtor) -> Debtor:
         """Добавить нового должника"""
         self.session.add(debtor)
-        await self.session.commit()
         await self.session.refresh(debtor)  # обновить объект (например, для получения id)
         return debtor
 
@@ -34,10 +32,11 @@ class DebtorAlchemyRepository(AbstractDebtorRepository):
         Возвращает обновлённый объект или None, если должник не найден.
         """
         # Сначала проверим, существует ли запись
-        self.session.add(debtor)
-        await self.session.commit()
-        await self.session.refresh(debtor)
-        return debtor
+        debtor = await self.get_debtor(debtor.id)
+        if debtor:
+            self.session.add(debtor)
+            await self.session.refresh(debtor)
+            return debtor
 
 
     async def delete_debtor(self, debtor_id: int) -> bool:

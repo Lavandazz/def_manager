@@ -71,7 +71,8 @@ class CourtSessionAlchemyRepository(AbstractCourtRepository):
             result = await self.session.execute(stmt.limit(1))
             return result.scalar() is not None
         except Exception as e:
-            db_logger.error("Ошибка при проверке даты суда", e)
+            db_logger.error(f"Ошибка при проверке даты суда: {e}")
+            return False
 
 
     async def update(self, param):

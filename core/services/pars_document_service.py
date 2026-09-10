@@ -11,7 +11,17 @@ class ParsDocumentService:
     def __init__(self, repository: ParsDocumentAlchemyRepository):
         self.repository = repository
 
-    async def add_document(self, document: ParsDocument) -> ParsDocument | None:
+    async def add_document(self, case_id: int, document: ParsDocument) -> ParsDocument | None:
+        exists = await self.repository.exists_document(
+            case_id=case_id, 
+            date=document.date,
+            declarer=document.declarer,
+            document_name=document.document,
+            )
+        print(f"Проверка наличия документа перед сохранением: {exists}")
+        if exists:
+            print("такой документ в базе есть")
+            return None
         return await self.repository.add_document(document)
 
     async def get_document(self, document_id: int) -> ParsDocument | None:
