@@ -18,9 +18,11 @@ class CourtRepository:
             
             court = Court(name=court_name)
             self.session.add(court)
+            await self.session.commit()
             return court
         except Exception as e:
             db_logger.error(f"Ошибка при сохранении наименования суда {e}")
+            await self.session.rollback()
 
 
     async def get_court(self, court_name: str) -> Court | None:

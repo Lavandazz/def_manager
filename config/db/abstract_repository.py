@@ -99,7 +99,7 @@ class AbstractDebtorRepository(ABC):
     Абстрактный класс для патерна Репозиторий.
     """
     @abstractmethod
-    async def add_debtor(self, debtor: Debtor) -> Debtor:
+    async def add_debtor(self, debtor: Debtor) -> Debtor | None:
         pass
 
     @abstractmethod

@@ -21,10 +21,12 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         """
         try:
             self.session.add(case)
+            await self.session.commit()
             return case
 
         except Exception as e:
             db_logger.exception("не удалось сохранить дело в бд: %s", e)
+            await self.session.rollback()
 
     async def get_case(self, case_id):
         """

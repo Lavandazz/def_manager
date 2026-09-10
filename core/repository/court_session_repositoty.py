@@ -24,6 +24,7 @@ class CourtSessionAlchemyRepository(AbstractCourtRepository):
             return court_session
         except Exception as e:
             db_logger.error("Ошибка сохранения даты, места суда",)
+            await self.session.rollback()
 
     async def get_courts(self, user_id) -> list[CourtSession]:
         """Поиск заседаний с фильтрацией по пользователю"""

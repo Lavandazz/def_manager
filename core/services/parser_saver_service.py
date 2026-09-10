@@ -54,8 +54,8 @@ class ParserDataSaver:
         )
         doc_save = await self.pars_document_service.add_document(case_id=case.id, document=document_data)
         if doc_save:
-            print("ParserDataSaver: сохранил документ")
-            return True
+            print("ParserDataSaver: сохранил документ", doc_save.id)
+            return doc_save
         else:
             print("ParserDataSaver: doc_save вернул false")
             return False

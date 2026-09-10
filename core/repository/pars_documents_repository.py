@@ -22,10 +22,12 @@ class ParsDocumentAlchemyRepository:
         try:
             db_logger.info(f"Сохраняю документ {document.document}")
             self.session.add(document)
+            await self.session.commit()   
             db_logger.info(f"Сохранен документ {document.document}")
             return document
         except Exception as e:
             db_logger.exception("Не удалось сохранить документ в БД: %s", e)
+            await self.session.rollback()
 
     async def exists_document(self, case_id: int, date: date, declarer: str, document_name: str) -> bool:
         try:
@@ -36,7 +38,7 @@ class ParsDocumentAlchemyRepository:
                 ParsDocument.declarer == declarer,
                 ParsDocument.document == document_name)
             result = await self.session.execute(stmt.limit(1))
-            db_logger.info(f"Окончена проверка документа перед сохранением: {result}")
+            db_logger.info(f"Окончена проверка документа перед сохранением")
             return result.scalar() is not None
         
         except Exception as e:

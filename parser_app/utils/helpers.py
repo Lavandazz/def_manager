@@ -1,9 +1,5 @@
 
 from datetime import date, datetime, timedelta
-import stat
-
-from click.core import F
-
 
 
 class TextHepler:
@@ -24,10 +20,10 @@ class TextHepler:
         """Поиск названия суда из строки парсинга"""
         find_text = ["АС", "Верховный", "арбитражный", "Первая"]
         full_text = text.split()
-        print("full_text", full_text)
+        # print("full_text", full_text)
         court_index = [full_text.index(i) for i in find_text if i in full_text][0] # получаем индкес наименования суда
         court_name = full_text[court_index:court_index + 3]
-        print("название суда", " ".join(court_name))
+        # print("название суда", " ".join(court_name))
         return " ".join(court_name)
 
     @staticmethod
@@ -84,24 +80,6 @@ def check_date(date_of_court: date) -> bool:
         (date_of_court.month == one_month.month and date_of_court.year == one_month.year) or
         (date_of_court.month == two_month.month and date_of_court.year == two_month.year)
     ):
-        print(f'Сохранение дат судебных заседаний: {date_of_court}')
         return True
     else:
-        print(f'Даты не сохранил: {date_of_court}')
         return False
-
-def check_date_earlier(check_date: date) -> bool:
-    """Проверка даты - 1 месяц"""
-    current_month = datetime.now()
-    date_earlier = current_month - timedelta(days=30)
-    if check_date in (
-        date_earlier.month, current_month.month and 
-        check_date.year == current_month.year or check_date.year + 1
-        ):
-        return True
-    return False
-
-
-    
-
-

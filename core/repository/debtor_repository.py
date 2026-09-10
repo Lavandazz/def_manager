@@ -12,11 +12,16 @@ class DebtorAlchemyRepository(AbstractDebtorRepository):
     def __init__(self, session):
         self.session = session
 
-    async def add_debtor(self, debtor: Debtor) -> Debtor:
+    async def add_debtor(self, debtor: Debtor) -> Debtor | None:
         """Добавить нового должника"""
-        self.session.add(debtor)
-        await self.session.refresh(debtor)  # обновить объект (например, для получения id)
-        return debtor
+        try:
+            self.session.add(debtor)
+            await self.session.refresh(debtor)  # обновить объект (например, для получения id)
+            await self.session.commit()
+            return debtor
+        except Exception as e:
+            db_logger.error(f"Ошибка сохранения должника {e}")
+            await self.session.rollback()
 
 
     async def get_debtor(self, debtor_id) -> Debtor:
