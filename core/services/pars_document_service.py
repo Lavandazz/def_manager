@@ -18,9 +18,9 @@ class ParsDocumentService:
             declarer=document.declarer,
             document_name=document.document,
             )
-        print(f"Проверка наличия документа перед сохранением: {exists}")
+        # print(f"Проверка наличия документа перед сохранением: {exists}")
         if exists:
-            print("такой документ в базе есть")
+            # print("такой документ в базе есть")
             return None
         return await self.repository.add_document(document)
 

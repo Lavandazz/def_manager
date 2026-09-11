@@ -4,6 +4,7 @@ from datetime import date, datetime
 from typing import List, Optional
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import Date, ForeignKey, Integer, Text, TIMESTAMP, func, BigInteger, Enum as SQLEnum, String
+from traitlets import Int
 
 
 class Base(DeclarativeBase):
@@ -43,8 +44,18 @@ class Debtor(Base):
     snils: Mapped[Optional[int]] = mapped_column(Integer, nullable=True) # только для физлиц
     birthday: Mapped[Optional[date]] = mapped_column(Date, nullable=True)   # только для физлиц
 
+    accounts: Mapped[list["Account"]] = relationship(back_populates="debtor")
+
+    # Связь места рождения — только для физлиц, ссылка на регион
+    birth_region_id: Mapped[int | None] = mapped_column(ForeignKey("region.id", ondelete="RESTRICT", name="fk_debtors_birth_region"), nullable=True)
+    birth_region: Mapped["Region | None"] = relationship()
+
+    # Связь места прописки. нельзя удалить адрес/банк, пока на него кто-то ссылается
+    residential_address_id: Mapped[int | None] = mapped_column(ForeignKey("residential_address.id", ondelete="RESTRICT", name="fk_debtors_residential_address"), nullable=True)
+
     # Обратная связь с делами
     cases: Mapped[List["Case"]] = relationship("Case", back_populates="debtor")
+
 
 class User(Base):
     __tablename__ = "users"
@@ -150,3 +161,82 @@ class BlackListToken(Base):
     __tablename__ = "black_list_token"
     id: Mapped[int] = mapped_column(primary_key=True)
     token: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class Region(Base):
+    """
+    Таблица регион используется в почтовом адресе и адресе регистрации должника.
+    Так как регион не всегда указывается, то может быть пустым. Но город указывается обязательно
+    """
+    __tablename__= "region"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    region_name: Mapped[str] = mapped_column(Text, nullable=True, default=None)
+    city: Mapped[str] = mapped_column(Text, nullable=False)
+
+class Address(Base):
+    """
+    Таблица адреса используется в почтовом, адресе регистрации должника. Указывается только улица, дом, строение
+    """
+    __tablename__ = "address"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    street: Mapped[str] = mapped_column(Text, nullable=False)
+    house: Mapped[str] = mapped_column(Text, nullable=False)
+    building: Mapped[str] = mapped_column(Text, nullable=True, default=None)
+
+class MailAddress(Base):
+    """Почтовый адрес используется для указания адреса Банка.
+    Связь с банком
+    """
+    __tablename__ = "mail_address"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    mail_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    region_id: Mapped[int] = mapped_column(ForeignKey("region.id"), nullable=False)
+    address_id: Mapped[int] = mapped_column(ForeignKey("address.id"), nullable=False)
+
+    region: Mapped["Region"] = relationship()
+    address: Mapped["Address"] = relationship()
+
+
+class ResidentialAddress(Base):
+    """Адрес прописки используется для указания адреса прописки должника. 
+    Связь с должником
+    """
+    __tablename__ = "residential_address"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    region_id: Mapped[int] = mapped_column(ForeignKey("region.id"), nullable=False)
+    address_id: Mapped[int] = mapped_column(ForeignKey("address.id"), nullable=False)
+    flat: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+
+    region: Mapped["Region"] = relationship()
+    address: Mapped["Address"] = relationship()
+
+
+class Bank(Base):
+    """
+    Данные для счетов должника в банке.
+    Связь со счетами и должником. 
+    У одного должника может быть несколько банков, у одного банка несколько счетов и несколько должников.
+    """
+    __tablename__ = "bank"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # Запрещает удалить адрес, если он используется
+    mail_address_id: Mapped[int] = mapped_column(ForeignKey("mail_address.id", ondelete="RESTRICT"), nullable=False)
+    mail_address: Mapped["MailAddress"] = relationship(cascade="all, delete-orphan",single_parent=True,) # 
+    accounts: Mapped[list["Account"]] = relationship(back_populates="bank")
+
+
+class Account(Base):
+    __tablename__ = "account"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    number: Mapped[str] = mapped_column(Text, nullable=False)  # № счёта, храни строкой
+
+    debtor_id: Mapped[int] = mapped_column(ForeignKey("debtors.id", ondelete="CASCADE"), nullable=False)
+    bank_id: Mapped[int] = mapped_column(ForeignKey("bank.id", ondelete="RESTRICT"), nullable=False)
+
+    debtor: Mapped["Debtor"] = relationship(back_populates="accounts")
+    bank: Mapped["Bank"] = relationship(back_populates="accounts")
+
+    def __repr__(self) -> str:
+        return f"Account(id={self.id!r}, number={self.number!r})"

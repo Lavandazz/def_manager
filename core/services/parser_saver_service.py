@@ -43,9 +43,9 @@ class ParserDataSaver:
         await self.court_session_service.add_court(court_session=court_data)
 
     async def save_documents(self, case_number, date, declarer, document_name):
-        print(f"Режим сохранения документа для {case_number}, дата: {date}, суд: {declarer}, документ: {document_name}")
+        # print(f"Режим сохранения документа для {case_number}, дата: {date}, суд: {declarer}, документ: {document_name}")
         case = await self._get_id_case(case_number=case_number)
-        print(f"ParserDataSaver: case.id: {case.id if case else None}")
+        # print(f"ParserDataSaver: case.id: {case.id if case else None}")
         document_data = ParsDocument(
             id_case=case.id,
             date=date,
