@@ -15,6 +15,11 @@ class AddressRepository:
         await self.session.flush()
         return address
 
+    async def create_mail_address(self, mail_address: MailAddress) -> MailAddress:
+        self.session.add(mail_address)
+        await self.session.flush()
+        return mail_address
+
 
 class ResidentialAddressRepository:
     """
