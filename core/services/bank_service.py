@@ -20,6 +20,7 @@ class BankService:
             self, name: str,
             mail_index: int | None = None,
             city: str | None = None,
+            region_name: str | None = None,
             street: str | None = None,
             house: str | None = None,
             building: str | None = None,) -> Bank:
@@ -45,6 +46,7 @@ class BankService:
         mail = await self.mail_service.create_mail_address(
                 mail_index=mail_index or 0,
                 city=city,
+                region_name=region_name,
                 street=street, 
                 house=house, 
                 building=building

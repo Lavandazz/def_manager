@@ -150,6 +150,22 @@ async def debtor_edit_post(
     if not user:
         return RedirectResponse(request.url_for("index"), status_code=303)
 
+    #  Достаём поля для банков через getlist ──
+    form = await request.form()
+
+    account_ids        = form.getlist("account_id[]")
+    account_numbers    = form.getlist("account_number[]")
+    account_bank_modes = form.getlist("account_bank_mode[]")       # "existing" | "new"
+    account_bank_ids   = form.getlist("account_bank_id[]")         # id существующего банка
+
+    new_bank_names     = form.getlist("new_bank_name[]")
+    new_bank_indexes   = form.getlist("new_bank_mail_index[]")
+    new_bank_regions   = form.getlist("new_bank_region_name[]")
+    new_bank_cities    = form.getlist("new_bank_city[]")
+    new_bank_streets   = form.getlist("new_bank_street[]")
+    new_bank_houses    = form.getlist("new_bank_house[]")
+    new_bank_buildings = form.getlist("new_bank_building[]")
+
     # 1. Собираем словарь — уже с нормальными типами
     data = {
         # скалярные поля
@@ -176,6 +192,7 @@ async def debtor_edit_post(
         "new_ra_flat": new_ra_flat.strip() or None,
     }
     print("полученный данные из редактирования:", data)
+    
     # 2. Отдаём в сервис
     await debtor_service.update_debtor(user.id, debtor_id, data)
 
