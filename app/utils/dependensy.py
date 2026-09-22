@@ -77,11 +77,32 @@ async def  get_address_repo(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]
 async def get_address_service(repo: AddressRepository = Depends(get_residential_address_repo)) -> AddressService:
     return AddressService(repo)
 
+
+
+async def get_bank_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> BankRepository:
+    return BankRepository(unit_of_work.session)
+
+
+async def get_bank_service(repo: BankRepository = Depends(get_bank_repository)) -> BankService:
+    return BankService(repo)
+
+
+async def get_account_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> AccountRepository:
+    return AccountRepository(unit_of_work.session)
+
+
+async def get_account_service(
+        repo: AccountRepository = Depends(get_account_repository), 
+        bank_service: BankService = Depends(get_bank_service)) -> AccountService:
+    return AccountService(repo, bank_service)
+
+
 async def get_debtor_service(
         repository: DebtorAlchemyRepository = Depends(get_debtor_repository),
         region_service: RegionService = Depends(get_region_service),
         address_service: AddressService = Depends(get_address_service),
-        residential_service: ResidentialAddressService = Depends(get_residential_address_service),):
+        residential_service: ResidentialAddressService = Depends(get_residential_address_service),
+        account_service: AccountService = Depends(get_account_service)):
     """
     Функция для DI в api сервисах.
     Для работы с сервисом Должников, передаем сервисы региона и адреса, 
@@ -92,7 +113,8 @@ async def get_debtor_service(
         repository=repository,
         region_service=region_service,
         address_service=address_service,
-        residential_service=residential_service)
+        residential_service=residential_service,
+        account_service=account_service)
     return service
 
 async def get_token_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]):
@@ -150,24 +172,6 @@ async def get_court_service(court_repo: Annotated[CourtSessionAlchemyRepository,
     service = CourtSessionService(court_repo)
     return service
 
-
-
-async def get_bank_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> BankRepository:
-    return BankRepository(unit_of_work.session)
-
-
-async def get_bank_service(repo: BankRepository = Depends(get_bank_repository)) -> BankService:
-    return BankService(repo)
-
-
-async def get_account_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> AccountRepository:
-    return AccountRepository(unit_of_work.session)
-
-
-async def get_account_service(
-        repo: AccountRepository = Depends(get_account_repository), 
-        bank_service: BankService = Depends(get_bank_service)) -> AccountService:
-    return AccountService(repo, bank_service)
 
 
 async def get_auth_token_service() -> AuthTokenService:

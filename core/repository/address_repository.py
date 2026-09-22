@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config.db.models import Address, ResidentialAddress
+from config.db.models import Address, MailAddress, ResidentialAddress
 
 
 class AddressRepository:
