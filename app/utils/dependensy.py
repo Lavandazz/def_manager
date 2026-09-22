@@ -9,7 +9,7 @@ from core.repository.bank_repository import BankRepository
 from core.repository.debtor_repository import DebtorAlchemyRepository
 from core.repository.region_repository import RegionRepository
 from core.services.account_service import AccountService
-from core.services.address_service import AddressService, ResidentialAddressService
+from core.services.address_service import AddressService, MailAddressService, ResidentialAddressService
 from core.services.auth_service import AuthService
 from core.services.bank_service import BankService
 from core.services.case_service import CaseService
@@ -78,13 +78,17 @@ async def get_address_service(repo: AddressRepository = Depends(get_residential_
     return AddressService(repo)
 
 
+async def get_mail_service(region_service: RegionService = Depends(get_region_service),
+                           address_service: AddressService = Depends(get_address_service)):
+    return MailAddressService(region_service, address_service)
 
 async def get_bank_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> BankRepository:
     return BankRepository(unit_of_work.session)
 
 
-async def get_bank_service(repo: BankRepository = Depends(get_bank_repository)) -> BankService:
-    return BankService(repo)
+async def get_bank_service(repo: BankRepository = Depends(get_bank_repository),
+                          mail_service: MailAddressService = Depends(get_mail_service)) -> BankService:
+    return BankService(repo, mail_service)
 
 
 async def get_account_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> AccountRepository:
