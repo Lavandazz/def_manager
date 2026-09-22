@@ -85,9 +85,10 @@ async def debtor_edit(
             if c.get("debtor_id") == debtor_id:
                 cached_debtor = c
                 break
-    print("из кэша по должнику:", cached_debtor)   
+
 
     debtor_data = await debtor_service.get_debtor(user.id, debtor_id)
+    print("debtor_data:", debtor_data.debtor.residential_address)   
     if debtor_data is None:
         raise HTTPException(404, "Должник не найден")
     
@@ -174,7 +175,7 @@ async def debtor_edit_post(
         "new_ra_building": new_ra_building.strip() or None,
         "new_ra_flat": new_ra_flat.strip() or None,
     }
-
+    print("полученный данные из редактирования:", data)
     # 2. Отдаём в сервис
     await debtor_service.update_debtor(user.id, debtor_id, data)
 

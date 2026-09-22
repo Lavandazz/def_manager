@@ -52,13 +52,14 @@ class ResidentialAddress(BaseModel):
     address: AddressSchema
     flat: int | None = None
 
+
 class DebtorSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     debtor_type: DebtorType
     name: str
     inn: int | None = None
-    snils: str | None = None
+    snils: int | None = None
     birthday: date | None = None
     birth_region: RegionSchema | None = None
     residential_address: ResidentialAddress | None = None

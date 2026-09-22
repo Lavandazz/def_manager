@@ -2,10 +2,25 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config.db.models import ResidentialAddress
+from config.db.models import Address, ResidentialAddress
+
+
+class AddressRepository:
+    """Репозиторий для сохранения адреса: улица, строение, дом"""
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create_address(self, address: Address) -> Address:
+        self.session.add(address)
+        await self.session.flush()
+        return address
 
 
 class ResidentialAddressRepository:
+    """
+    Репозиторий для сохранения полного адреса прописки.
+    Включает в себя регион, город, улицу, строение, дом, квартиру
+    """
     def __init__(self, session: AsyncSession):
         self.session = session
 

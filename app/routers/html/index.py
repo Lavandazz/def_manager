@@ -35,7 +35,7 @@ async def main_page(
         return templates.TemplateResponse(request, "index.html", context)
 
     cases = get_cases_from_cache(user_id=user.id) # получение кэша
-
+    
     if cases is None:
         # Получаем из базы
         cases_orm = await case_service.get_user_cases(user_id=user.id)

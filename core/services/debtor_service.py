@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from config.db.models import Account, Debtor
 from config.schemas.debtor_schema import DebtorDetailSchema
 from core.repository.debtor_repository import DebtorAlchemyRepository
-from core.services.address_service import ResidentialAddressService
+from core.services.address_service import AddressService, ResidentialAddressService
 from core.services.region_service import RegionService
 
 @dataclass
@@ -16,10 +16,12 @@ class DebtorService:
         self,
         repository: DebtorAlchemyRepository,
         region_service: RegionService,                    # для сохранения региона
-        residential_service: ResidentialAddressService,   # для сохранения адресов
+        address_service: AddressService,                  # для сохранения адресов
+        residential_service: ResidentialAddressService,   # для сохранения полного адреса регистрации
     ):
         self.repository = repository
         self.region_service = region_service
+        self.address_service = address_service
         self.residential_service = residential_service
     async def add_debtor(self, debtor):
         return await self.repository.add_debtor(debtor)
@@ -38,59 +40,76 @@ class DebtorService:
         accounts = await self.repository.get_debtor_accounts(debtor_id)
 
         return DebtorDetail(debtor, accounts)
-        # Валидируем в пайдантик схемы
-        # return DebtorDetailSchema.model_validate({
-        #     "debtor": debtor,
-        #     "accounts": accounts,
-        # })
 
-    async def update_debtor(self,user_id: int,debtor_id: int, data: dict) -> Debtor | None:
-        """
-        Обновить данные должника по id.
-        data – словарь с полями для обновления.
-        Возвращает обновлённый объект или None, если должник не найден.
-        """
+
+    async def update_debtor(self, user_id: int, debtor_id: int, data: dict) -> Debtor | None:
         debtor = await self.repository.get_debtor(user_id=user_id, debtor_id=debtor_id)
         if debtor is None:
             return None
 
-        # Меняем только те поля, которые пришли и не None
+        # 1. Простые поля
         simple_fields = ["debtor_type", "name", "inn", "snils", "birthday"]
         for key in simple_fields:
             value = data.get(key)
             if value is not None:
                 setattr(debtor, key, value)
 
-        # 3. Регион рождения
-        mode = data.get("birth_region_mode")
-        if mode == "new":
-            region = await self.region_service.get_or_create_region(
-                city=data.get("new_birth_region_city"),
-                region_name=data.get("new_birth_region_name"),
-            )
-            debtor.birth_region_id = region.id
+        # 2. Регион рождения
+        birth_mode = data.get("birth_region_mode")
+        print("1 ~~ birth_region_mode:", birth_mode)
 
-        elif mode == "new":
-            # 4.1. Регион для адреса
-            region = await self.region_service.get_or_create_region(
-                city=data.get("new_ra_city"),
-                region_name=data.get("new_ra_region_name"),
-            )
-            # 4.2. Сам адрес
-            address = await self.residential_service.create_address(
-                region_id=region.id if region else None,
-                street=data.get("new_ra_street"),
-                house=data.get("new_ra_house"),
-                building=data.get("new_ra_building"),
-            )
-            # 4.3. Привязка к должнику
-            debtor.residential_address_id = address.id if address else None
-            # flat (квартира) — если хранится в Debtor, а не в ResidentialAddress,
-            # добавь поле отдельно; иначе сохрани в ResidentialAddress
+        if birth_mode == "existing":
+            debtor.birth_region_id = data.get("birth_region_id")
 
-        # 5. Отдаём в репозиторий
+        elif birth_mode == "new":
+            city = data.get("new_birth_region_city")
+            region_name = data.get("new_birth_region_name")
+            if city:
+                region = await self.region_service.get_or_create_region(
+                    city=city,
+                    region_name=region_name,
+                )
+                debtor.birth_region_id = region.id
+            print("2 ~~ birth region created, id =", debtor.birth_region_id)
+
+        # 3. Адрес прописки  ← ОТДЕЛЬНАЯ проверка, не elif от birth!
+        ra_mode = data.get("residential_address_mode")
+        print("3 ~~ residential_address_mode:", ra_mode)
+
+        if ra_mode == "existing":
+            new_id = data.get("residential_address_id")
+            if new_id is not None:
+                # Если поле выбрано как пустое, то в бд ничего не меняем
+                # Присваиваем только не пустые значения
+                debtor.residential_address_id = new_id
+
+        elif ra_mode == "new":
+            # Получаем данные из формы
+            street = data.get("new_ra_street")
+            house = data.get("new_ra_house")
+            city = data.get("new_ra_city")
+            flat=int(data.get("new_ra_flat")) if data.get("new_ra_flat") else None
+
+            if street and house and city:
+                region = await self.region_service.get_or_create_region(
+                    city=city,
+                    region_name=data.get("new_ra_region_name"),
+                )
+                address = await self.address_service.create_address(
+                    street=street,
+                    house=house,
+                    building=data.get("new_ra_building"),
+                )
+                ra = await self.residential_service.create_address(
+                    region_id=region.id if region else None,
+                    address_id=address.id,
+                    flat=flat
+                )
+                debtor.residential_address_id = ra.id
+                print("5 ~~ address id =", debtor.residential_address_id)
+
+        # 4. Сохранение
         return await self.repository.update_debtor(debtor)
-
 
     async def delete_debtor(self, user_id: int, debtor_id: int):
         return await self.repository.delete_debtor(user_id, debtor_id)

@@ -1,0 +1,76 @@
+   {# ---------- Основные данные ---------- #}
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold">Основные данные</div>
+      <div class="card-body">
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <label for="debtor_type" class="form-label">
+              Тип должника <span class="text-danger">*</span>
+            </label>
+            <select id="debtor_type" name="debtor_type" class="form-select" required>
+              <option value="" disabled {% if not form.debtor_type %}selected{% endif %}>
+                — выберите тип —
+              </option>
+              <option value="physical"
+                      {% if form.debtor_type == 'physical' %}selected{% endif %}>
+                Физлицо
+              </option>
+              <option value="legal"
+                      {% if form.debtor_type == 'legal' %}selected{% endif %}>
+                Юрлицо
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="name" class="form-label">
+              <span data-name-label>
+                {% if form.debtor_type == 'legal' %}Наименование{% else %}ФИО{% endif %}
+              </span>
+              <span class="text-danger">*</span>
+            </label>
+            <input type="text"
+                   class="form-control"
+                   id="name"
+                   name="name"
+                   value="{{ form.name }}"
+                   maxlength="512"
+                   required>
+          </div>
+
+          <div class="col-md-4">
+            <label for="inn" class="form-label">ИНН</label>
+            <input type="text"
+                   inputmode="numeric"
+                   class="form-control"
+                   id="inn"
+                   name="inn"
+                   value="{{ form.inn }}"
+                   placeholder="10 или 12 цифр">
+            <div class="form-text">Для юрлица обязателен, для физлица — нет.</div>
+          </div>
+
+          <div class="col-md-4" data-individual-only>
+            <label for="snils" class="form-label">СНИЛС</label>
+            <input type="text"
+                   inputmode="numeric"
+                   class="form-control"
+                   id="snils"
+                   name="snils"
+                   value="{{ form.snils }}"
+                   placeholder="11 цифр">
+          </div>
+
+          <div class="col-md-4" data-individual-only>
+            <label for="birthday" class="form-label">Дата рождения</label>
+            <input type="date"
+                   class="form-control"
+                   id="birthday"
+                   name="birthday"
+                   value="{{ form.birthday }}">
+          </div>
+
+        </div>
+      </div>
+    </div>

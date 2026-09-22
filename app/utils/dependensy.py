@@ -3,10 +3,10 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from config.db.db_config import get_db
 from fastapi import Depends, Request
 
-from core.repository.address_repository import ResidentialAddressRepository
+from core.repository.address_repository import AddressRepository, ResidentialAddressRepository
 from core.repository.debtor_repository import DebtorAlchemyRepository
 from core.repository.region_repository import RegionRepository
-from core.services.address_service import ResidentialAddressService
+from core.services.address_service import AddressService, ResidentialAddressService
 from core.services.auth_service import AuthService
 from core.services.case_service import CaseService
 from core.services.court_session_service import CourtSessionService
@@ -63,13 +63,20 @@ async def get_residential_address_service(repo: ResidentialAddressRepository = D
 async def get_debtor_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]):
     """
     Функция для DI в api сервисах,
-
     """
     return DebtorAlchemyRepository(unit_of_work.session) # передаем сессию
+
+
+async def  get_address_repo(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> AddressRepository:
+    return AddressRepository(unit_of_work.session)
+
+async def get_address_service(repo: AddressRepository = Depends(get_residential_address_repo)) -> AddressService:
+    return AddressService(repo)
 
 async def get_debtor_service(
         repository: DebtorAlchemyRepository = Depends(get_debtor_repository),
         region_service: RegionService = Depends(get_region_service),
+        address_service: AddressService = Depends(get_address_service),
         residential_service: ResidentialAddressService = Depends(get_residential_address_service),):
     """
     Функция для DI в api сервисах.
@@ -80,6 +87,7 @@ async def get_debtor_service(
     service = DebtorService(
         repository=repository,
         region_service=region_service,
+        address_service=address_service,
         residential_service=residential_service)
     return service
 

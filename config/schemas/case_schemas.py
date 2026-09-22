@@ -1,12 +1,10 @@
 import datetime
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from config.schemas.court_schema import CourtSessionSchema
+# from config.schemas.debtor_schema import DebtorSchema
 
-from config.schemas.documents_schema import ParsDocumentSchema
-from config.schemas.user_schemas import UserSchema
 
 
 class Case(BaseModel):
@@ -16,10 +14,6 @@ class Case(BaseModel):
 
 class DebtorSchema(BaseModel):
     name: str
-    inn: int | None
-    snils: str | None
-    birthday: datetime.date | None
-
     model_config = ConfigDict(from_attributes=True)
 
 

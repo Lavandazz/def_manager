@@ -1,0 +1,75 @@
+{# ---------- Место рождения (только физлица) ---------- #}
+<div class="card shadow-sm mb-4" data-individual-only>
+  <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+    <span>Место рождения</span>
+    <div class="btn-group btn-group-sm" role="group">
+      <input type="radio" class="btn-check"
+             name="birth_region_mode" id="birth_region_mode_existing"
+             value="existing" autocomplete="off"
+             {% if not form.new_birth_region_name %}checked{% endif %}>
+      <label class="btn btn-outline-secondary" for="birth_region_mode_existing">
+        Выбрать существующий
+      </label>
+      <input type="radio" class="btn-check"
+             name="birth_region_mode" id="birth_region_mode_new"
+             value="new" autocomplete="off"
+             {% if form.new_birth_region_name %}checked{% endif %}>
+      <label class="btn btn-outline-secondary" for="birth_region_mode_new">
+        Создать новый
+      </label>
+    </div>
+  </div>
+
+  <div class="card-body">
+    {# --- Существующий регион --- #}
+    <div class="row g-3" data-birth-region-existing>
+      <div class="col-md-8">
+        <div class="col-md-8">
+            {% if debtor_data.debtor.birth_region %}
+              {% if debtor_data.debtor.birth_region.region_name%}
+                <h3-small>Регион: {{ debtor_data.debtor.birth_region.region_name }}, </hр>
+              {% endif %}
+              <h3-small>город: {{ debtor_data.debtor.birth_region.city }}</h3-small>
+            {% endif %}
+        </div>
+        <label for="birth_region_id" class="form-label">Регион</label>
+        <select id="birth_region_id" name="birth_region_id" class="form-select">
+          <option value="">— не указан —</option>
+          {% for region in regions %}
+            <option value="{{ region.id }}"
+                    {% if form.birth_region_id == region.id|string %}selected{% endif %}>
+              {{ region.region_name or "Регион не указан" }}{% if region.city %}, {{ region.city }}{% endif %}
+            </option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Регион может быть не указан, город — обязателен.</div>
+      </div>
+    </div>
+
+    {# --- Новый регион --- #}
+    <div class="row g-3 d-none" data-birth-region-new>
+      <div class="col-md-4">
+        <label for="new_birth_region_name" class="form-label">Название региона</label>
+        <input type="text"
+               class="form-control"
+               id="new_birth_region_name"
+               name="new_birth_region_name"
+               value="{{ form.new_birth_region_name }}"
+               maxlength="255"
+               placeholder="Оставьте пустым, если региона нет">
+      </div>
+      <div class="col-md-4">
+        <label for="new_birth_region_city" class="form-label">
+          Город <span class="text-danger">*</span>
+        </label>
+        <input type="text"
+               class="form-control"
+               id="new_birth_region_city"
+               name="new_birth_region_city"
+               value="{{ form.new_birth_region_city }}"
+               maxlength="255"
+               placeholder="Обязательно">
+      </div>
+    </div>
+  </div>
+</div>
