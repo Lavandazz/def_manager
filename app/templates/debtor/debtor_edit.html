@@ -1,0 +1,478 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{% set debtor = debtor_data.debtor %}
+{% set accounts = debtor_data.accounts %}
+
+<div class="container py-4">
+  <div class="text-for-edit mt-4 p-5 text-black rounded">
+    <h4 class="mb-3">Данные для формирования документов</h4>
+    <p class="mb-2">
+      Поля на этой странице используются при автоматической генерации запросов
+      в государственные органы и банки (формат Word).
+      <strong>Если данные не заполнены — документы сформированы не будут.</strong>
+    </p>
+    <p class="mb-1"><strong>Для физического лица обязательны:</strong></p>
+    <ul class="mb-2">
+      <li>ИНН, СНИЛС, дата рождения;</li>
+      <li>место рождения (регион и город);</li>
+      <li>адрес прописки;</li>
+      <li>счета в банках (номер счёта и банк).</li>
+    </ul>
+    <p class="mb-0"><strong>Для юридического лица:</strong>
+      наименование, ИНН, адрес прописки, счета в банках.
+    </p>
+  </div>
+  {# ---------- Заголовок ---------- #}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+      <h1 class="h3 mb-1 mt-4">Редактирование должника</h1>
+      <div class="text-muted small">Дело: {{ cached_debtor.number_case }} </div>
+      <div class="text-muted small">ФИО: {{ debtor.name }}</div>
+    </div>
+    <a href="{{ url_for('debtor_edit', debtor_id=debtor.id) }}"
+       class="btn btn-outline-secondary">Сбросить</a>
+  </div>
+
+  {# ---------- Ошибки валидации ---------- #}
+  {% if errors %}
+    <div class="alert alert-danger" role="alert">
+      <div class="fw-semibold mb-2">Форма содержит ошибки:</div>
+      <ul class="mb-0 ps-3">
+        {% for error in errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <form method="post"
+        action="{{ url_for('debtor_edit_post', debtor_id=debtor.id) }}"
+        novalidate>
+
+    {# ---------- Основные данные ---------- #}
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold">Основные данные</div>
+      <div class="card-body">
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <label for="debtor_type" class="form-label">
+              Тип должника <span class="text-danger">*</span>
+            </label>
+            <select id="debtor_type" name="debtor_type" class="form-select" required>
+              <option value="" disabled {% if not form.debtor_type %}selected{% endif %}>
+                — выберите тип —
+              </option>
+              <option value="physical"
+                      {% if form.debtor_type == 'physical' %}selected{% endif %}>
+                Физлицо
+              </option>
+              <option value="legal"
+                      {% if form.debtor_type == 'legal' %}selected{% endif %}>
+                Юрлицо
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="name" class="form-label">
+              <span data-name-label>
+                {% if form.debtor_type == 'legal' %}Наименование{% else %}ФИО{% endif %}
+              </span>
+              <span class="text-danger">*</span>
+            </label>
+            <input type="text"
+                   class="form-control"
+                   id="name"
+                   name="name"
+                   value="{{ form.name }}"
+                   maxlength="512"
+                   required>
+          </div>
+
+          <div class="col-md-4">
+            <label for="inn" class="form-label">ИНН</label>
+            <input type="text"
+                   inputmode="numeric"
+                   class="form-control"
+                   id="inn"
+                   name="inn"
+                   value="{{ form.inn }}"
+                   placeholder="10 или 12 цифр">
+            <div class="form-text">Для юрлица обязателен, для физлица — нет.</div>
+          </div>
+
+          <div class="col-md-4" data-individual-only>
+            <label for="snils" class="form-label">СНИЛС</label>
+            <input type="text"
+                   inputmode="numeric"
+                   class="form-control"
+                   id="snils"
+                   name="snils"
+                   value="{{ form.snils }}"
+                   placeholder="11 цифр">
+          </div>
+
+          <div class="col-md-4" data-individual-only>
+            <label for="birthday" class="form-label">Дата рождения</label>
+            <input type="date"
+                   class="form-control"
+                   id="birthday"
+                   name="birthday"
+                   value="{{ form.birthday }}">
+          </div>
+
+        </div>
+      </div>
+    </div>
+{# ---------- Место рождения (только физлица) ---------- #}
+<div class="card shadow-sm mb-4" data-individual-only>
+  <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+    <span>Место рождения</span>
+    <div class="btn-group btn-group-sm" role="group">
+      <input type="radio" class="btn-check"
+             name="birth_region_mode" id="birth_region_mode_existing"
+             value="existing" autocomplete="off"
+             {% if not form.new_birth_region_name %}checked{% endif %}>
+      <label class="btn btn-outline-secondary" for="birth_region_mode_existing">
+        Выбрать существующий
+      </label>
+
+      <input type="radio" class="btn-check"
+             name="birth_region_mode" id="birth_region_mode_new"
+             value="new" autocomplete="off"
+             {% if form.new_birth_region_name %}checked{% endif %}>
+      <label class="btn btn-outline-secondary" for="birth_region_mode_new">
+        Создать новый
+      </label>
+    </div>
+  </div>
+
+  <div class="card-body">
+    {# --- Существующий регион --- #}
+    <div class="row g-3" data-birth-region-existing>
+      <div class="col-md-8">
+        <label for="birth_region_id" class="form-label">Регион</label>
+        <select id="birth_region_id" name="birth_region_id" class="form-select">
+          <option value="">— не указан —</option>
+          {% for region in regions %}
+            <option value="{{ region.id }}"
+                    {% if form.birth_region_id == region.id|string %}selected{% endif %}>
+              {{ region.region_name or "Регион не указан" }}{% if region.city %}, {{ region.city }}{% endif %}
+            </option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Регион может быть не указан, город — обязателен.</div>
+      </div>
+    </div>
+
+    {# --- Новый регион --- #}
+    <div class="row g-3 d-none" data-birth-region-new>
+      <div class="col-md-4">
+        <label for="new_birth_region_name" class="form-label">Название региона</label>
+        <input type="text"
+               class="form-control"
+               id="new_birth_region_name"
+               name="new_birth_region_name"
+               value="{{ form.new_birth_region_name }}"
+               maxlength="255"
+               placeholder="Оставьте пустым, если региона нет">
+      </div>
+      <div class="col-md-4">
+        <label for="new_birth_region_city" class="form-label">
+          Город <span class="text-danger">*</span>
+        </label>
+        <input type="text"
+               class="form-control"
+               id="new_birth_region_city"
+               name="new_birth_region_city"
+               value="{{ form.new_birth_region_city }}"
+               maxlength="255"
+               placeholder="Обязательно">
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ---------- Адрес прописки ---------- #}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+    <span>Адрес прописки</span>
+    <div class="btn-group btn-group-sm" role="group">
+      <input type="radio" class="btn-check"
+             name="residential_address_mode" id="ra_mode_existing"
+             value="existing" autocomplete="off"
+             {% if not form.new_ra_street %}checked{% endif %}>
+      <label class="btn btn-outline-secondary" for="ra_mode_existing">
+        Выбрать существующий
+      </label>
+
+      <input type="radio" class="btn-check"
+             name="residential_address_mode" id="ra_mode_new"
+             value="new" autocomplete="off"
+             {% if form.new_ra_street %}checked{% endif %}>
+      <label class="btn btn-outline-secondary" for="ra_mode_new">
+        Создать новый
+      </label>
+    </div>
+  </div>
+
+  <div class="card-body">
+    {# --- Существующий адрес --- #}
+    <div class="row g-3" data-ra-existing>
+      <div class="col-md-10">
+        <label for="residential_address_id" class="form-label">Адрес</label>
+        <select id="residential_address_id"
+                name="residential_address_id"
+                class="form-select">
+          <option value="">— не указан —</option>
+          {% for ra in residential_addresses %}
+            <option value="{{ ra.id }}"
+                    {% if form.residential_address_id == ra.id|string %}selected{% endif %}>
+              {%- if ra.region -%}
+                {{ ra.region.region_name }}{% if ra.region.city %}, {{ ra.region.city }}{% endif %},
+              {%- endif -%}
+              {{ ra.address.street }}, д. {{ ra.address.house }}
+              {%- if ra.address.building %}, стр. {{ ra.address.building }}{% endif -%}
+              {%- if ra.flat %}, кв. {{ ra.flat }}{% endif -%}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    {# --- Новый адрес --- #}
+    <div class="d-none" data-ra-new>
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label for="new_ra_region_name" class="form-label">Регион</label>
+          <input type="text"
+                 class="form-control"
+                 id="new_ra_region_name"
+                 name="new_ra_region_name"
+                 value="{{ form.new_ra_region_name }}"
+                 maxlength="255"
+                 placeholder="Оставьте пустым, если региона нет">
+        </div>
+        <div class="col-md-4">
+          <label for="new_ra_city" class="form-label">
+            Город <span class="text-danger">*</span>
+          </label>
+          <input type="text"
+                 class="form-control"
+                 id="new_ra_city"
+                 name="new_ra_city"
+                 value="{{ form.new_ra_city }}"
+                 maxlength="255"
+                 placeholder="Обязательно">
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label for="new_ra_street" class="form-label">
+            Улица <span class="text-danger">*</span>
+          </label>
+          <input type="text"
+                 class="form-control"
+                 id="new_ra_street"
+                 name="new_ra_street"
+                 value="{{ form.new_ra_street }}"
+                 maxlength="255"
+                 placeholder="Обязательно">
+        </div>
+        <div class="col-md-2">
+          <label for="new_ra_house" class="form-label">
+            Дом <span class="text-danger">*</span>
+          </label>
+          <input type="text"
+                 class="form-control"
+                 id="new_ra_house"
+                 name="new_ra_house"
+                 value="{{ form.new_ra_house }}"
+                 maxlength="32"
+                 placeholder="Обязательно">
+        </div>
+        <div class="col-md-2">
+          <label for="new_ra_building" class="form-label">Корп/стр: указать текстом</label>
+          <input type="text"
+                 class="form-control"
+                 id="new_ra_building"
+                 name="new_ra_building"
+                 value="{{ form.new_ra_building }}"
+                 maxlength="32">
+        </div>
+        <div class="col-md-2">
+          <label for="new_ra_flat" class="form-label">Квартира</label>
+          <input type="text"
+                 inputmode="numeric"
+                 class="form-control"
+                 id="new_ra_flat"
+                 name="new_ra_flat"
+                 value="{{ form.new_ra_flat }}"
+                 maxlength="10">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ---------- Счета в банках ---------- #}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <span class="fw-semibold">Счета в банках</span>
+    <button type="button"
+            class="btn btn-sm btn-outline-primary"
+            id="add-account-btn">
+      <span class="me-1">+</span> Добавить счёт
+    </button>
+  </div>
+
+  <div class="card-body">
+    {# Скрытый шаблон строки счёта — клонируется через JS #}
+    <template id="account-row-template">
+      <div class="row g-2 align-items-end mb-2" data-account-row>
+        <div class="col-md-5">
+          <label class="form-label small mb-1">№ счёта</label>
+          <input type="text"
+                 name="account_number[]"
+                 class="form-control font-monospace"
+                 maxlength="64"
+                 placeholder="20 цифр">
+        </div>
+        <div class="col-md-5">
+          <label class="form-label small mb-1">Банк</label>
+          <select name="account_bank_id[]" class="form-select">
+            <option value="">— выберите банк —</option>
+            {% for bank in banks %}
+              <option value="{{ bank.id }}">{{ bank.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2 text-end">
+          <button type="button"
+                  class="btn btn-outline-danger"
+                  data-remove-account
+                  title="Удалить строку">
+            ×
+          </button>
+        </div>
+      </div>
+    </template>
+
+    {# --- Существующие счета --- #}
+    <div id="accounts-list">
+      {% for acc in accounts %}
+        <div class="row g-2 align-items-end mb-2" data-account-row>
+          <input type="hidden" name="account_id[]" value="{{ acc.id }}">
+
+          <div class="col-md-5">
+            <label class="form-label small mb-1">№ счёта</label>
+            <input type="text"
+                   name="account_number[]"
+                   class="form-control font-monospace"
+                   value="{{ acc.number }}"
+                   maxlength="64">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label small mb-1">Банк</label>
+            <select name="account_bank_id[]" class="form-select">
+              <option value="">— выберите банк —</option>
+              {% for bank in banks %}
+                <option value="{{ bank.id }}"
+                        {% if acc.bank_id == bank.id %}selected{% endif %}>
+                  {{ bank.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2 text-end">
+            <button type="button"
+                    class="btn btn-outline-danger"
+                    data-remove-account
+                    title="Удалить строку">
+              ×
+            </button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div id="accounts-empty-hint"
+         class="text-muted small {% if accounts %}d-none{% endif %}">
+      У должника нет счетов. Нажмите «Добавить счёт».
+    </div>
+  </div>
+</div>
+
+    {# ---------- Кнопки ---------- #}
+    <div class="d-flex flex-wrap gap-2 mb-5">
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+      <a href="{{ url_for('debtor_edit', debtor_id=debtor.id) }}"
+         class="btn btn-outline-secondary">Отмена</a>
+    </div>
+
+  </form>
+
+</div>
+
+{# ---------- Скрытие полей, не относящихся к физлицу ---------- #}<script>
+  (function () {
+    /* ---------- Переключатель "существующий / новый" для региона рождения ---------- */
+    function bindModeToggle(radioName, showSelector, hideSelector) {
+      const radios = document.querySelectorAll(`input[name="${radioName}"]`);
+      const showEl = document.querySelector(showSelector);
+      const hideEl = document.querySelector(hideSelector);
+
+      function refresh() {
+        const checked = document.querySelector(`input[name="${radioName}"]:checked`);
+        const isNew = checked && checked.value === "new";
+        if (showEl) showEl.classList.toggle("d-none", !isNew);
+        if (hideEl) hideEl.classList.toggle("d-none", isNew);
+      }
+
+      radios.forEach(r => r.addEventListener("change", refresh));
+      refresh();
+    }
+
+    bindModeToggle("birth_region_mode",
+                   "[data-birth-region-new]",
+                   "[data-birth-region-existing]");
+
+    bindModeToggle("residential_address_mode",
+                   "[data-ra-new]",
+                   "[data-ra-existing]");
+
+    /* ---------- Динамические строки счетов ---------- */
+    const tpl       = document.getElementById("account-row-template");
+    const list      = document.getElementById("accounts-list");
+    const emptyHint = document.getElementById("accounts-empty-hint");
+    const addBtn    = document.getElementById("add-account-btn");
+
+    function updateEmptyHint() {
+      if (!emptyHint) return;
+      const rows = list.querySelectorAll("[data-account-row]").length;
+      emptyHint.classList.toggle("d-none", rows > 0);
+    }
+
+    addBtn && addBtn.addEventListener("click", function () {
+      const node = tpl.content.firstElementChild.cloneNode(true);
+      list.appendChild(node);
+      updateEmptyHint();
+    });
+
+    list && list.addEventListener("click", function (e) {
+      const btn = e.target.closest("[data-remove-account]");
+      if (!btn) return;
+      const row = btn.closest("[data-account-row]");
+      if (row) {
+        row.remove();
+        updateEmptyHint();
+      }
+    });
+
+    updateEmptyHint();
+  })();
+</script>
+{% endblock content %}

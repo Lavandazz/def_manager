@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-4">
+    {% if user %}
+      <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">Выберите должника из списка</a>
+            <ul class="dropdown-menu">
+              {% for case_f in cases_physical %}
+                <li>
+                  <a class="dropdown-item" href="/user/debtor/{{ case_f.debtor_id }}/edit">
+                    {{ case_f.debtor.name }} | {{ case_f.number_case }} 
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+      </li>
+    {% endif %}
+{% endblock content %}

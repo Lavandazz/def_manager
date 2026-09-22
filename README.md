@@ -12,4 +12,4 @@
 - Postgresql
 - Playwright
 - SQLAlchemy
-- Celery или (dramatiq)
+- Celery 

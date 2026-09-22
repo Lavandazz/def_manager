@@ -2,7 +2,7 @@
 from sqlalchemy import desc, func, select, update
 from sqlalchemy.orm import selectinload
 from config.db.abstract_repository import AbstractCaseRepository
-from config.db.models import Case, ParsDocument
+from config.db.models import Case, ParsDocument, Debtor
 from config.logger_config import db_logger
 
 
@@ -43,7 +43,7 @@ class CaseAlchemyRepository(AbstractCaseRepository):
                 # Подгружаем пользователя
                 selectinload(Case.user),
                 # счета пользователя
-                # selectinload(Case.debtor).selectinload(Debtor.bank_accounts)
+
             )
         )
         result = await self.session.execute(stmt)
@@ -79,6 +79,17 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         except Exception as e:
             db_logger.exception(f"Не получилось отфильтровать дела по пользователю: {e}")
 
+
+    async def get_cases_by_type(self, user_id, debtor_type):
+        """
+        Получение всех дел с должниками, с фильтрацией по типу должника.
+        Необходимо для отображения на странице дополнения данными физ должников
+        """
+        stmt = select(Case).join(Case.debtor).where(Case.id_user == user_id, Debtor.debtor_type == debtor_type).options(selectinload(Case.debtor))
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
+
+    
     async def find_case_by_number(self, number):
         """Получение дела по номеру дела"""
         stmt = select(Case).where(Case.number_case == number)

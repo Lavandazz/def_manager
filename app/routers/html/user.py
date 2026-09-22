@@ -27,7 +27,7 @@ async def get_profile(request: Request,
 
     # Получаем данные из токена
     if not user:
-        return templates.TemplateResponse(request, "index.html", context={"error": "Пользователь не авторизован"})
+        return templates.TemplateResponse(request, "index.html", context={"message": "Пользователь не авторизован"})
     
     return templates.TemplateResponse(request, "/user/profile.html", {
         "user": user
@@ -37,13 +37,13 @@ async def get_profile(request: Request,
 async def edit_profile_form(request: Request, 
                             user: User = Depends(get_optional_user),
                             user_service: UserService = Depends(get_user_service),):
+    if not user:
+        return templates.TemplateResponse(request, "index.html", context={"message": "Пользователь не авторизован"})
+    
     needs_setup = PasswordHasher.compare_password(user_hashed_password=user.hashed_password)
     if needs_setup:
         # Сначала нужно установить пароль на отдельной странице
         return RedirectResponse(url="/user/profile/password", status_code=303)
-
-    if not user:
-        return templates.TemplateResponse("index.html", {"request": request, "error": "Не авторизован"})
 
     return templates.TemplateResponse(request, "user/profile_edit.html", {
         "user": user})
@@ -60,7 +60,7 @@ async def update_profile(
     user_service: UserService = Depends(get_user_service)
 ):
     if not user:
-        return templates.TemplateResponse("index.html", {"request": request, "error": "Не авторизован"}, status_code=401)
+        return templates.TemplateResponse("index.html", {"request": request, "message": "Не авторизован"}, status_code=401)
     
     if not PasswordHasher.verify_password(password, user.hashed_password):
         return templates.TemplateResponse(request, "user/profile_edit.html", {

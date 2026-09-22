@@ -3,11 +3,15 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from config.db.db_config import get_db
 from fastapi import Depends, Request
 
+from core.repository.address_repository import ResidentialAddressRepository
 from core.repository.debtor_repository import DebtorAlchemyRepository
+from core.repository.region_repository import RegionRepository
+from core.services.address_service import ResidentialAddressService
 from core.services.auth_service import AuthService
 from core.services.case_service import CaseService
 from core.services.court_session_service import CourtSessionService
 from core.services.debtor_service import DebtorService
+from core.services.region_service import RegionService
 from core.services.token_service import TokenService
 from core.services.user_service import UserService
 
@@ -21,6 +25,7 @@ from core.repository.user_repository import UserAlchemyRepository
 
 
 security = HTTPBearer()
+
 
 
 async def get_case_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]):
@@ -40,6 +45,21 @@ async def get_case_service(case_repo: Annotated[CaseAlchemyRepository, Depends(g
     service = CaseService(case_repo)
     return service
 
+async def get_region_repo(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> RegionRepository:
+    return RegionRepository(unit_of_work.session)
+
+
+async def get_region_service(repo: RegionRepository = Depends(get_region_repo)) -> RegionService:
+    return RegionService(repo)
+
+
+async def get_residential_address_repo(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> ResidentialAddressRepository:
+    return ResidentialAddressRepository(unit_of_work.session)
+
+
+async def get_residential_address_service(repo: ResidentialAddressRepository = Depends(get_residential_address_repo)) -> ResidentialAddressService:
+    return ResidentialAddressService(repo)
+
 async def get_debtor_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]):
     """
     Функция для DI в api сервисах,
@@ -47,12 +67,20 @@ async def get_debtor_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_
     """
     return DebtorAlchemyRepository(unit_of_work.session) # передаем сессию
 
-async def get_debtor_service(debtor_repo: Annotated[DebtorAlchemyRepository, Depends(get_debtor_repository)]):
+async def get_debtor_service(
+        repository: DebtorAlchemyRepository = Depends(get_debtor_repository),
+        region_service: RegionService = Depends(get_region_service),
+        residential_service: ResidentialAddressService = Depends(get_residential_address_service),):
     """
-    Функция для DI в api сервисах,
-
+    Функция для DI в api сервисах.
+    Для работы с сервисом Должников, передаем сервисы региона и адреса, 
+    так как должник связан с этими таблицами в бд.
+    При сохранении должника, будут использоваться эти сервисы.
     """
-    service = DebtorService(debtor_repo)
+    service = DebtorService(
+        repository=repository,
+        region_service=region_service,
+        residential_service=residential_service)
     return service
 
 async def get_token_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]):

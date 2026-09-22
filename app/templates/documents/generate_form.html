@@ -1,0 +1,209 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+
+      <div class="d-flex align-items-center mb-4">
+        <h1 class="h3 mb-0">Генерация документа</h1>
+        <span class="badge text-bg-secondary ms-3">тестовый режим</span>
+      </div>
+
+      {% if error %}
+        <div class="alert alert-danger" role="alert">{{ error }}</div>
+      {% endif %}
+
+      {% if success %}
+        <div class="alert alert-success d-flex justify-content-between align-items-center" role="alert">
+          <span>Документ сгенерирован: <strong>{{ success }}</strong></span>
+          <a class="btn btn-sm btn-outline-success" href="/documents/download/{{ success }}">
+            Скачать
+          </a>
+        </div>
+      {% endif %}
+
+      <form method="post" action="/documents/generate" novalidate>
+
+        {# ---------- Должник ---------- #}
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-primary text-white">
+            <h2 class="h6 mb-0">Данные должника</h2>
+          </div>
+          <div class="card-body">
+
+            <div class="mb-3">
+              <label for="debtor_full_name" class="form-label">
+                ФИО полностью <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="debtor_full_name"
+                     name="debtor_full_name" required
+                     placeholder="Иванов Иван Иванович"
+                     value="{{ form.debtor_full_name or '' }}">
+              <div class="form-text">
+                Инициалы, краткое имя и падежные формы считаются автоматически.
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="debtor_birthday" class="form-label">
+                  Дата рождения <span class="text-danger">*</span>
+                </label>
+                <input type="date" class="form-control" id="debtor_birthday"
+                       name="debtor_birthday" required
+                       value="{{ form.debtor_birthday or '' }}">
+              </div>
+              <div class="col-md-4">
+                <label for="debtor_snils" class="form-label">СНИЛС</label>
+                <input type="text" class="form-control" id="debtor_snils"
+                       name="debtor_snils"
+                       placeholder="123-456-789 00"
+                       value="{{ form.debtor_snils or '' }}">
+              </div>
+              <div class="col-md-4">
+                <label for="debtor_inn" class="form-label">ИНН</label>
+                <input type="text" class="form-control" id="debtor_inn"
+                       name="debtor_inn"
+                       placeholder="123456789012"
+                       value="{{ form.debtor_inn or '' }}">
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label for="debtor_birth_address" class="form-label">
+                Адрес рождения
+              </label>
+              <input type="text" class="form-control" id="debtor_birth_address"
+                     name="debtor_birth_address"
+                     placeholder="г. Москва, ул. Ленина, д. 1"
+                     value="{{ form.debtor_birth_address or '' }}">
+            </div>
+
+            <div class="mt-3">
+              <label for="debtor_address" class="form-label">
+                Адрес проживания
+              </label>
+              <input type="text" class="form-control" id="debtor_address"
+                     name="debtor_address"
+                     placeholder="г. Москва, ул. Пушкина, д. 10, кв. 5"
+                     value="{{ form.debtor_address or '' }}">
+            </div>
+
+          </div>
+        </div>
+
+        {# ---------- Дело ---------- #}
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-primary text-white">
+            <h2 class="h6 mb-0">Данные дела {{case_number}} </h2>
+          </div>
+          <div class="card-body">
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="case_number" class="form-label">
+                  Номер дела <span class="text-danger">*</span>
+                </label>
+                <input type="text" class="form-control" id="case_number"
+                       name="case_number" required
+                       placeholder="{{ form.case_number if form.case_number }}А40-12345/2024"
+                       value="{{ form.case_number or '' }}">
+              </div>
+              <div class="col-md-6">
+                <label for="case_date" class="form-label">
+                  Дата дела <span class="text-danger">*</span>
+                </label>
+                <input type="date" class="form-control" id="case_date"
+                       name="case_date" required
+                       value="{{ form.case_date or '' }}">
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label for="region_court" class="form-label">Регион суда</label>
+              <input type="text" class="form-control" id="region_court"
+                     name="region_court"
+                     placeholder="Московской области"
+                     value="{{ form.region_court or 'Московской области' }}">
+            </div>
+
+          </div>
+        </div>
+
+        {# ---------- Запрос ---------- #}
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-primary text-white">
+            <h2 class="h6 mb-0">Параметры запроса</h2>
+          </div>
+          <div class="card-body">
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="request_date" class="form-label">
+                  Дата запроса <span class="text-danger">*</span>
+                </label>
+                <input type="date" class="form-control" id="request_date"
+                       name="request_date" required
+                       value="{{ form.request_date or '' }}">
+                <div class="form-text">Используется год для формулировки запроса.</div>
+              </div>
+              <div class="col-md-6">
+                <label for="date_for" class="form-label">
+                  Дата, на которую запрашиваются сведения <span class="text-danger">*</span>
+                </label>
+                <input type="date" class="form-control" id="date_for"
+                       name="date_for" required
+                       value="{{ form.date_for or '' }}">
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {# ---------- Тип шаблона и банк ---------- #}
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-primary text-white">
+            <h2 class="h6 mb-0">Шаблон</h2>
+          </div>
+          <div class="card-body">
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="template" class="form-label">
+                  Шаблон <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="template" name="template" required>
+                  <option value="requests" {% if form.template == 'requests' %}selected{% endif %}>
+                    Запрос в ФНС / суд (requests_mo.docx)
+                  </option>
+                  <option value="bank" {% if form.template == 'bank' %}selected{% endif %}>
+                    Запрос в банк (bank_mo.docx)
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="bank_name" class="form-label">Название банка</label>
+                <input type="text" class="form-control" id="bank_name"
+                       name="bank_name"
+                       placeholder="Сбербанк"
+                       value="{{ form.bank_name or '' }}">
+                <div class="form-text">Заполняется только для шаблона «Запрос в банк».</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            Сгенерировать документ
+          </button>
+          <a href="/" class="btn btn-outline-secondary">Отмена</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

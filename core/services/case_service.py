@@ -25,5 +25,9 @@ class CaseService:
     async def get_user_cases(self, user_id):
         return await self.repository.get_cases_by_user(user_id)
 
+    async def get_user_cases_by_type(self, user_id, debtor_type):
+        return await self.repository.get_cases_by_type(user_id, debtor_type)
+
+
     async def delete_case(self, case_id):
         return await self.repository.delete_case(case_id)

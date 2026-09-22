@@ -1,4 +1,5 @@
 
+from datetime import date
 import re
 
 from fastapi import APIRouter, Depends, Form, Query, Request
@@ -161,4 +162,38 @@ async def delete_case(
     return templates.TemplateResponse(request, "index.html", context, status_code=200)
 
     
+
+
+@router.get("/generate_bank/{case_id}", tags=["html_docs"], response_class=HTMLResponse)
+async def get_generate_bank(
+    request: Request, 
+    case_id: int,
+    user: User = Depends(get_optional_user)):
+    if not user:
+        return templates.TemplateResponse(request, "index.html", 
+                                          context={"title": "Главная страница",
+                                                   "message": "Для отображения календаря войдите или зарегистрируйтесь"})
+    today = date.today()
+    context = {
+    "request": request,
+    "title": "Главная страница",}
+    context["user"] = user
+
+    return templates.TemplateResponse(
+        request,
+        "/documents/generate_form.html",
+        {
+            "user": user,
+            "title": "Генерация запроса",
+
+            "form": {
+                
+                "request_date": today.isoformat(),
+                "date_for": today.isoformat(),
+                "region_court": "Московской области",
+                "template": "requests",
+            },
+        },
+    )
+
 

@@ -68,6 +68,14 @@
 
   <p class="text-muted text-center">Показано {{ documents|length }} из {{ total_docs }} документов</p>
 
+  <div class="alert alert-success mt-3 d-grid gap-2 d-md-flex justify-content-md-end">
+      <span> <!-- Оборачиваем весь текст в один контейнер -->
+          <strong>Генерация запросов в госорганы</strong> 
+          <p></p>
+      </span>
+      <a href="/user/cases/generate_bank/{{ case.id }}" class="btn btn-success">Перейти</a>
+  </div>
+
   <div class="alert alert-secondary mt-3 d-grid gap-2 d-md-flex justify-content-md-end">
       <span> <!-- Оборачиваем весь текст в один контейнер -->
           <strong>Будьте внимательны при удалении дела.</strong> 

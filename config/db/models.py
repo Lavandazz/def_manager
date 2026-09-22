@@ -40,8 +40,8 @@ class Debtor(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     debtor_type: Mapped[DebtorType] = mapped_column(SQLEnum(DebtorType), nullable=False)
     name: Mapped[str] = mapped_column(Text, nullable=False)
-    inn: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)   # для юрлиц обязателен, для физлиц опционален
-    snils: Mapped[Optional[int]] = mapped_column(Integer, nullable=True) # только для физлиц
+    inn: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)   # для юрлиц обязателен, для физлиц опционален
+    snils: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True) # только для физлиц
     birthday: Mapped[Optional[date]] = mapped_column(Date, nullable=True)   # только для физлиц
 
     accounts: Mapped[list["Account"]] = relationship(back_populates="debtor")
@@ -51,12 +51,13 @@ class Debtor(Base):
     birth_region: Mapped["Region | None"] = relationship()
 
     # Связь места прописки. нельзя удалить адрес/банк, пока на него кто-то ссылается
+    residential_address: Mapped["ResidentialAddress | None"] = relationship()
     residential_address_id: Mapped[int | None] = mapped_column(ForeignKey("residential_address.id", ondelete="RESTRICT", name="fk_debtors_residential_address"), nullable=True)
 
     # Обратная связь с делами
     cases: Mapped[List["Case"]] = relationship("Case", back_populates="debtor")
 
-
+    
 class User(Base):
     __tablename__ = "users"
 

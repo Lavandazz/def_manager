@@ -103,16 +103,14 @@ class AbstractDebtorRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_debtor(self, debtor_id: int) -> Debtor:
+    async def get_debtor(self, user_id: int, debtor_id: int) -> Debtor | None:
         pass
 
     @abstractmethod
-    async def update_debtor(self, debtor: Debtor) -> Debtor:
+    async def update_debtor(self, debtor: Debtor) -> Debtor | None:
         pass
 
     @abstractmethod
     async def delete_debtor(self, debtor_id) -> bool:
         pass
 
-
-    
