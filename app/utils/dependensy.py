@@ -3,11 +3,15 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from config.db.db_config import get_db
 from fastapi import Depends, Request
 
+from core.repository.account_repository import AccountRepository
 from core.repository.address_repository import AddressRepository, ResidentialAddressRepository
+from core.repository.bank_repository import BankRepository
 from core.repository.debtor_repository import DebtorAlchemyRepository
 from core.repository.region_repository import RegionRepository
+from core.services.account_service import AccountService
 from core.services.address_service import AddressService, ResidentialAddressService
 from core.services.auth_service import AuthService
+from core.services.bank_service import BankService
 from core.services.case_service import CaseService
 from core.services.court_session_service import CourtSessionService
 from core.services.debtor_service import DebtorService
@@ -147,6 +151,25 @@ async def get_court_service(court_repo: Annotated[CourtSessionAlchemyRepository,
     return service
 
 
+
+async def get_bank_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> BankRepository:
+    return BankRepository(unit_of_work.session)
+
+
+async def get_bank_service(repo: BankRepository = Depends(get_bank_repository)) -> BankService:
+    return BankService(repo)
+
+
+async def get_account_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> AccountRepository:
+    return AccountRepository(unit_of_work.session)
+
+
+async def get_account_service(
+        repo: AccountRepository = Depends(get_account_repository), 
+        bank_service: BankService = Depends(get_bank_service)) -> AccountService:
+    return AccountService(repo, bank_service)
+
+
 async def get_auth_token_service() -> AuthTokenService:
     return AuthTokenService()
 
@@ -175,4 +198,3 @@ async def get_optional_user(
     # или выбрасывает исключение при ошибке проверки.
 
     return await auth.get_user_from_cookie(request)
-

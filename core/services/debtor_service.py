@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from config.db.models import Account, Debtor
 from config.schemas.debtor_schema import DebtorDetailSchema
 from core.repository.debtor_repository import DebtorAlchemyRepository
+from core.services.account_service import AccountService
 from core.services.address_service import AddressService, ResidentialAddressService
 from core.services.region_service import RegionService
 
@@ -18,11 +19,14 @@ class DebtorService:
         region_service: RegionService,                    # для сохранения региона
         address_service: AddressService,                  # для сохранения адресов
         residential_service: ResidentialAddressService,   # для сохранения полного адреса регистрации
+        account_service: AccountService,                  # для сохранения банковских счетов
     ):
         self.repository = repository
         self.region_service = region_service
         self.address_service = address_service
         self.residential_service = residential_service
+        self.account_service = account_service
+        
     async def add_debtor(self, debtor):
         return await self.repository.add_debtor(debtor)
 
@@ -72,7 +76,7 @@ class DebtorService:
                 debtor.birth_region_id = region.id
             print("2 ~~ birth region created, id =", debtor.birth_region_id)
 
-        # 3. Адрес прописки  ← ОТДЕЛЬНАЯ проверка, не elif от birth!
+        # 3. Адрес прописки
         ra_mode = data.get("residential_address_mode")
         print("3 ~~ residential_address_mode:", ra_mode)
 
@@ -107,6 +111,12 @@ class DebtorService:
                 )
                 debtor.residential_address_id = ra.id
                 print("5 ~~ address id =", debtor.residential_address_id)
+
+        accounts_data = data.get("accounts") or []
+        await self.account_service.sync_accounts(
+            debtor_id=debtor.id,
+            accounts_data=accounts_data,
+        )
 
         # 4. Сохранение
         return await self.repository.update_debtor(debtor)
