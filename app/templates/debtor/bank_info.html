@@ -2,13 +2,6 @@
 <div class="card shadow-sm mb-4">
   <div class="card-header bg-white d-flex justify-content-between align-items-center">
     <span class="fw-semibold">Счета в банках</span>
-    
-    {% if accounts %}
-      {% for account in accounts %}
-        {{ account }}
-      {% endfor %}
-    {% endif %}
-    
     <button type="button"
             class="btn btn-sm btn-outline-primary"
             id="add-account-btn">
@@ -17,9 +10,11 @@
   </div>
 
   <div class="card-body">
-    {# Скрытый шаблон строки счёта — клонируется через JS #}
+    {# ----- Шаблон новой строки счёта (клонируется через JS) ----- #}
     <template id="account-row-template">
       <div class="row g-2 align-items-end mb-2" data-account-row>
+        <input type="hidden" name="account_id[]" value="">
+
         <div class="col-md-5">
           <label class="form-label small mb-1">№ счёта</label>
           <input type="text"
@@ -30,25 +25,61 @@
         </div>
         <div class="col-md-5">
           <label class="form-label small mb-1">Банк</label>
-          <select name="account_bank_id[]" class="form-select">
+          <select name="account_bank_id[]" class="form-select" data-bank-select>
             <option value="">— выберите банк —</option>
             {% for bank in banks %}
               <option value="{{ bank.id }}">{{ bank.name }}</option>
             {% endfor %}
+            <option value="__new__">+ Добавить новый банк</option>
           </select>
         </div>
         <div class="col-md-2 text-end">
           <button type="button"
                   class="btn btn-outline-danger"
                   data-remove-account
-                  title="Удалить строку">
-            ×
-          </button>
+                  title="Удалить строку">×</button>
+        </div>
+
+        {# --- Поля нового банка (появятся, если выбран "+ Добавить новый банк") --- #}
+        <div class="col-12 d-none" data-new-bank-block>
+          <div class="border rounded p-3 bg-light">
+            <div class="fw-semibold small mb-2">Новый банк</div>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small mb-1">Название банка</label>
+                <input type="text" name="new_bank_name[]" class="form-control" maxlength="255">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small mb-1">Почтовый индекс</label>
+                <input type="number" name="new_bank_mail_index[]" class="form-control">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small mb-1">Регион</label>
+                <input type="text" name="new_bank_region_name[]" class="form-control">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small mb-1">Город</label>
+                <input type="text" name="new_bank_city[]" class="form-control">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small mb-1">Улица</label>
+                <input type="text" name="new_bank_street[]" class="form-control">
+              </div>
+              <div class="col-md-2">
+                <label class="form-label small mb-1">Дом</label>
+                <input type="text" name="new_bank_house[]" class="form-control">
+              </div>
+              <div class="col-md-2">
+                <label class="form-label small mb-1">Корпус</label>
+                <input type="text" name="new_bank_building[]" class="form-control">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </template>
 
-    {# --- Существующие счета --- #}
+    {# ----- Существующие счета ----- #}
     <div id="accounts-list">
       {% for acc in accounts %}
         <div class="row g-2 align-items-end mb-2" data-account-row>
@@ -64,7 +95,7 @@
           </div>
           <div class="col-md-5">
             <label class="form-label small mb-1">Банк</label>
-            <select name="account_bank_id[]" class="form-select">
+            <select name="account_bank_id[]" class="form-select" data-bank-select>
               <option value="">— выберите банк —</option>
               {% for bank in banks %}
                 <option value="{{ bank.id }}"
@@ -72,15 +103,50 @@
                   {{ bank.name }}
                 </option>
               {% endfor %}
+              <option value="__new__">+ Добавить новый банк</option>
             </select>
           </div>
           <div class="col-md-2 text-end">
             <button type="button"
                     class="btn btn-outline-danger"
                     data-remove-account
-                    title="Удалить строку">
-              ×
-            </button>
+                    title="Удалить строку">×</button>
+          </div>
+
+          <div class="col-12 d-none" data-new-bank-block>
+            <div class="border rounded p-3 bg-light">
+              <div class="fw-semibold small mb-2">Новый банк</div>
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <label class="form-label small mb-1">Название банка</label>
+                  <input type="text" name="new_bank_name[]" class="form-control" maxlength="255">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small mb-1">Почтовый индекс</label>
+                  <input type="number" name="new_bank_mail_index[]" class="form-control">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small mb-1">Регион</label>
+                  <input type="text" name="new_bank_region_name[]" class="form-control">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small mb-1">Город</label>
+                  <input type="text" name="new_bank_city[]" class="form-control">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small mb-1">Улица</label>
+                  <input type="text" name="new_bank_street[]" class="form-control">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small mb-1">Дом</label>
+                  <input type="text" name="new_bank_house[]" class="form-control">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small mb-1">Корпус</label>
+                  <input type="text" name="new_bank_building[]" class="form-control">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       {% endfor %}
@@ -92,3 +158,45 @@
     </div>
   </div>
 </div>
+
+<script>
+(function () {
+  const list   = document.getElementById('accounts-list');
+  const tpl    = document.getElementById('account-row-template');
+  const addBtn = document.getElementById('add-account-btn');
+  const hint   = document.getElementById('accounts-empty-hint');
+
+  function bindRow(row) {
+    const select = row.querySelector('[data-bank-select]');
+    const block  = row.querySelector('[data-new-bank-block]');
+
+    const toggle = () => {
+      if (!select || !block) return;
+      block.classList.toggle('d-none', select.value !== '__new__');
+    };
+    select?.addEventListener('change', toggle);
+
+    // Если банков нет вовсе — сразу открываем блок нового банка
+    if (select && select.options.length <= 2 && !select.value) {
+      select.value = '__new__';
+    }
+    toggle();
+
+    row.querySelector('[data-remove-account]')?.addEventListener('click', () => {
+      row.remove();
+      if (list && !list.querySelector('[data-account-row]')) {
+        hint?.classList.remove('d-none');
+      }
+    });
+  }
+
+  list?.querySelectorAll('[data-account-row]').forEach(bindRow);
+
+  addBtn?.addEventListener('click', () => {
+    const node = tpl.content.firstElementChild.cloneNode(true);
+    list.appendChild(node);
+    bindRow(node);
+    hint?.classList.add('d-none');
+  });
+})();
+</script>
