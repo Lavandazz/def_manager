@@ -23,24 +23,38 @@
   </div>
   <div class="card-body">
     {# --- Существующий адрес --- #}
+    {# --- Существующий адрес --- #}
     <div class="row g-3" data-ra-existing>
       <div class="col-md-10">
+    
+        {# Текущий адрес прописки из БД #}
+        {% set ra_cur = debtor_data.debtor.residential_address %}
+        {% if ra_cur %}
+          <div class="alert alert-light border py-2 px-3 mb-2 small">
+            <span class="fw-semibold">Сейчас:</span>
+            {%- if ra_cur.region -%}
+              {{ ra_cur.region.region_name }}{% if ra_cur.region.city %}, {{ ra_cur.region.city }}{% endif %},
+            {%- endif -%}
+            {{ ra_cur.address.street }}, д. {{ ra_cur.address.house }}
+            {%- if ra_cur.address.building %}, стр. {{ ra_cur.address.building }}{% endif -%}
+            {%- if ra_cur.flat %}, кв. {{ ra_cur.flat }}{% endif -%}
+          </div>
+        {% endif %}
+    
         <label for="residential_address_id" class="form-label">Адрес</label>
-         <div class="col-md-8">
-            {# {% if debtor_data.debtor.birth_region %} #}
-              {# {% if debtor_data.debtor.birth_region.region_name%} #}
-                {# <h3-small>Регион: {{ debtor_data.debtor.birth_region.region_name }}, </hр> #}
-              {# {% endif %} #}
-              {# <h3-small>город: {{ debtor_data.debtor.birth_region.city }}</h3-small> #}
-            {# {% endif %} #}
-        </div>
+    
+        {% set ra_ids = residential_addresses | map(attribute='id') | list %}
+    
         <select id="residential_address_id"
                 name="residential_address_id"
                 class="form-select">
           <option value="">— не указан —</option>
+    
+          {# 1. Все адреса из общего списка #}
           {% for ra in residential_addresses %}
             <option value="{{ ra.id }}"
-                    {% if form.residential_address_id == ra.id|string %}selected{% endif %}>
+                    {% if (form.residential_address_id and form.residential_address_id == ra.id|string)
+                          or (ra_cur and ra_cur.id == ra.id) %}selected{% endif %}>
               {%- if ra.region -%}
                 {{ ra.region.region_name }}{% if ra.region.city %}, {{ ra.region.city }}{% endif %},
               {%- endif -%}
@@ -49,6 +63,18 @@
               {%- if ra.flat %}, кв. {{ ra.flat }}{% endif -%}
             </option>
           {% endfor %}
+    
+          {# 2. Fallback: адрес должника отсутствует в общем списке #}
+          {% if ra_cur and ra_cur.id not in ra_ids %}
+            <option value="{{ ra_cur.id }}" selected>
+              {%- if ra_cur.region -%}
+                {{ ra_cur.region.region_name }}{% if ra_cur.region.city %}, {{ ra_cur.region.city }}{% endif %},
+              {%- endif -%}
+              {{ ra_cur.address.street }}, д. {{ ra_cur.address.house }}
+              {%- if ra_cur.address.building %}, стр. {{ ra_cur.address.building }}{% endif -%}
+              {%- if ra_cur.flat %}, кв. {{ ra_cur.flat }}{% endif -%}
+            </option>
+          {% endif %}
         </select>
       </div>
     </div>

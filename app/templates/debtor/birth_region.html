@@ -24,26 +24,44 @@
     {# --- Существующий регион --- #}
     <div class="row g-3" data-birth-region-existing>
       <div class="col-md-8">
-        <div class="col-md-8">
-            {% if debtor_data.debtor.birth_region %}
-              {% if debtor_data.debtor.birth_region.region_name%}
-                <h3-small>Регион: {{ debtor_data.debtor.birth_region.region_name }}, </hр>
-              {% endif %}
-              <h3-small>город: {{ debtor_data.debtor.birth_region.city }}</h3-small>
-            {% endif %}
-        </div>
+    
+        {# Текущее место рождения (если есть в БД) #}
+        {% set br = debtor_data.debtor.birth_region %}
+        {% if br %}
+          <div class="alert alert-light border py-2 px-3 mb-2 small">
+            <span class="fw-semibold">Сейчас:</span>
+            {% if br.region_name %}{{ br.region_name }}{% else %}Регион не указан{% endif %}
+            {% if br.city %}, г. {{ br.city }}{% endif %}
+          </div>
+        {% endif %}
+    
         <label for="birth_region_id" class="form-label">Регион</label>
+    
+        {% set region_ids = regions | map(attribute='id') | list %}
+    
         <select id="birth_region_id" name="birth_region_id" class="form-select">
           <option value="">— не указан —</option>
+    
+          {# 1. Все регионы из общего списка #}
           {% for region in regions %}
             <option value="{{ region.id }}"
-                    {% if form.birth_region_id == region.id|string %}selected{% endif %}>
+                    {% if (form.birth_region_id and form.birth_region_id == region.id|string)
+                          or (br and br.id == region.id) %}selected{% endif %}>
               {{ region.region_name or "Регион не указан" }}{% if region.city %}, {{ region.city }}{% endif %}
             </option>
           {% endfor %}
+    
+          {# 2. Fallback: регион должника отсутствует в общем списке #}
+          {% if br and br.id not in region_ids %}
+            <option value="{{ br.id }}" selected>
+              {{ br.region_name or "Регион не указан" }}{% if br.city %}, {{ br.city }}{% endif %}
+            </option>
+          {% endif %}
         </select>
+    
         <div class="form-text">Регион может быть не указан, город — обязателен.</div>
       </div>
+    </div>
     </div>
 
     {# --- Новый регион --- #}
