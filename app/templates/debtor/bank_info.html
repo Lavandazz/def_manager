@@ -16,7 +16,7 @@
         <input type="hidden" name="account_id[]" value="">
 
         <div class="col-md-5">
-          <label class="form-label small mb-1">№ счёта</label>
+          <label class="form-label small mb-1"><mark>№ счёта</mark></label>
           <input type="text"
                  name="account_number[]"
                  class="form-control font-monospace"
@@ -25,7 +25,7 @@
         </div>
 
         <div class="col-md-5">
-          <label class="form-label small mb-1">Банк</label>
+          <label class="form-label small mb-1"><mark>Банк</mark></label>
           <select name="account_bank_id[]" class="form-select" data-bank-select>
             <option value="">— выберите банк —</option>
             {% for bank in banks %}
@@ -90,7 +90,7 @@
           <input type="hidden" name="account_id[]" value="{{ acc.id }}">
 
           <div class="col-md-5">
-            <label class="form-label small mb-1">№ счёта</label>
+            <label class="form-label small mb-1"><mark>№ счёта</mark></label>
             <input type="text"
                   name="account_number[]"
                   class="form-control font-monospace"
@@ -99,7 +99,7 @@
           </div>
 
           <div class="col-md-5">
-            <label class="form-label small mb-1">Банк</label>
+            <label class="form-label small mb-1"><mark>Банк</mark></label>
             
             {# Адрес банка (нужна eager-загрузка mail_address/region/address!) #}
             {% if acc.bank and acc.bank.mail_address %}

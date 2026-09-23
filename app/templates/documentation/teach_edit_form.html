@@ -1,161 +1,555 @@
-<div class="text-for-edit mt-4 p-5 text-black rounded">
-  <h4 class="mb-3">Назначение раздела «Редактирование должника»</h4>
+{% extends "layout.html" %}
+{% block content %}
 
-  <p>
-    Раздел предназначен для внесения и актуализации сведений о должнике.
-    Эти данные автоматически подставляются в шаблоны запросов, которые система
-    формирует в государственные органы и банки в формате Word.
-    <strong>Без корректно заполненных данных генерация документов невозможна</strong> —
-    соответствующие пункты будут пустыми или выгрузка не запустится.
-  </p>
+<div class="container py-4">
 
-  <hr>
-
-  <h5 class="mt-4 mb-3">Требования к данным</h5>
-
-  <h6 class="mt-3">Для физического лица</h6>
-  <div class="table-responsive mb-4">
-    <table class="table table-sm table-bordered align-middle mb-0">
-      <thead class="table-light">
-        <tr>
-          <th style="width: 30%;">Поле</th>
-          <th style="width: 20%;">Обязательность</th>
-          <th>Примечание</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>ФИО</td>
-          <td><span class="badge bg-danger">обязательно</span></td>
-          <td>используется во всех документах</td>
-        </tr>
-        <tr>
-          <td>ИНН</td>
-          <td><span class="badge bg-danger">обязательно</span></td>
-          <td>12 цифр</td>
-        </tr>
-        <tr>
-          <td>СНИЛС</td>
-          <td><span class="badge bg-danger">обязательно</span></td>
-          <td>11 цифр</td>
-        </tr>
-        <tr>
-          <td>Дата рождения</td>
-          <td><span class="badge bg-danger">обязательно</span></td>
-          <td>формат ДД.ММ.ГГГГ</td>
-        </tr>
-        <tr>
-          <td>Место рождения</td>
-          <td><span class="badge bg-danger">обязательно</span></td>
-          <td>регион (может отсутствовать) + город (обязателен)</td>
-        </tr>
-        <tr>
-          <td>Адрес прописки</td>
-          <td><span class="badge bg-danger">обязательно</span></td>
-          <td>регион, город, улица, дом; строение и квартира — при наличии</td>
-        </tr>
-        <tr>
-          <td>Счета в банках</td>
-          <td><span class="badge bg-danger">обязательно</span></td>
-          <td>номер счёта (20 цифр) + банк; можно несколько</td>
-        </tr>
-      </tbody>
-    </table>
+  {# ---------- Заголовок страницы ---------- #}
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+      <i class="bi bi-journal-text me-2"></i>
+      Редактирование данных должника
+    </h1>
+    <span class="badge text-bg-secondary">Руководство пользователя</span>
   </div>
 
-  <h6 class="mt-3">Для юридического лица</h6>
-  <div class="table-responsive mb-4">
-    <table class="table table-sm table-bordered align-middle mb-0">
-      <thead class="table-light">
-        <tr>
-          <th style="width: 30%;">Поле</th>
-          <th style="width: 20%;">Обязательность</th>
-          <th>Примечание</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Наименование</td>
-          <td><span class="badge bg-danger">обязательно</span></td>
-          <td>полное наименование организации</td>
-        </tr>
-        <tr>
-          <td>ИНН</td>
-          <td><span class="badge bg-danger">обязательно</span></td>
-          <td>10 цифр</td>
-        </tr>
-        <tr>
-          <td>Адрес прописки</td>
-          <td><span class="badge bg-danger">обязательно</span></td>
-          <td>юридический адрес</td>
-        </tr>
-        <tr>
-          <td>Счета в банках</td>
-          <td><span class="badge bg-danger">обязательно</span></td>
-          <td>номер счёта + банк</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <p class="text-muted small mb-4">
-    Поля, относящиеся только к физлицам (СНИЛС, дата рождения, место рождения),
-    автоматически скрываются при выборе типа «Юрлицо».
-  </p>
-
-  <hr>
-
-  <h5 class="mt-4 mb-3">Что произойдёт, если данные не заполнены</h5>
-  <div class="alert alert-warning mb-4" role="alert">
-    <ul class="mb-0 ps-3">
-      <li>
-        При попытке сформировать запрос в госорган или банк
-        <strong>соответствующие поля в шаблоне останутся пустыми</strong>,
-        либо формирование будет отменено с ошибкой.
-      </li>
-      <li>
-        Документы с пустыми реквизитами считаются недействительными
-        и не могут быть поданы.
-      </li>
-      <li>
-        Рекомендуется заполнять все обязательные поля <strong>сразу</strong> —
-        до создания дел и запуска генерации.
-      </li>
+  {# ---------- Вступление ---------- #}
+  <div class="text-for-edit p-4 p-lg-5 text-black rounded-4 mb-4">
+    <h4 class="mb-3">Данные для формирования документов</h4>
+    <p class="mb-2">
+      Поля на этой странице используются при автоматической генерации запросов
+      в государственные органы и банки (формат Word).
+      <strong>Если данные не заполнены — документы будут сформированы с пустыми полями.</strong>
+    </p>
+    <p class="mb-1"><strong>Для физического лица обязательны:</strong></p>
+    <ul class="mb-2">
+      <li>ИНН, СНИЛС, дата рождения;</li>
+      <li>место рождения (регион и город);</li>
+      <li>адрес прописки;</li>
+      <li>счета в банках (номер счёта и банк).</li>
     </ul>
+    <!-- <p class="mb-0"><strong>Для юридического лица:</strong>
+      наименование, ИНН, адрес прописки, счета в банках.
+    </p> -->
   </div>
 
-  <hr>
+  {# ---------- Быстрая навигация ---------- #}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="fw-semibold mb-2">Содержание</div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="#how-to-open"    class="btn btn-sm btn-outline-secondary">Как открыть карточку</a>
+        <a href="#main-data"      class="btn btn-sm btn-outline-secondary">Основные данные</a>
+        <a href="#birth-region"   class="btn btn-sm btn-outline-secondary">Место рождения</a>
+        <a href="#residential"    class="btn btn-sm btn-outline-secondary">Адрес прописки</a>
+        <a href="#accounts"       class="btn btn-sm btn-outline-secondary">Счета в банках</a>
+        <a href="#saving"         class="btn btn-sm btn-outline-secondary">Сохранение и ошибки</a>
+        <a href="#faq"            class="btn btn-sm btn-outline-secondary">Частые вопросы</a>
+      </div>
+    </div>
+  </div>
 
-  <h5 class="mt-4 mb-3">Как работать с формой</h5>
-  <ol class="mb-0 ps-3">
-    <li class="mb-2">
-      Выберите <strong>тип должника</strong> — от него зависит набор обязательных полей.
-    </li>
-    <li class="mb-2">
-      Заполните основные данные (ФИО/наименование, ИНН, СНИЛС, дата рождения).
-    </li>
-    <li class="mb-2">
-      Укажите <strong>место рождения</strong>: выберите существующий регион
-      из справочника или создайте новый (город обязателен в обоих случаях).
-    </li>
-    <li class="mb-2">
-      Укажите <strong>адрес прописки</strong>: выберите из существующих
-      или создайте новый.
-    </li>
-    <li class="mb-2">
-      Добавьте <strong>счета в банках</strong> кнопкой
-      <span class="badge bg-primary">+ Добавить счёт</span>.
-      При необходимости удалите лишние строки кнопкой
-      <span class="badge bg-danger">×</span>.
-    </li>
-    <li class="mb-2">
-      Нажмите <strong>«Сохранить»</strong>. При ошибках валидации они
-      отобразятся сверху формы.
-    </li>
-  </ol>
+  {# =========================================================
+     1. Как открыть карточку
+     ========================================================= #}
+  <section id="how-to-open" class="mb-4">
+    <h2 class="h5 mb-3">
+      <span class="badge text-bg-primary me-2">1</span>
+      Как открыть карточку должника
+    </h2>
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <ol class="mb-0">
+          <li class="mb-2">
+            В верхнем меню нажмите
+            <span class="badge text-bg-light text-dark border">Выберите должника из списка</span>.
+          </li>
+          <li class="mb-2">
+            В выпадающем списке выберите нужного должника — отобразится
+            <em>ФИО</em> и <em>номер дела</em>.
+          </li>
+          <li class="mb-0">
+            Откроется форма редактирования. Все изменения применяются
+            <strong>только после нажатия кнопки «Сохранить»</strong>.
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
 
-  <p class="mt-4 mb-0 text-muted small">
-    После сохранения данные сразу доступны для генерации документов
-    по делам этого должника.
-  </p>
+  {# =========================================================
+     2. Основные данные
+     ========================================================= #}
+  <section id="main-data" class="mb-4">
+    <h2 class="h5 mb-3">
+      <span class="badge text-bg-primary me-2">2</span>
+      Основные данные
+    </h2>
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold">Блок «Основные данные»</div>
+      <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 26%">Поле</th>
+              <th style="width: 12%">Обязательно</th>
+              <th>Пояснение</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Тип должника</strong></td>
+              <td><span class="badge text-bg-danger">Да</span></td>
+              <td>
+                Физлицо или юрлицо. От этого зависит набор обязательных
+                полей: например, для юрлица скрываются СНИЛС, дата и место
+                рождения.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>ФИО / Наименование</strong></td>
+              <td><span class="badge text-bg-danger">Да</span></td>
+              <td>
+                Для физлица — полное ФИО одной строкой, для юрлица —
+                официальное наименование как в ЕГРЮЛ.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>ИНН</strong></td>
+              <td>
+                <span class="badge text-bg-danger">Да*</span>
+              </td>
+              <td>
+                10 цифр для юрлица, 12 — для физлица.
+                <span class="text-muted">* Для юрлица обязателен, для физлица — желателен.</span>
+              </td>
+            </tr>
+            <tr data-individual-only>
+              <td><strong>СНИЛС</strong></td>
+              <td><span class="badge text-bg-warning text-dark">Желательно</span></td>
+              <td>11 цифр. Только для физлиц.</td>
+            </tr>
+            <tr data-individual-only>
+              <td><strong>Дата рождения</strong></td>
+              <td><span class="badge text-bg-warning text-dark">Желательно</span></td>
+              <td>Формат <code>ДД.ММ.ГГГГ</code> (выбирается календарём). Только для физлиц.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="alert alert-info d-flex mt-3 mb-0" role="alert">
+      <i class="bi bi-info-circle-fill me-2"></i>
+      <div>
+        Поля с отметкой <span class="badge text-bg-danger">Да</span> не сохранятся,
+        если оставить их пустыми — форма выдаст ошибку и подсветит проблемное поле.
+      </div>
+    </div>
+  </section>
+
+  {# =========================================================
+     3. Место рождения
+     ========================================================= #}
+  <section id="birth-region" class="mb-4">
+    <h2 class="h5 mb-3">
+      <span class="badge text-bg-primary me-2">3</span>
+      Место рождения <span class="badge text-bg-light text-dark border">только для физлиц</span>
+    </h2>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <p class="mb-3">
+          Блок доступен только для типа <em>«Физлицо»</em>. Есть два режима —
+          переключаются кнопками в шапке блока.
+        </p>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+              <div class="fw-semibold mb-2">
+                <i class="bi bi-list-ul me-1"></i> «Выбрать существующий»
+              </div>
+              <p class="small mb-0">
+                Вы выбираете регион из уже заведённого списка. Если у должника
+                ранее был указан регион рождения — он автоматически подсветится
+                в выпадающем списке, а над ним появится подсказка
+                <em>«Сейчас: …»</em>.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+              <div class="fw-semibold mb-2">
+                <i class="bi bi-plus-circle me-1"></i> «Создать новый»
+              </div>
+              <p class="small mb-0">
+                Вы вводите <strong>название региона</strong> (можно оставить
+                пустым) и <strong>город</strong> (обязательно). Новый регион
+                будет добавлен в общий справочник и станет доступен другим
+                должникам.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-warning d-flex mb-0" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <div>
+        При режиме «Создать новый» поле <strong>«Город»</strong> обязательно.
+        Если город не указать — форма вернёт ошибку и не сохранит изменения.
+      </div>
+    </div>
+  </section>
+
+  {# =========================================================
+     4. Адрес прописки
+     ========================================================= #}
+  <section id="residential" class="mb-4">
+    <h2 class="h5 mb-3">
+      <span class="badge text-bg-primary me-2">4</span>
+      Адрес прописки
+    </h2>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <p class="mb-3">
+          Аналогично месту рождения, блок работает в двух режимах. Текущий
+          адрес отображается подсказкой <em>«Сейчас: …»</em> над выпадающим списком.
+        </p>
+
+        <div class="accordion" id="raAccordion">
+          <div class="accordion-item">
+            <h3 class="accordion-header">
+              <button class="accordion-button collapsed" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#raExisting">
+                <i class="bi bi-list-ul me-2"></i> Выбрать существующий адрес
+              </button>
+            </h3>
+            <div id="raExisting" class="accordion-collapse collapse"
+                 data-bs-parent="#raAccordion">
+              <div class="accordion-body">
+                В выпадающем списке отображаются адреса в формате:
+                <div class="border rounded p-2 my-2 font-monospace small">
+                  Регион, город, улица, д. N, стр. M, кв. K
+                </div>
+                Выберите нужный адрес. Если ранее у должника была указана
+                прописка — она подсветится автоматически.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header">
+              <button class="accordion-button collapsed" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#raNew">
+                <i class="bi bi-plus-circle me-2"></i> Создать новый адрес
+              </button>
+            </h3>
+            <div id="raNew" class="accordion-collapse collapse"
+                 data-bs-parent="#raAccordion">
+              <div class="accordion-body">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Поле</th>
+                      <th style="width: 22%">Обязательно</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Регион</td>
+                        <td><span class="badge text-bg-secondary">Нет</span></td></tr>
+                    <tr><td>Город</td>
+                        <td><span class="badge text-bg-danger">Да</span></td></tr>
+                    <tr><td>Улица</td>
+                        <td><span class="badge text-bg-danger">Да</span></td></tr>
+                    <tr><td>Дом</td>
+                        <td><span class="badge text-bg-danger">Да</span></td></tr>
+                    <tr><td>Корпус / строение</td>
+                        <td><span class="badge text-bg-secondary">Нет</span></td></tr>
+                    <tr><td>Квартира</td>
+                        <td><span class="badge text-bg-secondary">Нет</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-warning d-flex mb-0" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <div>
+        Поле <strong>«Корпус / строение»</strong> — только текст.
+        Если у дома нет корпуса, оставьте поле пустым, а не пишите «нет» или «-».
+      </div>
+    </div>
+  </section>
+
+  {# =========================================================
+     5. Счета в банках
+     ========================================================= #}
+  <section id="accounts" class="mb-4">
+    <h2 class="h5 mb-3">
+      <span class="badge text-bg-primary me-2">5</span>
+      Счета в банках
+    </h2>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <p class="mb-3">
+          В блоке перечислены все счета должника. Каждая строка — один счёт:
+          его номер и банк, в котором он открыт.
+        </p>
+
+        <h3 class="h6 mt-3">Добавить счёт</h3>
+        <ol>
+          <li class="mb-1">Нажмите кнопку <span class="badge text-bg-primary">+ Добавить счёт</span>
+              в шапке блока — появится новая строка.</li>
+          <li class="mb-1">Введите <strong>номер счёта</strong> (до 20 цифр).</li>
+          <li class="mb-0">Выберите <strong>банк</strong> из выпадающего списка.</li>
+        </ol>
+
+        <h3 class="h6 mt-4">Если нужного банка нет в списке</h3>
+        <p class="mb-2">
+          В выпадающем списке выберите вариант
+          <span class="badge text-bg-success">+ Добавить новый банк</span> —
+          под строкой счёта раскроется блок для ввода реквизитов банка.
+        </p>
+
+        <table class="table table-sm align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 30%">Поле нового банка</th>
+              <th style="width: 20%">Обязательно</th>
+              <th>Пояснение</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Название банка</td>
+              <td><span class="badge text-bg-danger">Да</span></td>
+              <td>Например: <em>ПАО Сбербанк</em>. Будет добавлен в справочник банков.</td>
+            </tr>
+            <tr>
+              <td>Почтовый индекс</td>
+              <td><span class="badge text-bg-warning text-dark">Желательно</span></td>
+              <td>6 цифр. Используется в шапке запроса в банк.</td>
+            </tr>
+            <tr>
+              <td>Регион</td>
+              <td><span class="badge text-bg-secondary">Нет</span></td>
+              <td>Если региона нет — оставьте пустым.</td>
+            </tr>
+            <tr>
+              <td>Город</td>
+              <td><span class="badge text-bg-danger">Да</span></td>
+              <td>Город, где находится отделение банка.</td>
+            </tr>
+            <tr>
+              <td>Улица</td>
+              <td><span class="badge text-bg-secondary">Нет</span></td>
+              <td>Без слова «улица».</td>
+            </tr>
+            <tr>
+              <td>Дом</td>
+              <td><span class="badge text-bg-secondary">Нет</span></td>
+              <td>Номер дома.</td>
+            </tr>
+            <tr>
+              <td>Корпус</td>
+              <td><span class="badge text-bg-secondary">Нет</span></td>
+              <td>Номер корпуса/строения, если есть.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 class="h6 mt-4">Удалить счёт</h3>
+        <p class="mb-0">
+          Нажмите <span class="badge text-bg-danger">×</span> справа от строки.
+          Строка уберётся со страницы; чтобы удаление вступило в силу,
+          не забудьте нажать <strong>«Сохранить»</strong> внизу страницы.
+        </p>
+      </div>
+    </div>
+
+    <div class="alert alert-info d-flex mb-0" role="alert">
+      <i class="bi bi-info-circle-fill me-2"></i>
+      <div>
+        Один и тот же банк можно указывать для нескольких счетов — вводить
+        его повторно не нужно, он уже будет в выпадающем списке.
+      </div>
+    </div>
+  </section>
+
+  {# =========================================================
+     6. Сохранение и ошибки
+     ========================================================= #}
+  <section id="saving" class="mb-4">
+    <h2 class="h5 mb-3">
+      <span class="badge text-bg-primary me-2">6</span>
+      Сохранение и обработка ошибок
+    </h2>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <p class="mb-3">
+          Все изменения вступают в силу <strong>только после нажатия кнопки
+          «Сохранить»</strong>. Если форма содержит ошибки — страница вернётся
+          с подсвеченными проблемными полями и списком сообщений.
+        </p>
+
+        <h3 class="h6">Типичные ошибки</h3>
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 45%">Сообщение</th>
+                <th>Что делать</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Счёт #N: выберите банк</code></td>
+                <td>В строке счёта с номером N выберите банк из списка
+                    или создайте новый.</td>
+              </tr>
+              <tr>
+                <td><code>Счёт #N: укажите номер счёта</code></td>
+                <td>Заполните поле «№ счёта» в строке N.</td>
+              </tr>
+              <tr>
+                <td><code>Для нового банка «…» нужно указать адрес: город, улица, дом</code></td>
+                <td>Раскройте блок нового банка и заполните обязательные поля.</td>
+              </tr>
+              <tr>
+                <td><code>Для должника «…» не указан город</code></td>
+                <td>В блоке «Место рождения» выберите режим
+                    «Создать новый» и заполните город.</td>
+              </tr>
+              <tr>
+                <td><code>Название банка обязательно</code></td>
+                <td>Укажите название нового банка в соответствующем поле.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# =========================================================
+     7. FAQ
+     ========================================================= #}
+  <section id="faq" class="mb-4">
+    <h2 class="h5 mb-3">
+      <span class="badge text-bg-primary me-2">7</span>
+      Частые вопросы
+    </h2>
+
+    <div class="accordion" id="faqAccordion">
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#faq1">
+            Я создал банк, но при следующем заходе его нет в списке
+          </button>
+        </h3>
+        <div id="faq1" class="accordion-collapse collapse"
+             data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Скорее всего, форма не была сохранена. Новые банки, регионы и
+            адреса сохраняются в справочники <strong>вместе с должником</strong> —
+            если закрыть страницу без нажатия «Сохранить», они не будут созданы.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#faq2">
+            Я переключил режим на «Выбрать существующий», но мой старый адрес пропал
+          </button>
+        </h3>
+        <div id="faq2" class="accordion-collapse collapse"
+             data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            При выборе варианта «— не указан —» адрес прописки будет очищен
+            при сохранении. Чтобы сохранить старый адрес — не трогайте
+            выпадающий список. Текущий адрес всегда отображается подсказкой
+            <em>«Сейчас: …»</em> над списком.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#faq3">
+            У должника юридическое лицо — куда пропали СНИЛС и дата рождения?
+          </button>
+        </h3>
+        <div id="faq3" class="accordion-collapse collapse"
+             data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Эти поля относятся только к физлицам и автоматически скрываются,
+            если в поле «Тип должника» выбрано <em>«Юрлицо»</em>.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#faq4">
+            Могу ли я не заполнять ИНН?
+          </button>
+        </h3>
+        <div id="faq4" class="accordion-collapse collapse"
+             data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Для физлица — да, но без ИНН часть запросов может не сформироваться.
+            Для юрлица ИНН <strong>обязателен</strong>: без него генерация
+            документов невозможна.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#faq5">
+            Как удалить счёт?
+          </button>
+        </h3>
+        <div id="faq5" class="accordion-collapse collapse"
+             data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Нажмите красную кнопку <span class="badge text-bg-danger">×</span>
+            справа от строки счёта, затем — «Сохранить». Строка исчезнет
+            вместе с сохранением формы.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  {# ---------- Финальный CTA ---------- #}
+  <div class="d-flex justify-content-between align-items-center mt-4">
+    <a href="#how-to-open" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-up me-1"></i> Наверх
+    </a>
+    <div class="text-muted small">
+      Если возникла не описаная здесь ситуация — обратитесь к администратору
+      системы.
+    </div>
+  </div>
+
 </div>
+
+{% endblock content %}

@@ -18,7 +18,7 @@ from app.routers.html.case import router as case_router
 from app.routers.html.index import router as main_router
 from app.routers.html.courts import router as court_router
 from app.routers.html.debtor import router as debtor_router
-
+from app.routers.html.help import router as help_router
 from app.routers.html.parser_rout import router as parser_router
 
 
@@ -42,6 +42,7 @@ app.include_router(api_router, prefix="/api")
 app.include_router(api_user_router, prefix="/api/user")
 app.include_router(api_cases_router, prefix="/api/cases")
 app.include_router(main_router)
+app.include_router(help_router, prefix="/help")
 app.include_router(user_router, prefix="/user")
 app.include_router(case_router, prefix="/user/cases")
 app.include_router(court_router, prefix="/user/courts")

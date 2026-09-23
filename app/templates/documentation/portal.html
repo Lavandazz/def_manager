@@ -1,0 +1,537 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="container py-4">
+
+  {# ============================================================
+     HERO
+     ============================================================ #}
+  <div class="p-4 p-lg-5 mb-4 rounded-4 text-white position-relative overflow-hidden"
+       style="background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);">
+    <div class="position-relative" style="z-index: 1;">
+      <span class="badge text-bg-light text-dark mb-3">Руководство пользователя</span>
+      <h1 class="display-6 fw-bold mb-3">Портал для юристов по банкротству</h1>
+      <p class="lead mb-4" style="max-width: 46rem;">
+        Один личный кабинет для всех арбитражных дел: статусы, заседания,
+        документы — собираются автоматически с «Картотеки арбитражных дел».
+        Без ручного мониторинга, без вкладок и Excel-таблиц.
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="#how-to-start" class="btn btn-light btn-lg">
+          <i class="bi bi-rocket-takeoff me-2"></i> Начать работу
+        </a>
+        <a href="#login" class="btn btn-outline-light btn-lg">
+          <i class="bi bi-box-arrow-in-right me-2"></i> Вход и регистрация
+        </a>
+      </div>
+    </div>
+    <i class="bi bi-briefcase-fill position-absolute opacity-25"
+       style="font-size: 16rem; right: -2rem; bottom: -4rem;"></i>
+  </div>
+
+  {# ============================================================
+     БЫСТРАЯ НАВИГАЦИЯ
+     ============================================================ #}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="fw-semibold mb-2">Содержание</div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="#about"         class="btn btn-sm btn-outline-secondary">О портале</a>
+        <a href="#audience"      class="btn btn-sm btn-outline-secondary">Для кого</a>
+        <a href="#features"      class="btn btn-sm btn-outline-secondary">Возможности</a>
+        <a href="#how-to-start"  class="btn btn-sm btn-outline-secondary">Как пользоваться</a>
+        <a href="#login"         class="btn btn-sm btn-outline-secondary">Вход и регистрация</a>
+        <a href="#debtors"       class="btn btn-sm btn-outline-secondary">Данные должника</a>
+        <a href="#faq"           class="btn btn-sm btn-outline-secondary">Вопросы</a>
+      </div>
+    </div>
+  </div>
+
+  {# ============================================================
+     О ПОРТАЛЕ
+     ============================================================ #}
+  <section id="about" class="mb-5">
+    <div class="row g-4 align-items-stretch">
+      <div class="col-lg-7">
+        <h2 class="h4 mb-3">
+          <i class="bi bi-info-circle text-primary me-2"></i> О портале
+        </h2>
+        <p>
+          Портал создан для юристов и юридических команд, которые ведут дела
+          о банкротстве физических и юридических лиц. Система подключается
+          к открытому источнику <em>«Картотека арбитражных дел»</em>
+          и превращает его в удобный личный кабинет: не нужно вручную
+          отслеживать каждый номер и обновлять таблицы — данные приходят
+          сами.
+        </p>
+        <p class="mb-0">
+          Все дела, заседания и поступившие документы собираются в одном
+          месте. Информация всегда актуальна: система периодически
+          обращается к источнику и обновляет карточки дел.
+        </p>
+      </div>
+      <div class="col-lg-5">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="card h-100 border-0 shadow-sm text-center">
+              <div class="card-body">
+                <i class="bi bi-folder2-open fs-1 text-primary"></i>
+                <div class="fw-semibold mt-2">Все дела<br>в одном месте</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card h-100 border-0 shadow-sm text-center">
+              <div class="card-body">
+                <i class="bi bi-arrow-repeat fs-1 text-primary"></i>
+                <div class="fw-semibold mt-2">Автообновление<br>данных</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card h-100 border-0 shadow-sm text-center">
+              <div class="card-body">
+                <i class="bi bi-shield-lock fs-1 text-primary"></i>
+                <div class="fw-semibold mt-2">Доступ<br>по логину</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card h-100 border-0 shadow-sm text-center">
+              <div class="card-body">
+                <i class="bi bi-file-earmark-text fs-1 text-primary"></i>
+                <div class="fw-semibold mt-2">Документы<br>и заседания</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ============================================================
+     ДЛЯ КОГО
+     ============================================================ #}
+  <section id="audience" class="mb-5">
+    <h2 class="h4 mb-3">
+      <i class="bi bi-people text-primary me-2"></i> Для кого
+    </h2>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="card shadow-sm h-100 border-start border-4 border-primary">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-2">Юрист по банкротству</h3>
+            <p class="mb-0 text-muted">
+              Ведёт процедуры банкротства физлиц и юрлиц, следит за ходом
+              каждого дела: от подачи заявления до завершения процедуры.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card shadow-sm h-100 border-start border-4 border-primary">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-2">Юридическая команда</h3>
+            <p class="mb-0 text-muted">
+              Ведёт несколько дел параллельно. Общий список отслеживаемых
+              дел помогает не потерять ни одного клиента и не пропустить
+              заседание.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ============================================================
+     ЧТО ВЫ ПОЛУЧАЕТЕ
+     ============================================================ #}
+  <section id="features" class="mb-5">
+    <h2 class="h4 mb-3">
+      <i class="bi bi-stars text-primary me-2"></i> Что вы получаете
+    </h2>
+
+    <div class="row g-3">
+      <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 text-primary mb-3"
+                 style="width: 3rem; height: 3rem;">
+              <i class="bi bi-activity fs-4"></i>
+            </div>
+            <h3 class="h6 fw-bold">Актуальный статус дела</h3>
+            <p class="small text-muted mb-0">
+              Текущая стадия процедуры, последние изменения и ключевые
+              события по каждому делу.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 text-primary mb-3"
+                 style="width: 3rem; height: 3rem;">
+              <i class="bi bi-calendar-event fs-4"></i>
+            </div>
+            <h3 class="h6 fw-bold">Судебные заседания</h3>
+            <p class="small text-muted mb-0">
+              Дата, время и место каждого заседания — в карточке дела.
+              Не нужно держать расписание в голове.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 text-primary mb-3"
+                 style="width: 3rem; height: 3rem;">
+              <i class="bi bi-file-earmark-arrow-down fs-4"></i>
+            </div>
+            <h3 class="h6 fw-bold">Документы от суда</h3>
+            <p class="small text-muted mb-0">
+              Список поступивших документов с возможностью открыть оригинал
+              на сайте арбитражного суда.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 text-primary mb-3"
+                 style="width: 3rem; height: 3rem;">
+              <i class="bi bi-collection fs-4"></i>
+            </div>
+            <h3 class="h6 fw-bold">Все дела в одном кабинете</h3>
+            <p class="small text-muted mb-0">
+              Список отслеживаемых дел с быстрым доступом к карточке
+              каждого из них.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ============================================================
+     КАК ПОЛЬЗОВАТЬСЯ
+     ============================================================ #}
+  <section id="how-to-start" class="mb-5">
+    <h2 class="h4 mb-3">
+      <i class="bi bi-signpost-split text-primary me-2"></i> Как начать работу
+    </h2>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <ol class="list-unstyled mb-0">
+
+          <li class="d-flex gap-3 pb-3 border-bottom">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white fw-bold flex-shrink-0"
+                 style="width: 2.5rem; height: 2.5rem;">1</div>
+            <div>
+              <div class="fw-semibold">Войдите или зарегистрируйтесь</div>
+              <div class="text-muted small">
+                Если вы здесь впервые — создайте аккаунт. Уже
+                зарегистрированы — войдите в личный кабинет.
+              </div>
+            </div>
+          </li>
+
+          <li class="d-flex gap-3 py-3 border-bottom">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white fw-bold flex-shrink-0"
+                 style="width: 2.5rem; height: 2.5rem;">2</div>
+            <div>
+              <div class="fw-semibold">Добавьте дело</div>
+              <div class="text-muted small mb-2">
+                Укажите номер в формате арбитражного суда, например:
+              </div>
+              <code class="d-inline-block bg-light px-2 py-1 rounded">А40-12345/2024</code>
+            </div>
+          </li>
+
+          <li class="d-flex gap-3 py-3 border-bottom">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white fw-bold flex-shrink-0"
+                 style="width: 2.5rem; height: 2.5rem;">3</div>
+            <div>
+              <div class="fw-semibold">Сохраните дело</div>
+              <div class="text-muted small">
+                После сохранения портал запустит сбор данных с
+                «Картотеки арбитражных дел».
+              </div>
+            </div>
+          </li>
+
+          <li class="d-flex gap-3 pt-3">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white fw-bold flex-shrink-0"
+                 style="width: 2.5rem; height: 2.5rem;">4</div>
+            <div>
+              <div class="fw-semibold">Откройте личный кабинет</div>
+              <div class="text-muted small">
+                Через некоторое время в списке появится дело с собранной
+                информацией: документы, заседания, текущий статус.
+              </div>
+            </div>
+          </li>
+
+        </ol>
+      </div>
+    </div>
+
+    <div class="alert alert-info d-flex mt-3 mb-0" role="alert">
+      <i class="bi bi-info-circle-fill me-2"></i>
+      <div>
+        Данные обновляются не мгновенно — «Картотека арбитражных дел»
+        публикует изменения с задержкой. Если дело только что добавлено,
+        подождите 10–15 минут и обновите страницу.
+      </div>
+    </div>
+  </section>
+
+  {# ============================================================
+     ВХОД И РЕГИСТРАЦИЯ
+     ============================================================ #}
+  <section id="login" class="mb-5">
+    <h2 class="h4 mb-3">
+      <i class="bi bi-person-badge text-primary me-2"></i> Вход и регистрация
+    </h2>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="card shadow-sm h-100 border-0">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+              <i class="bi bi-envelope-plus fs-3 text-primary me-2"></i>
+              <h3 class="h6 fw-bold mb-0">Новые пользователи</h3>
+            </div>
+            <p class="mb-2">
+              Регистрация проходит по электронной почте на странице
+              <span class="badge text-bg-light text-dark border">«Регистрация»</span>.
+            </p>
+            <ol class="small text-muted mb-0">
+              <li>Укажите e-mail и пароль.</li>
+              <li>Подтвердите адрес по письму.</li>
+              <li>Войдите в личный кабинет.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card shadow-sm h-100 border-0">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+              <i class="bi bi-telegram fs-3 text-primary me-2"></i>
+              <h3 class="h6 fw-bold mb-0">Ранее зарегистрированные</h3>
+            </div>
+            <p class="mb-2">
+              Вход выполняется по <strong>Telegram ID</strong>. Пароль
+              задаётся один раз в разделе
+              <span class="badge text-bg-light text-dark border">«Настройки профиля»</span>.
+            </p>
+            <div class="alert alert-warning small mb-0 py-2" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i>
+              Если забыли пароль — восстановите его через тот же раздел
+              настроек профиля.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ============================================================
+     ДАННЫЕ ДОЛЖНИКА (связка с другой справкой)
+     ============================================================ #}
+  <section id="debtors" class="mb-5">
+    <h2 class="h4 mb-3">
+      <i class="bi bi-person-vcard text-primary me-2"></i> Данные должника
+    </h2>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <p class="mb-3">
+          Часть разделов портала генерирует документы автоматически — запросы
+          в госорганы и банки. Для этого в карточке должника должны быть
+          заполнены обязательные поля.
+        </p>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+              <div class="fw-semibold mb-2">
+                <i class="bi bi-person me-1"></i> Для физического лица
+              </div>
+              <ul class="small mb-0">
+                <li>ИНН, СНИЛС, дата рождения;</li>
+                <li>место рождения (регион и город);</li>
+                <li>адрес прописки;</li>
+                <li>счета в банках (номер счёта и банк).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+              <div class="fw-semibold mb-2">
+                <i class="bi bi-building me-1"></i> Для юридического лица
+              </div>
+              <ul class="small mb-0">
+                <li>наименование организации;</li>
+                <li>ИНН;</li>
+                <li>адрес прописки;</li>
+                <li>счета в банках.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="d-flex flex-wrap gap-2">
+          <a href="/help/debtor-edit" class="btn btn-primary">
+            <i class="bi bi-book me-2"></i> Как заполнить карточку должника
+          </a>
+          <span class="align-self-center text-muted small">
+            Подробная инструкция: поля, обязательность, работа с банками и адресами.
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ============================================================
+     FAQ
+     ============================================================ #}
+  <section id="faq" class="mb-5">
+    <h2 class="h4 mb-3">
+      <i class="bi bi-question-circle text-primary me-2"></i> Частые вопросы
+    </h2>
+
+    <div class="accordion" id="faqAccordion">
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#pfaq1">
+            Как часто обновляются данные по делу?
+          </button>
+        </h3>
+        <div id="pfaq1" class="accordion-collapse collapse"
+             data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Система периодически обращается к «Картотеке арбитражных дел»
+            и обновляет карточки дел. Публикация изменений на стороне
+            источника обычно занимает от нескольких минут до нескольких часов,
+            поэтому мгновенного отражения ждать не стоит.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#pfaq2">
+            Что делать, если дело не появилось в списке?
+          </button>
+        </h3>
+        <div id="pfaq2" class="accordion-collapse collapse"
+             data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Проверьте формат номера: он должен совпадать с форматом
+            арбитражного суда, например <code>А40-12345/2024</code>.
+            Если номер верный — подождите 10–15 минут и обновите страницу.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#pfaq3">
+            Можно ли вести дела по нескольким клиентам в одном аккаунте?
+          </button>
+        </h3>
+        <div id="pfaq3" class="accordion-collapse collapse"
+             data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Да. Один аккаунт — неограниченное количество отслеживаемых дел.
+            Все они отображаются в общем списке личного кабинета.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#pfaq4">
+            Я потерял доступ к Telegram-аккаунту. Что делать?
+          </button>
+        </h3>
+        <div id="pfaq4" class="accordion-collapse collapse"
+             data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Обратитесь к администратору портала — он поможет восстановить
+            доступ и привязать новый Telegram ID к вашему профилю.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#pfaq5">
+            Где взять данные должника для заполнения карточки?
+          </button>
+        </h3>
+        <div id="pfaq5" class="accordion-collapse collapse"
+             data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Из документов, которые клиент предоставляет при заключении
+            договора. Подробный список полей и правила их заполнения — в
+            разделе
+            <a href="/help/debtor-edit">«Как заполнить карточку должника»</a>.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  {# ============================================================
+     ФИНАЛЬНЫЙ CTA
+     ============================================================ #}
+  <div class="rounded-4 p-4 p-lg-5 text-white mb-3"
+       style="background: linear-gradient(135deg, #0ea5e9 0%, #1e3a8a 100%);">
+    <div class="row align-items-center g-3">
+      <div class="col-lg-8">
+        <h3 class="h4 fw-bold mb-2">Готовы начать?</h3>
+        <p class="mb-0 opacity-75">
+          Войдите в личный кабинет, добавьте первое дело — и через несколько
+          минут данные подтянутся автоматически.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <a href="#how-to-start" class="btn btn-light btn-lg">
+          <i class="bi bi-box-arrow-in-right me-2"></i> Перейти к делу
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-4">
+    <a href="#" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-up me-1"></i> Наверх
+    </a>
+    <div class="text-muted small">
+      Если что-то работает не так — обратитесь к администратору портала:
+      <a href="https://t.me/itLavandazz" target="_blank" class="telegram-link" style="color: #1f0101;">Lavandazz</a>
+    </div>
+  </div>
+
+</div>
+
+{% endblock content %}

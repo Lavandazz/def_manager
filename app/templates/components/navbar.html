@@ -5,8 +5,13 @@
       <li class="nav-item">
         <a class="nav-link" href="/">Главная</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Документация</a>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Документация</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="/help/about-portal">О портале</a></li>
+          <li><a class="dropdown-item" href="/help/debtor-edit">Внесение сведений о должнике</a></li>
+          <li><a class="dropdown-item" href="/help/debtor-faq">Частые вопросы по данным должника</a></li>
+        </ul>
       </li>
       {% if user %}
         <li class="nav-item dropdown">

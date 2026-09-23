@@ -1,0 +1,750 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="container py-4">
+
+  {# ============================================================
+     HERO
+     ============================================================ #}
+  <div class="p-4 p-lg-5 mb-4 rounded-4 text-white position-relative overflow-hidden"
+       style="background: linear-gradient(135deg, #7c3aed 0%, #1e3a8a 100%);">
+    <div class="position-relative" style="z-index: 1;">
+      <span class="badge text-bg-light text-dark mb-3">Справка · Данные должника</span>
+      <h1 class="display-6 fw-bold mb-3">Частые вопросы по данным должника</h1>
+      <p class="lead mb-4" style="max-width: 46rem;">
+        Что заполнять обязательно, как вести себя с адресами и банками,
+        что делать при ошибках валидации — короткие ответы на самые
+        частые вопросы.
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="#general"    class="btn btn-light">
+          <i class="bi bi-card-checklist me-2"></i> К вопросам
+        </a>
+        <a href="/help/debtor-edit" class="btn btn-outline-light">
+          <i class="bi bi-book me-2"></i> Полная инструкция
+        </a>
+      </div>
+    </div>
+    <i class="bi bi-patch-question-fill position-absolute opacity-25"
+       style="font-size: 16rem; right: -2rem; bottom: -4rem;"></i>
+  </div>
+
+  {# ============================================================
+     БЫСТРАЯ НАВИГАЦИЯ
+     ============================================================ #}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="fw-semibold mb-2">Разделы</div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="#general"     class="btn btn-sm btn-outline-secondary">Общие</a>
+        <a href="#birth"       class="btn btn-sm btn-outline-secondary">Место рождения</a>
+        <a href="#residential" class="btn btn-sm btn-outline-secondary">Адрес прописки</a>
+        <a href="#banks"       class="btn btn-sm btn-outline-secondary">Банки и счета</a>
+        <a href="#errors"      class="btn btn-sm btn-outline-secondary">Ошибки и сохранение</a>
+        <a href="#docs"        class="btn btn-sm btn-outline-secondary">Документы</a>
+      </div>
+    </div>
+  </div>
+
+  {# ============================================================
+     ОБЩИЕ
+     ============================================================ #}
+  <section id="general" class="mb-5">
+    <h2 class="h5 mb-3">
+      <i class="bi bi-info-circle text-primary me-2"></i> Общие вопросы
+    </h2>
+
+    <div class="accordion" id="faqGeneral">
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#g1">
+            Зачем вообще заполнять карточку должника?
+          </button>
+        </h3>
+        <div id="g1" class="accordion-collapse collapse show"
+             data-bs-parent="#faqGeneral">
+          <div class="accordion-body">
+            Поля карточки подставляются в автоматически генерируемые документы —
+            запросы в государственные органы и банки (формат Word).
+            <strong>Если данные не заполнены — документы сформированы не будут.</strong>
+            Поэтому карточка — это не «картотека для памяти», а рабочий
+            источник данных для генерации.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#g2">
+            Какие поля обязательны для физлица, а какие — для юрлица?
+          </button>
+        </h3>
+        <div id="g2" class="accordion-collapse collapse"
+             data-bs-parent="#faqGeneral">
+          <div class="accordion-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="border rounded-3 p-3 h-100">
+                  <div class="fw-semibold mb-2">
+                    <i class="bi bi-person me-1"></i> Физическое лицо
+                  </div>
+                  <ul class="small mb-0">
+                    <li>ИНН, СНИЛС, дата рождения;</li>
+                    <li>место рождения (регион и город);</li>
+                    <li>адрес прописки;</li>
+                    <li>счета в банках (номер счёта и банк).</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="border rounded-3 p-3 h-100">
+                  <div class="fw-semibold mb-2">
+                    <i class="bi bi-building me-1"></i> Юридическое лицо
+                  </div>
+                  <ul class="small mb-0">
+                    <li>наименование организации;</li>
+                    <li>ИНН;</li>
+                    <li>адрес прописки;</li>
+                    <li>счета в банках.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#g3">
+            Я переключил тип должника — часть полей исчезла. Это нормально?
+          </button>
+        </h3>
+        <div id="g3" class="accordion-collapse collapse"
+             data-bs-parent="#faqGeneral">
+          <div class="accordion-body">
+            Да. Для юрлица скрываются СНИЛС, дата рождения и блок «Место
+            рождения» — они относятся только к физлицам. Данные при этом не
+            удаляются: если вернуть тип обратно на «Физлицо», значения снова
+            появятся в форме.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#g4">
+            Можно ли редактировать данные должника после того, как документы
+            уже сформированы?
+          </button>
+        </h3>
+        <div id="g4" class="accordion-collapse collapse"
+             data-bs-parent="#faqGeneral">
+          <div class="accordion-body">
+            Да, карточка доступна для редактирования в любой момент.
+            Уже сформированные документы при этом не меняются — если хотите,
+            чтобы запрос ушёл с новыми данными, пересоберите документ.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  {# ============================================================
+     МЕСТО РОЖДЕНИЯ
+     ============================================================ #}
+  <section id="birth" class="mb-5">
+    <h2 class="h5 mb-3">
+      <i class="bi bi-geo-alt text-primary me-2"></i> Место рождения
+    </h2>
+
+    <div class="accordion" id="faqBirth">
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#b1">
+            В чём разница между «Выбрать существующий» и «Создать новый»?
+          </button>
+        </h3>
+        <div id="b1" class="accordion-collapse collapse"
+             data-bs-parent="#faqBirth">
+          <div class="accordion-body">
+            <ul class="mb-0">
+              <li>
+                <strong>«Выбрать существующий»</strong> — вы выбираете регион
+                из уже заведённого справочника. Подходит, если регион
+                рождения кого-то из ваших должников уже был введён ранее.
+              </li>
+              <li>
+                <strong>«Создать новый»</strong> — вводите название региона
+                и город вручную. Новый регион попадёт в общий справочник
+                и станет доступен другим должникам.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#b2">
+            Обязательно ли указывать регион? А город?
+          </button>
+        </h3>
+        <div id="b2" class="accordion-collapse collapse"
+             data-bs-parent="#faqBirth">
+          <div class="accordion-body">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Поле</th>
+                  <th style="width: 30%">Обязательно</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Название региона</td>
+                  <td><span class="badge text-bg-secondary">Нет</span></td>
+                </tr>
+                <tr>
+                  <td>Город</td>
+                  <td><span class="badge text-bg-danger">Да</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#b3">
+            У должника уже было указано место рождения. Что произойдёт,
+            если я ничего не изменю?
+          </button>
+        </h3>
+        <div id="b3" class="accordion-collapse collapse"
+             data-bs-parent="#faqBirth">
+          <div class="accordion-body">
+            Ничего — данные сохранятся как есть. Над выпадающим списком
+            регионов отображается подсказка <em>«Сейчас: …»</em>, а сам
+            регион подсвечен в списке как выбранный.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#b4">
+            Что если я выберу «— не указан —» в списке регионов?
+          </button>
+        </h3>
+        <div id="b4" class="accordion-collapse collapse"
+             data-bs-parent="#faqBirth">
+          <div class="accordion-body">
+            При сохранении регион рождения будет <strong>очищен</strong>.
+            Если не хотите потерять ранее указанный регион — не трогайте
+            выпадающий список и оставьте его значение как есть.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#b5">
+            Я ввёл новый регион, а при повторном открытии его нет в списке.
+          </button>
+        </h3>
+        <div id="b5" class="accordion-collapse collapse"
+             data-bs-parent="#faqBirth">
+          <div class="accordion-body">
+            Проверьте, была ли нажата кнопка <strong>«Сохранить»</strong>
+            внизу страницы. Новые регионы создаются <em>вместе с сохранением
+            должника</em>: если закрыть страницу без сохранения — они не
+            попадут в справочник.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  {# ============================================================
+     АДРЕС ПРОПИСКИ
+     ============================================================ #}
+  <section id="residential" class="mb-5">
+    <h2 class="h5 mb-3">
+      <i class="bi bi-house-door text-primary me-2"></i> Адрес прописки
+    </h2>
+
+    <div class="accordion" id="faqResidential">
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#r1">
+            Какие поля адреса обязательны при создании нового?
+          </button>
+        </h3>
+        <div id="r1" class="accordion-collapse collapse"
+             data-bs-parent="#faqResidential">
+          <div class="accordion-body">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Поле</th>
+                  <th style="width: 30%">Обязательно</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Регион</td>
+                    <td><span class="badge text-bg-secondary">Нет</span></td></tr>
+                <tr><td>Город</td>
+                    <td><span class="badge text-bg-danger">Да</span></td></tr>
+                <tr><td>Улица</td>
+                    <td><span class="badge text-bg-danger">Да</span></td></tr>
+                <tr><td>Дом</td>
+                    <td><span class="badge text-bg-danger">Да</span></td></tr>
+                <tr><td>Корпус / строение</td>
+                    <td><span class="badge text-bg-secondary">Нет</span></td></tr>
+                <tr><td>Квартира</td>
+                    <td><span class="badge text-bg-secondary">Нет</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#r2">
+            У должника уже была прописка. Я не хочу её менять — что делать?
+          </button>
+        </h3>
+        <div id="r2" class="accordion-collapse collapse"
+             data-bs-parent="#faqResidential">
+          <div class="accordion-body">
+            Ничего не трогайте в блоке «Адрес прописки». Текущий адрес
+            подсвечен подсказкой <em>«Сейчас: …»</em> над выпадающим списком
+            и выбран в самом списке. При сохранении он останется тем же.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#r3">
+            У дома нет корпуса — что писать в поле «Корпус / строение»?
+          </button>
+        </h3>
+        <div id="r3" class="accordion-collapse collapse"
+             data-bs-parent="#faqResidential">
+          <div class="accordion-body">
+            Оставьте поле <strong>пустым</strong>. Не пишите «нет», «-»
+            или «отсутствует» — такие значения попадут в генерируемые
+            документы как есть и будут выглядеть некорректно.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#r4">
+            Что если я выберу «— не указан —» в списке адресов?
+          </button>
+        </h3>
+        <div id="r4" class="accordion-collapse collapse"
+             data-bs-parent="#faqResidential">
+          <div class="accordion-body">
+            При сохранении адрес прописки будет <strong>очищен</strong>.
+            Это осознанное действие — используйте его, только если адрес
+            действительно нужно удалить.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#r5">
+            Адрес должника не отображается в списке. Почему?
+          </button>
+        </h3>
+        <div id="r5" class="accordion-collapse collapse"
+             data-bs-parent="#faqResidential">
+          <div class="accordion-body">
+            Так бывает, если адрес не попал в общий справочник адресов,
+            доступных вашему пользователю. В этом случае над выпадающим
+            списком всё равно отображается подсказка <em>«Сейчас: …»</em>
+            с текущим адресом, а сам адрес добавлен в список отдельной
+            строкой и уже выбран.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  {# ============================================================
+     БАНКИ И СЧЕТА
+     ============================================================ #}
+  <section id="banks" class="mb-5">
+    <h2 class="h5 mb-3">
+      <i class="bi bi-bank text-primary me-2"></i> Банки и счета
+    </h2>
+
+    <div class="accordion" id="faqBanks">
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#bk1">
+            Как добавить счёт?
+          </button>
+        </h3>
+        <div id="bk1" class="accordion-collapse collapse"
+             data-bs-parent="#faqBanks">
+          <div class="accordion-body">
+            <ol class="mb-0">
+              <li>Нажмите <span class="badge text-bg-primary">+ Добавить счёт</span>
+                  в шапке блока «Счета в банках».</li>
+              <li>Введите <strong>номер счёта</strong> (до 20 цифр).</li>
+              <li>Выберите <strong>банк</strong> из выпадающего списка.</li>
+              <li>Нажмите <strong>«Сохранить»</strong> внизу страницы.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#bk2">
+            Нужного банка нет в списке — что делать?
+          </button>
+        </h3>
+        <div id="bk2" class="accordion-collapse collapse"
+             data-bs-parent="#faqBanks">
+          <div class="accordion-body">
+            В выпадающем списке выберите вариант
+            <span class="badge text-bg-success">+ Добавить новый банк</span>.
+            Под строкой счёта раскроется блок с полями адреса банка.
+            После сохранения банк попадёт в общий справочник и будет доступен
+            для других счетов.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#bk3">
+            Какие поля нового банка обязательны?
+          </button>
+        </h3>
+        <div id="bk3" class="accordion-collapse collapse"
+             data-bs-parent="#faqBanks">
+          <div class="accordion-body">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Поле</th>
+                  <th style="width: 35%">Обязательно</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Название банка</td>
+                    <td><span class="badge text-bg-danger">Да</span></td></tr>
+                <tr><td>Почтовый индекс</td>
+                    <td><span class="badge text-bg-warning text-dark">Желательно</span></td></tr>
+                <tr><td>Регион</td>
+                    <td><span class="badge text-bg-secondary">Нет</span></td></tr>
+                <tr><td>Город</td>
+                    <td><span class="badge text-bg-danger">Да</span></td></tr>
+                <tr><td>Улица</td>
+                    <td><span class="badge text-bg-secondary">Нет</span></td></tr>
+                <tr><td>Дом</td>
+                    <td><span class="badge text-bg-secondary">Нет</span></td></tr>
+                <tr><td>Корпус</td>
+                    <td><span class="badge text-bg-secondary">Нет</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#bk4">
+            Можно ли использовать один банк для нескольких счетов?
+          </button>
+        </h3>
+        <div id="bk4" class="accordion-collapse collapse"
+             data-bs-parent="#faqBanks">
+          <div class="accordion-body">
+            Да. Если банк уже заведён — он есть в выпадающем списке,
+            повторно вводить его реквизиты не нужно. Просто выберите его
+            в новой строке счёта.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#bk5">
+            Как удалить счёт?
+          </button>
+        </h3>
+        <div id="bk5" class="accordion-collapse collapse"
+             data-bs-parent="#faqBanks">
+          <div class="accordion-body">
+            Нажмите красную кнопку <span class="badge text-bg-danger">×</span>
+            справа от строки счёта. Строка исчезнет со страницы, но удаление
+            вступит в силу только после нажатия <strong>«Сохранить»</strong>.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#bk6">
+            Я создал банк, а при следующем заходе его нет в списке.
+          </button>
+        </h3>
+        <div id="bk6" class="accordion-collapse collapse"
+             data-bs-parent="#faqBanks">
+          <div class="accordion-body">
+            Скорее всего, форма не была сохранена. Новые банки создаются
+            <em>вместе с сохранением должника</em>. Если закрыть страницу
+            без нажатия «Сохранить» — банк не будет создан.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  {# ============================================================
+     ОШИБКИ И СОХРАНЕНИЕ
+     ============================================================ #}
+  <section id="errors" class="mb-5">
+    <h2 class="h5 mb-3">
+      <i class="bi bi-exclamation-triangle text-primary me-2"></i> Ошибки и сохранение
+    </h2>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <p class="mb-3">
+          Все изменения вступают в силу <strong>только после нажатия
+          кнопки «Сохранить»</strong>. Если форма содержит ошибки — страница
+          вернётся с подсвеченными полями и списком сообщений.
+        </p>
+
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 45%">Сообщение</th>
+                <th>Что делать</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Счёт #N: выберите банк</code></td>
+                <td>В строке счёта N выберите банк из списка или создайте
+                    новый через «+ Добавить новый банк».</td>
+              </tr>
+              <tr>
+                <td><code>Счёт #N: укажите номер счёта</code></td>
+                <td>Заполните поле «№ счёта» в строке N.</td>
+              </tr>
+              <tr>
+                <td><code>Для нового банка «…» нужно указать адрес: город, улица, дом</code></td>
+                <td>Раскройте блок нового банка и заполните обязательные
+                    поля адреса.</td>
+              </tr>
+              <tr>
+                <td><code>Название банка обязательно</code></td>
+                <td>Укажите название нового банка.</td>
+              </tr>
+              <tr>
+                <td><code>Для должника «…» не указан город</code></td>
+                <td>В блоке «Место рождения» переключитесь в режим
+                    «Создать новый» и заполните город.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion" id="faqErrors">
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#e1">
+            Ввёл данные, нажал «Сохранить» — вернулся на ту же страницу
+            с ошибкой. Что не так?
+          </button>
+        </h3>
+        <div id="e1" class="accordion-collapse collapse"
+             data-bs-parent="#faqErrors">
+          <div class="accordion-body">
+            Сверху страницы появится список сообщений — прочитайте первое
+            и исправьте соответствующее поле. Чаще всего проблема в пустом
+            обязательном поле или в несохранённом новом банке.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#e2">
+            Обязательно ли заполнять всё сразу?
+          </button>
+        </h3>
+        <div id="e2" class="accordion-collapse collapse"
+             data-bs-parent="#faqErrors">
+          <div class="accordion-body">
+            Нет. Можно заполнять карточку постепенно. Но учтите: пока не
+            заполнены обязательные для генерации поля — соответствующие
+            документы сформированы не будут.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#e3">
+            Я закрыл страницу, не нажав «Сохранить». Что произошло?
+          </button>
+        </h3>
+        <div id="e3" class="accordion-collapse collapse"
+             data-bs-parent="#faqErrors">
+          <div class="accordion-body">
+            Изменения не сохранились — вернутся старые данные. Это касается
+            и новых банков, регионов, адресов: они создаются только вместе
+            с сохранением карточки должника.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  {# ============================================================
+     ДОКУМЕНТЫ
+     ============================================================ #}
+  <section id="docs" class="mb-5">
+    <h2 class="h5 mb-3">
+      <i class="bi bi-file-earmark-text text-primary me-2"></i> Документы
+    </h2>
+
+    <div class="accordion" id="faqDocs">
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#d1">
+            Какие документы генерируются автоматически?
+          </button>
+        </h3>
+        <div id="d1" class="accordion-collapse collapse"
+             data-bs-parent="#faqDocs">
+          <div class="accordion-body">
+            Запросы в государственные органы и банки в формате Word.
+            Точный перечень зависит от стадии процедуры и настроек портала.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#d2">
+            Документ сформировался с пустыми полями — почему?
+          </button>
+        </h3>
+        <div id="d2" class="accordion-collapse collapse"
+             data-bs-parent="#faqDocs">
+          <div class="accordion-body">
+            Значит, соответствующие поля карточки должника не заполнены.
+            Откройте карточку, добавьте отсутствующие данные, сохраните
+            и пересоберите документ.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#d3">
+            Я изменил данные должника после генерации документа —
+            нужно ли что-то пересобирать?
+          </button>
+        </h3>
+        <div id="d3" class="accordion-collapse collapse"
+             data-bs-parent="#faqDocs">
+          <div class="accordion-body">
+            Уже сформированные документы сами не обновляются. Если хотите,
+            чтобы запрос ушёл с новыми данными — сформируйте его заново.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  {# ============================================================
+     ФИНАЛЬНЫЙ CTA
+     ============================================================ #}
+  <div class="rounded-4 p-4 p-lg-5 text-white mb-3"
+       style="background: linear-gradient(135deg, #0ea5e9 0%, #7c3aed 100%);">
+    <div class="row align-items-center g-3">
+      <div class="col-lg-8">
+        <h3 class="h4 fw-bold mb-2">Не нашли ответ?</h3>
+        <p class="mb-0 opacity-75">
+          Полная инструкция по редактированию карточки должника —
+          в отдельном разделе справки.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <a href="/help/debtor-edit" class="btn btn-light btn-lg">
+          <i class="bi bi-book me-2"></i> Открыть инструкцию
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-4">
+    <a href="#" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-up me-1"></i> Наверх
+    </a>
+    <div class="text-muted small">
+      Если ситуация не описана здесь — обратитесь к администратору портала.
+    </div>
+  </div>
+
+</div>
+
+{% endblock content %}
