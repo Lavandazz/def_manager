@@ -1,5 +1,4 @@
 
-from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -7,13 +6,15 @@ from fastapi.templating import Jinja2Templates
 from app.utils.caches_data import get_cases_from_cache
 from config.schemas.case_schemas import CaseSchema, DebtorSchema
 from core.services.address_service import ResidentialAddressService
+from core.services.bank_service import BankService
 from core.services.case_service import CaseService
-from app.utils.dependensy import get_case_service, get_debtor_service, get_optional_user, get_region_service, get_residential_address_service
+from app.utils.dependensy import get_bank_service, get_case_service, get_debtor_service, get_optional_user, get_region_service, get_residential_address_service
 from celery_tasks.task_manager import parsing_task
 from config.db.models import Case, Debtor, DebtorType, User
 from core.services.debtor_service import DebtorService
 from core.services.region_service import RegionService
 
+from app.utils.bank_helper import to_int_or_none, to_date_or_none, _parse_accounts_from_form
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
@@ -71,7 +72,8 @@ async def debtor_edit(
     user: User = Depends(get_optional_user),
     debtor_service: DebtorService = Depends(get_debtor_service),
     region_service: RegionService = Depends(get_region_service),
-    residential_service: ResidentialAddressService = Depends(get_residential_address_service)
+    residential_service: ResidentialAddressService = Depends(get_residential_address_service),
+    bank_service: BankService = Depends(get_bank_service)
 ):
     """Отправление формы для редактирования должника"""
     if not user:
@@ -86,7 +88,7 @@ async def debtor_edit(
                 cached_debtor = c
                 break
 
-
+    banks = await bank_service.list_banks()                
     debtor_data = await debtor_service.get_debtor(user.id, debtor_id)
     print("debtor_data:", debtor_data.debtor.residential_address)   
     if debtor_data is None:
@@ -104,6 +106,7 @@ async def debtor_edit(
         "regions": regions,
         "residential_addresses": residential_addresses,
         "cached_debtor": cached_debtor,
+        "banks": banks,
         "form": _debtor_to_form(debtor_data.debtor),
     }
     return templates.TemplateResponse(
@@ -111,14 +114,6 @@ async def debtor_edit(
         "debtor/debtor_edit.html",
         context
     )
-
-def to_int_or_none(v: str) -> int | None:
-    v = (v or "").strip()
-    return int(v) if v else None
-
-def to_date_or_none(v: str) -> date | None:
-    v = (v or "").strip()
-    return datetime.strptime(v, "%Y-%m-%d").date() if v else None
 
 
 @router.post("/debtors/{debtor_id}/edit", name="debtor_edit_post")
@@ -146,25 +141,18 @@ async def debtor_edit_post(
     new_ra_flat: str = Form(""),
     user: User = Depends(get_optional_user),
     debtor_service: DebtorService = Depends(get_debtor_service),
+    bank_service: BankService = Depends(get_bank_service),
+    region_service: RegionService = Depends(get_region_service),
+    residential_service: ResidentialAddressService = Depends(get_residential_address_service),
 ):
     if not user:
-        return RedirectResponse(request.url_for("index"), status_code=303)
+        return templates.TemplateResponse(request, "index.html", 
+                                          context={"title": "Главная страница",
+                                                   "message": "Необходимо авторизоваться"})
 
     #  Достаём поля для банков через getlist ──
     form = await request.form()
-
-    account_ids        = form.getlist("account_id[]")
-    account_numbers    = form.getlist("account_number[]")
-    account_bank_modes = form.getlist("account_bank_mode[]")       # "existing" | "new"
-    account_bank_ids   = form.getlist("account_bank_id[]")         # id существующего банка
-
-    new_bank_names     = form.getlist("new_bank_name[]")
-    new_bank_indexes   = form.getlist("new_bank_mail_index[]")
-    new_bank_regions   = form.getlist("new_bank_region_name[]")
-    new_bank_cities    = form.getlist("new_bank_city[]")
-    new_bank_streets   = form.getlist("new_bank_street[]")
-    new_bank_houses    = form.getlist("new_bank_house[]")
-    new_bank_buildings = form.getlist("new_bank_building[]")
+    accounts, account_errors = _parse_accounts_from_form(form)
 
     # 1. Собираем словарь — уже с нормальными типами
     data = {
@@ -190,13 +178,62 @@ async def debtor_edit_post(
         "new_ra_house": new_ra_house.strip() or None,
         "new_ra_building": new_ra_building.strip() or None,
         "new_ra_flat": new_ra_flat.strip() or None,
+        "accounts": accounts,
     }
     print("полученный данные из редактирования:", data)
     
-    # 2. Отдаём в сервис
-    await debtor_service.update_debtor(user.id, debtor_id, data)
+    if account_errors:
+        # вернуть форму с ошибками (нужны те же зависимости, что в GET)
+        debtor_data = await debtor_service.get_debtor(user.id, debtor_id)
+        banks = await bank_service.list_banks()
+        regions = await region_service.list_regions()
+        residential_addresses = await residential_service.list_addresses()
 
-    # 3. Редирект обратно на форму
+        return templates.TemplateResponse(
+            request,
+            "debtor/debtor_edit.html",
+            {
+                "request": request,
+                "user": user,
+                "title": "Редактирование должника",
+                "debtor_data": debtor_data,
+                "accounts": debtor_data.accounts,
+                "regions": regions,
+                "residential_addresses": residential_addresses,
+                "cached_debtor": None,  # или достать из кэша как в GET
+                "banks": banks,
+                "form": _debtor_to_form(debtor_data.debtor),
+                "errors": account_errors,
+            },
+        )
+        print("банки до ошибки :", banks)
+    try:
+        await debtor_service.update_debtor(user.id, debtor_id, data)
+
+    except ValueError as exc:
+        debtor_data = await debtor_service.get_debtor(user.id, debtor_id)
+        banks = await bank_service.list_banks()
+        regions = await region_service.list_regions()
+        residential_addresses = await residential_service.list_addresses()
+        print("банки после ошибки :", banks)
+        
+        return templates.TemplateResponse(
+            request,
+            "debtor/debtor_edit.html",
+            {
+                "request": request,
+                "user": user,
+                "title": "Редактирование должника",
+                "debtor_data": debtor_data,
+                "accounts": debtor_data.accounts,
+                "regions": regions,
+                "residential_addresses": residential_addresses,
+                "cached_debtor": None,
+                "banks": banks,
+                "form": _debtor_to_form(debtor_data.debtor),
+                "errors": [str(exc)],
+            },
+        )
     return RedirectResponse(
         url=request.url_for("debtor_edit", debtor_id=debtor_id),
         status_code=303,

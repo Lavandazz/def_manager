@@ -40,25 +40,38 @@ class AccountService:
             if not number and not bank_id and not bank_name:
                 continue
 
-            # если банк задан именем — создаём/находим
+            # новый банк по имени + адресу
             if not bank_id and bank_name:
-                bank = await self.bank_service.get_or_create_bank(bank_name)
+                bank = await self.bank_service.get_or_create_bank(
+                    name=bank_name,
+                    mail_index=item.get("bank_mail_index"),
+                    city=item.get("bank_city"),
+                    region_name=item.get("bank_region_name"),
+                    street=item.get("bank_street"),
+                    house=item.get("bank_house"),
+                    building=item.get("bank_building"),
+                )
                 bank_id = bank.id
-
-            if not number or not bank_id:
-                # неполная строка — пропускаем (или бросить ошибку валидации)
-                continue
 
             account_id = item.get("id")
 
             if account_id and account_id in existing_by_id:
-                # обновляем
                 account = existing_by_id[account_id]
-                account.number = number
-                account.bank_id = bank_id
+                # пустые строки не перезаписываем
+                final_number = number or account.number
+                final_bank_id = bank_id or account.bank_id
+
+                if not final_number or not final_bank_id:
+                    continue
+
+                account.number = final_number
+                account.bank_id = final_bank_id
                 incoming_ids.add(account_id)
             else:
-                # создаём
+                # новый счёт — оба поля обязательны
+                if not number or not bank_id:
+                    continue
+
                 account = Account(
                     debtor_id=debtor_id,
                     number=number,

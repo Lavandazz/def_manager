@@ -64,36 +64,8 @@
     bindModeToggle("residential_address_mode",
                    "[data-ra-new]",
                    "[data-ra-existing]");
-
-    /* ---------- Динамические строки счетов ---------- */
-    const tpl       = document.getElementById("account-row-template");
-    const list      = document.getElementById("accounts-list");
-    const emptyHint = document.getElementById("accounts-empty-hint");
-    const addBtn    = document.getElementById("add-account-btn");
-
-    function updateEmptyHint() {
-      if (!emptyHint) return;
-      const rows = list.querySelectorAll("[data-account-row]").length;
-      emptyHint.classList.toggle("d-none", rows > 0);
-    }
-
-    addBtn && addBtn.addEventListener("click", function () {
-      const node = tpl.content.firstElementChild.cloneNode(true);
-      list.appendChild(node);
-      updateEmptyHint();
-    });
-
-    list && list.addEventListener("click", function (e) {
-      const btn = e.target.closest("[data-remove-account]");
-      if (!btn) return;
-      const row = btn.closest("[data-account-row]");
-      if (row) {
-        row.remove();
-        updateEmptyHint();
-      }
-    });
-
     updateEmptyHint();
   })();
+  
 </script>
 {% endblock content %}

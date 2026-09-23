@@ -74,7 +74,7 @@ async def get_debtor_repository(unit_of_work: Annotated[UnitOfWork, Depends(get_
 async def  get_address_repo(unit_of_work: Annotated[UnitOfWork, Depends(get_db)]) -> AddressRepository:
     return AddressRepository(unit_of_work.session)
 
-async def get_address_service(repo: AddressRepository = Depends(get_residential_address_repo)) -> AddressService:
+async def get_address_service(repo: AddressRepository = Depends(get_address_repo)) -> AddressService:
     return AddressService(repo)
 
 
