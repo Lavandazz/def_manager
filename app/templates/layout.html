@@ -6,19 +6,19 @@
 
   {% block base_content %}
     <div class="container-fluid mt-3">
-
       <div class="mt-4 p-5 bg-primary text-white rounded">
         <h1>Мониторинг арбитражных дел о банкротстве</h1>
         <p>Простота в использовании. Скорость получения информации.</p>
       </div>
-
       <div class="row m-4">
 
-        <div class="col-3 mt-4">
+      <div class="col-3 mt-4">
+        <div class="nav-placeholder">
           {% block navigation %}
             {% include "components/navigation.html" %}
           {% endblock %}
         </div>
+      </div>
 
         <div class="col-9">
             <main class="container col-8 mt-4">
@@ -28,6 +28,7 @@
                     </div>
                 {% endif %}
               {% block content %}
+                {% block login %}{% endblock login %}
               {% endblock content %}
             </main>
         </div>

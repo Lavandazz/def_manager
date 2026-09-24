@@ -7,3 +7,43 @@
 .text-for-edit {
     background-color: rgb(252, 250, 224);
 }
+
+/* Картинка в левой части колонки */
+.nav-placeholder {
+    position: sticky;
+    top: 20px;                       
+    height: calc(100vh - 10px);      
+    padding: 1rem;
+    background-image: url("/static/img/femi1.png");
+    background-size: cover;          
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.case-link {
+    position: relative;
+    color: #0d6efd;              
+    text-decoration: none;
+    transition: color 0.25s ease;
+  }
+  
+  .case-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;            
+    width: 100%;
+    height: 3px;
+    background-color: currentColor;
+    transform: scaleX(0);       
+    transform-origin: center;      
+    transition: transform 0.3s ease;
+  }
+  
+  .case-link:hover {
+    color: #0a58ca;              
+  }
+  
+  .case-link:hover::after {
+    transform: scaleX(1);        /* линия разворачивается во всю ширину */
+  }

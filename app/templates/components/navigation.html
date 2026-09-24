@@ -3,12 +3,13 @@
 <h3>Навигация</h3>
   {% if cases %}
     {% for case in cases %}
-      <dl>
+      <dl class="case-item">
         <dt>{{ case.debtor.name }}</dt>
         <dd>
-          <a href="/user/cases/{{ case.id }}?page=1&size=10">{{ case.number_case }}</a>
+          <a href="/user/cases/{{ case.id }}?page=1&size=10"
+            class="case-link">{{ case.number_case }}</a>
         </dd>
-      </dl>  
+      </dl>
     {% endfor %}
   {% else %}
     <p>Дела не найдены.</p>
