@@ -19,10 +19,12 @@
     background-position: center;
     background-repeat: no-repeat;
 }
-
+/* .case-item{
+    color: #1e1e1e;  
+} */
 .case-link {
-    position: relative;
-    color: #0d6efd;              
+    position: relative;   
+    color: #393939;          
     text-decoration: none;
     transition: color 0.25s ease;
   }
@@ -41,7 +43,7 @@
   }
   
   .case-link:hover {
-    color: #0a58ca;              
+    color: #1a417c;              
   }
   
   .case-link:hover::after {
