@@ -7,10 +7,12 @@ from pydantic import BaseModel, ConfigDict
 
 
 
-class Case(BaseModel):
-    number: str
-    date: datetime.date
-
+class CasePatch(BaseModel):
+    number_case: str | None = None
+    link: str | None = None
+    id_user: int | None = None
+    debtor_name: str | None = None
+    status: int | None = None
 
 class DebtorSchema(BaseModel):
     name: str

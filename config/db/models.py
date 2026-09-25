@@ -4,7 +4,6 @@ from datetime import date, datetime
 from typing import List, Optional
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import Date, ForeignKey, Integer, Text, TIMESTAMP, func, BigInteger, Enum as SQLEnum, String
-from traitlets import Int
 
 
 class Base(DeclarativeBase):
@@ -17,6 +16,7 @@ class Case(Base):
     id_user: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     debtor_name: Mapped[str] = mapped_column(Text, nullable=True)
     status: Mapped[int] = mapped_column(Integer, nullable=True, default=0)
+    link: Mapped[int] = mapped_column(Text, nullable=True)
 
     debtor_id: Mapped[Optional[int]] = mapped_column(ForeignKey("debtors.id"), nullable=True)  # поле для связи с таблицей Debtor
     

@@ -27,7 +27,7 @@ class AbstractCaseRepository(ABC):
         pass
 
     @abstractmethod
-    async def update(self, param):
+    async def update_case(self, case_id, **fields) -> Case | None:
         pass
 
     @abstractmethod

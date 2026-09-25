@@ -220,7 +220,7 @@ class ParserKad:
         """
         try:
             case_number_link = self.page.locator("a[target='_blank'].num_case", has_text=self.case_number)
-            
+
             # Проверяем текст по названию должника для удостоверения правильности страницы для дальнейшего парсинга
             # await self.search_name()
                 
@@ -230,6 +230,11 @@ class ParserKad:
                 await case_number_link.click()
 
             self.new_page = await new_page.value
+            current_url = self.new_page.url  # получаем адрес новой странички
+
+            # Сохраняем ссылку на дело в базу данных
+            await self.data_saver.save_case_link(case_number=self.case_number, link=current_url)  # сохраняем ссылку в бд
+            
             parser_logger.info("Переход на новую страницу",
                                extra={
                                    "case_number": self.case_number,  # Основной идентификатор

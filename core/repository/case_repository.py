@@ -28,6 +28,7 @@ class CaseAlchemyRepository(AbstractCaseRepository):
             db_logger.exception("не удалось сохранить дело в бд: %s", e)
             await self.session.rollback()
 
+
     async def get_case(self, case_id):
         """
         Получение данных из таблицы case по id_case
@@ -44,6 +45,22 @@ class CaseAlchemyRepository(AbstractCaseRepository):
                 selectinload(Case.user),
                 # счета пользователя
 
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
+
+    
+    async def get_case_by_number(self, case_number):
+        """
+        Получение данных из таблицы case по номеру дела
+        param: case_number
+        """
+        stmt = (
+            select(Case)
+            .where(Case.number_case == case_number)
+            .options(
+                selectinload(Case.user),
             )
         )
         result = await self.session.execute(stmt)
@@ -106,8 +123,41 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def update(self, param):
-        pass
+
+    async def update_case(self, case_id, **fields):
+        """
+        Получаем case_id и словарь атрибутов fields.
+        Для изменения данных case делаем свой запрос фильтрации, чтобы не тянуть связи из self.get_case
+        """
+        case = await self.session.get(Case, case_id)
+        # проверяем что пришло и устанавливаем значения атрибутам
+        for name, value in fields.items():
+            setattr(case, name, value)
+        try:
+            await self.session.commit()
+        except Exception as e:
+            db_logger.exception("не удалось обновить дело %s: %s", case_id, e)
+            await self.session.rollback()
+            return None
+
+    async def update_link(self, case_id, link):
+        """
+        Обновление ссылки на дело.
+        """
+        case = await self.session.get(Case, case_id)
+        if case:
+            case.link = link
+            try:
+                await self.session.commit()
+                return case
+            except Exception as e:
+                db_logger.exception("не удалось обновить ссылку на дело %s: %s", case_id, e)
+                await self.session.rollback()
+                return None
+        else:
+            db_logger.warning("Дело с id %s не найдено для обновления ссылки.", case_id)
+            return None
+
 
     async def delete_case(self, case_id):
         """Мягкое удаление дела. Проставляем статус 1"""
