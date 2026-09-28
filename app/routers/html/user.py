@@ -220,3 +220,4 @@ async def register_user(
             request, "user/login.html",
             {"error": "Ошибка сервера"}
         )
+ 

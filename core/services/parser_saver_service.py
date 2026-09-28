@@ -65,5 +65,4 @@ class ParserDataSaver:
 
     async def save_case_link(self, case_number: str, link: str):
         """Изменение ссылки на дело в базе данных"""
-        print(f"ParserDataSaver: сохраняю ссылку на дело {case_number}: {link}")
         await self.case_service.update_case_link(case_number=case_number, link=link)
