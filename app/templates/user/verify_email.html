@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4 p-md-5">
+
+          <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center
+                        bg-primary bg-opacity-10 rounded-circle mb-3"
+                 style="width: 64px; height: 64px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
+                   fill="currentColor" class="text-primary" viewBox="0 0 16 16">
+                <path d="M2 2A2 2 0 0 0 0 4v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm2.5 7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+                <path d="M2 4.5V5l6 3.5L14 5v-.5L8 8z"/>
+              </svg>
+            </div>
+            <h4 class="fw-bold mb-1">Подтверждение почты</h4>
+            <p class="text-muted small mb-0">
+              Мы отправили 6-значный код на
+            </p>
+            <p class="fw-semibold mb-0">{{ email }}</p>
+          </div>
+
+          {% if error %}
+          <div class="alert alert-danger py-2 small" role="alert">
+            {{ error }}
+          </div>
+          {% endif %}
+
+          <form method="post" action="/verify" novalidate>
+
+            <input type="hidden" name="email" value="{{ email }}">
+
+            <div class="mb-3">
+              <label for="code" class="form-label small fw-semibold">
+                Код из письма
+              </label>
+              <input type="text"
+                     class="form-control form-control-lg text-center
+                            fw-bold font-monospace"
+                     id="code"
+                     name="code"
+                     inputmode="numeric"
+                     pattern="[0-9]{6}"
+                     maxlength="6"
+                     placeholder="000000"
+                     autocomplete="one-time-code"
+                     required
+                     style="letter-spacing: 8px; font-size: 1.5rem;">
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+              Подтвердить
+            </button>
+          </form>
+
+          <hr class="my-4">
+
+          <div class="text-center small text-muted">
+            Не пришло письмо?
+            <form method="post" action="/resend-code" class="d-inline">
+              <input type="hidden" name="email" value="{{ email }}">
+              <button type="submit"
+                      class="btn btn-link btn-sm p-0 align-baseline text-decoration-none">
+                Отправить повторно
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+
+      <p class="text-center text-muted small mt-4 mb-0">
+        Код действителен в течение 15 минут
+      </p>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // Автофокус на поле ввода кода + разрешаем только цифры
+  const codeInput = document.getElementById('code');
+  codeInput.focus();
+  codeInput.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+  });
+</script>
+{% endblock %}

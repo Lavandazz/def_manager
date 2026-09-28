@@ -1,5 +1,7 @@
 from typing import Annotated
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from redis import Redis
+import redis
 from config.db.db_config import get_db
 from fastapi import Depends, Request
 
@@ -15,12 +17,14 @@ from core.services.bank_service import BankService
 from core.services.case_service import CaseService
 from core.services.court_session_service import CourtSessionService
 from core.services.debtor_service import DebtorService
+from core.services.redis_service import RedisService
 from core.services.region_service import RegionService
 from core.services.token_service import TokenService
 from core.services.user_service import UserService
 
 from app.utils.auth.auth_token import AuthTokenService
 from config.db.models import User
+from config.redis_config import redis_client
 from core.repository.case_repository import CaseAlchemyRepository
 from config.db.database import UnitOfWork
 from core.repository.court_session_repositoty import CourtSessionAlchemyRepository
@@ -206,3 +210,20 @@ async def get_optional_user(
     # или выбрасывает исключение при ошибке проверки.
 
     return await auth.get_user_from_cookie(request)
+
+
+
+def get_redis_client() -> redis.Redis:
+    """
+    Возвращает общий клиент Redis.
+    """
+    return redis_client
+
+
+def get_redis_service(
+    client: Annotated[redis.Redis, Depends(get_redis_client)],
+) -> RedisService:
+    """
+    Оборачивает клиент в доменный сервис.
+    """
+    return RedisService(client)

@@ -1,14 +1,17 @@
 
+import email
+
 from app.utils.auth.password_hasher import PasswordHasher
 from config.db.models import User
 from config.schemas.user_schemas import UserPasswordSchema, UserRegistration, UserSchema, UserUpdateSchema
+from core.services.redis_service import RedisService
 
 
 class UserService:
 
     def __init__(self, repository):
         self.repository = repository
-
+       
     async def create_user(self, user_data: UserRegistration) -> User | None:
         """
         Регистрация нового пользователя
@@ -20,6 +23,7 @@ class UserService:
                 telegram_id=user_data.telegram_id
             )
         await self.repository.create_user(new_user)
+
 
     async def get_user(self, telegram_id=None, email=None) -> User | None:
         """

@@ -1,6 +1,7 @@
 import secrets
 import string
 
+
 class RedisService:
     """
     Сервис Redis. 
@@ -29,8 +30,8 @@ class RedisService:
         key = f"verify:{email}"
         
         # Сохраняем код и данные пользователя в виде хеша
-        await self.redis_client.hset(key, mapping={"code": code, **user_data}) # **user_data разворачиваем словарь чтобы избежать вложенности, иначе Redis не закодирует
-        await self.redis_client.expire(key, expire_seconds)
+        self.redis_client.hset(key, mapping={"code": code, **user_data}) # **user_data разворачиваем словарь чтобы избежать вложенности, иначе Redis не закодирует
+        self.redis_client.expire(key, expire_seconds)
         return code
 
     async def get_verification_data(self, email: str) -> dict | None:

@@ -1,12 +1,15 @@
+from click.core import V
 from fastapi import APIRouter, Depends, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from celery_tasks.task_manager import send_verification_email
+from core.services.redis_service import RedisService
 from core.services.user_service import UserService
-from app.utils.dependensy import get_optional_user, get_user_service
+from app.utils.dependensy import get_optional_user, get_redis_service, get_user_service
 from app.utils.auth.password_hasher import PasswordHasher
 from config.db.models import User
-from config.schemas.user_schemas import UserRegistration, UserSchema, UserUpdateSchema
+from config.schemas.user_schemas import UserUpdateSchema
 from config.logger_config import profile_logger
 
 
@@ -165,6 +168,7 @@ async def register_user(
     password: str = Form(...), 
     second_password: str = Form(...),
     user_service: UserService = Depends(get_user_service),
+    redis_service: RedisService = Depends(get_redis_service)
     ):
     """
     Регистрация пользователя.
@@ -194,25 +198,45 @@ async def register_user(
         else:
             hashed_password = PasswordHasher.hash_password(password)  # хэш пароля
 
-            user = UserRegistration(
-                username=username,
-                email=email,
-                telegram_id=telegram_id if telegram_id else None,
-                password=hashed_password,
-                second_password=second_password
-            )
-
-            # Сохраняем в бд
-            await user_service.create_user(user_data=user)  # сохраняем пользователя в базе данных
-
-
-            profile_logger.info("Зарегистрирован новый пользователь")
-
-            context = {
-                "request": request,
-                "title": "Страница входа"
+            # Создаем код и сохраняем в Redis
+            user_data = {
+                "username": username,
+                "email": email,
+                "telegram_id": str(telegram_id) if telegram_id else "",
+                "hashed_password": hashed_password,
             }
-        return templates.TemplateResponse(request, "user/login.html", context)
+
+            # Генерируем код и сохраняем в Redis
+            code = await redis_service.generate_and_save_verification_code(email, user_data)
+            # Отправляем задачу в Celery и показываем пользователю страницу для ввода кода из письма. 
+            print("перехожу к отправке письма")
+            send_verification_email.delay(email, code)
+
+            # Показываем страницу ввода кода
+            return templates.TemplateResponse(
+                request, "user/verify_email.html",
+                {"email": email}
+              )
+
+        #     user = UserRegistration(
+        #         username=username,
+        #         email=email,
+        #         telegram_id=telegram_id if telegram_id else None,
+        #         password=hashed_password,
+        #         second_password=second_password
+        #     )
+
+        #     # Сохраняем в бд
+        #     await user_service.create_user(user_data=user)  # сохраняем пользователя в базе данных
+
+
+        #     profile_logger.info("Зарегистрирован новый пользователь")
+
+        #     context = {
+        #         "request": request,
+        #         "title": "Страница входа"
+        #     }
+        # return templates.TemplateResponse(request, "user/login.html", context)
         
     except Exception as e:
         profile_logger.exception("Ошибка при проверке существования пользователя: %s", e)

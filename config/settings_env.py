@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from config.settings_folders import ENV_FILE
+from config.settings_folders import ENV_FILE, MAIL_ENV_FILE
 
 
 class Settings(BaseSettings):
@@ -35,6 +35,17 @@ class Settings(BaseSettings):
                 f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_NAME}")
 
 
+class MailSettings(BaseSettings):
+    """
+    Класс для хранения настроек для почты.
+    """
+    model_config = SettingsConfigDict(env_file=MAIL_ENV_FILE, env_file_encoding="utf-8")
+
+    MAIL_FROM: str
+    EMAIL_PASSWORD: str
+
+
 settings = Settings() # type: ignore
+mail_settings = MailSettings() # type: ignore
 
 print("Settings loaded successfully", settings.POSTGRES_HOST)

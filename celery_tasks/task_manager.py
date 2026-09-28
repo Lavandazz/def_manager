@@ -9,6 +9,8 @@ python run_flower.py
 
 """
 import asyncio
+
+from app.utils.mail import send_verification_email_async
 from config.tasks_config import app
 
 @app.task(bind=True, max_retries=2, default_retry_delay=60, queue="parsing")
@@ -27,10 +29,20 @@ def parsing_task(self, case_number: str):
         self.retry(exc=exc)
 
 
-@app.task(queue="messages")
-def send_message(arg):
-    print(arg)
-
+@app.task(bind=True, max_retries=3, default_retry_delay=60)
+def send_verification_email(self, email: str, code: str):
+    """
+    Синхронная Celery-таска. Внутри запускает async-функцию через asyncio.run.
+    Таска зарегистрированна в очереди task_routes в tasks_config.py
+    """
+    print(f"отправляю письмо с кодом", email, code)
+    try:
+        asyncio.run(send_verification_email_async(email, code))
+        print(f"Письмо с кодом отправлено на {email}")
+    except Exception as exc:
+        print(f"Ошибка отправки письма на {email}: {exc}")
+        self.retry(exc=exc)
+        
 
 @app.task(queue="parsing")
 def start_parsing(self):

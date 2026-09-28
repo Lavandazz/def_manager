@@ -23,9 +23,15 @@ celery -A config.tasks_config beat --loglevel=info
 
 Запуск flower
 celery -A tasks.app flower
+
+beat_schedule	Периодические задачи (cron, каждые N секунд)
+task_routes	Куда класть задачу (в какую очередь)
+queue= в @app.task	Дефолтная очередь для этой таски (перебивается task_routes)
+apply_async(queue=...)	Очередь для одного конкретного вызова
 """
 import sys
 import os
+from typing import Any
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from celery import Celery
@@ -43,19 +49,23 @@ app = Celery(
 # Автоматически находим задачи в модулях внутри пакета celery_tasks
 app.autodiscover_tasks(['celery_tasks'], related_name='task_manager')
 
-app.conf.beat_schedule = {
-    'add-every-10-seconds': {
-        'task': 'celery_tasks.task_manager.send_message',
-        'schedule': 60.0,
-        'args': ("hello!!!!!!!!!",),
-        'options': {'queue': 'messages'}, 
-    },
+app.conf.task_routes = {
+    'celery_tasks.task_manager.send_verification_email': {'queue': 'messages'},
+    'celery_tasks.task_manager.start_parsing':           {'queue': 'parsing'},
 }
 
+app.conf.beat_schedule = {
+    'celery_tasks.task_manager.send_verification_email': {'queue': 'messages'},
+}
+
+beat_schedule: dict[str, Any] = {}
+
 if CASES:
-    app.conf.beat_schedule['parsing-every-second-day'] = {
+    beat_schedule['parsing-every-second-day'] = {
         'task': 'celery_tasks.task_manager.start_parsing',
         'schedule': crontab(hour=7, minute=30, day_of_week=[1, 4]),
         'args': CASES,
         'options': {'queue': 'parsing'},
     }
+# Передаем словарь для шедулера парсинга по расписанию в beat_schedule
+app.conf.beat_schedule = beat_schedule

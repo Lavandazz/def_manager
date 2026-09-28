@@ -49,4 +49,3 @@ app.include_router(court_router, prefix="/user/courts")
 app.include_router(debtor_router, prefix="/user/debtor")
 
 app.include_router(parser_router, prefix="/parsing")
-
