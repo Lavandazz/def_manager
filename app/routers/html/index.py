@@ -34,13 +34,13 @@ async def main_page(
     if not user:
         return templates.TemplateResponse(request, "index.html", context)
 
-    cases = get_cases_from_cache(user_id=user.id) # получение кэша
+    cases = await get_cases_from_cache(user_id=user.id) # получение кэша
     
     if cases is None:
         # Получаем из базы
         cases_orm = await case_service.get_user_cases(user_id=user.id)
         cases = [CaseSchema.model_validate(c).model_dump() for c in cases_orm]
-        save_cases_to_cache(user_id=user.id, cases=cases)
+        await save_cases_to_cache(user_id=user.id, cases=cases)
 
 
     context["cases"] = cases

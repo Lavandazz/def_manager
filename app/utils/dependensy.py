@@ -1,7 +1,6 @@
 from typing import Annotated
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from redis import Redis
-import redis
+import redis.asyncio as redis
 from config.db.db_config import get_db
 from fastapi import Depends, Request
 

@@ -1,10 +1,8 @@
-
-
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.utils.caches_data import get_cases_from_cache
-from config.schemas.case_schemas import CaseSchema, DebtorSchema
+
 from core.services.address_service import ResidentialAddressService
 from core.services.bank_service import BankService
 from core.services.case_service import CaseService
@@ -33,7 +31,7 @@ async def get_choice_debtor(
                                           context={"title": "Главная страница",
                                                    "message": "Необходимо авторизоваться"})
     
-    cached_data = get_cases_from_cache(user_id=user.id) # получаем cases из кэша
+    cached_data = await get_cases_from_cache(user_id=user.id) # получаем cases из кэша
     cases_physical = await case_service.get_user_cases_by_type(user_id=user.id, debtor_type="PHYSICAL")
     context = {
         "request": request,
@@ -80,7 +78,7 @@ async def debtor_edit(
         return templates.TemplateResponse(request, "index.html", 
                                           context={"title": "Главная страница",
                                                    "message": "Необходимо авторизоваться"})
-    cached_cases = get_cases_from_cache(user.id) 
+    cached_cases = await get_cases_from_cache(user.id) 
     cached_debtor = None
     if cached_cases:
         for c in cached_cases:

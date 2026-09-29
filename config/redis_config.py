@@ -1,5 +1,6 @@
-import redis
+import redis.asyncio as redis
 from config.settings_env import settings
+from core.services.redis_service import RedisService
 
 
 redis_client = redis.Redis(
@@ -7,4 +8,9 @@ redis_client = redis.Redis(
     port=settings.REDIS_PORT,
     db=0,
     password=settings.REDIS_PASSWORD,
-                           )
+    decode_responses=True  # указывает сохранять не в байтах данные
+    )
+
+
+redis_service = RedisService(redis_client)
+

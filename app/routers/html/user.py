@@ -9,8 +9,9 @@ from core.services.user_service import UserService
 from app.utils.dependensy import get_optional_user, get_redis_service, get_user_service
 from app.utils.auth.password_hasher import PasswordHasher
 from config.db.models import User
-from config.schemas.user_schemas import UserUpdateSchema
+from config.schemas.user_schemas import UserRegistration, UserUpdateSchema
 from config.logger_config import profile_logger
+from utils.exceptions import VerificationCodeAlreadySent
 
 
 router = APIRouter()
@@ -207,16 +208,26 @@ async def register_user(
             }
 
             # Генерируем код и сохраняем в Redis
-            code = await redis_service.generate_and_save_verification_code(email, user_data)
+            try:
+                code = await redis_service.generate_and_save_verification_code(email, user_data)
+                send_verification_email.delay(email, code)
+            except VerificationCodeAlreadySent as e:
+                return templates.TemplateResponse(
+                    request, "user/verify_email.html",
+                    {"email": email, "message": str(e)},
+                )
             # Отправляем задачу в Celery и показываем пользователю страницу для ввода кода из письма. 
-            print("перехожу к отправке письма")
+            print("перехожу к отправке письма с кодом", code)
             send_verification_email.delay(email, code)
+            exists = await redis_service.redis_client.exists(f"verify:{email}")
+            print("🔑 Ключ сохранён, exists =", exists, "| ключ:", repr(f"verify:{email}"))
 
             # Показываем страницу ввода кода
             return templates.TemplateResponse(
                 request, "user/verify_email.html",
                 {"email": email}
               )
+
 
         #     user = UserRegistration(
         #         username=username,
@@ -245,3 +256,58 @@ async def register_user(
             {"error": "Ошибка сервера"}
         )
  
+
+@router.post("/verify", tags=["register"], response_class=HTMLResponse)
+async def verify_user(
+    request: Request,
+    email: str = Form(...), # скрытое поле из прошлой формы
+    code: str = Form(...),
+    user_service: UserService = Depends(get_user_service),
+    redis_service: RedisService = Depends(get_redis_service)
+    ):
+    """
+    Верификация и регистрация пользователя в системе.
+    Принимается код, отправиленный на почту пользователя. 
+    Достаем данные из Redis.
+    Если код введен не верно, отправляем сообщение ошибку кода
+    """
+    # Достаём данные из Redis по email
+    data = await redis_service.get_verification_data(email)
+    print("data пользователя", data)
+    if not data:
+        return templates.TemplateResponse(
+            request,
+            "user/verify_email.html",
+            {"email": email, "message": "Код не найден или истёк. Запросите новый."},
+        )
+
+    # Сравниваем код
+    if data.get("code") != code:
+        print(f"неверный код {data.get("code")}", code)
+        return templates.TemplateResponse(
+            request,
+            "user/verify_email.html",
+            {"email": email, "message": "Неверный код"},
+        )
+
+    user = UserRegistration(
+        username=data["username"],
+        email=data["email"],
+        telegram_id=data.get("telegram_id") or None,
+        password=data["hashed_password"],
+        second_password=data["hashed_password"],  # уже проверено на этапе регистрации
+    )
+
+    # Сохраняем в бд
+    await user_service.create_user(user_data=user)  # сохраняем пользователя в базе данных
+
+    profile_logger.info("Зарегистрирован новый пользователь")
+
+    context = {
+        "title": "Страница входа",
+        "message": "Регистрация прошла успешно",
+    }
+    return templates.TemplateResponse(request, "user/login.html", context)
+
+
+

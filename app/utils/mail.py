@@ -5,7 +5,7 @@ from config.settings_env import mail_settings
 
 mail_conf = ConnectionConfig(
     MAIL_USERNAME = mail_settings.MAIL_FROM,
-    MAIL_PASSWORD = mail_settings.EMAIL_PASSWORD,
+    MAIL_PASSWORD = mail_settings.EMAIL_PASSWORD, # type: ignore
     MAIL_FROM = mail_settings.MAIL_FROM,
     MAIL_PORT = 587,
     MAIL_SERVER = "smtp.mail.ru",

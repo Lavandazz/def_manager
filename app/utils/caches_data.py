@@ -1,11 +1,12 @@
 import json
 
-from config.redis_config import redis_client
+from config.redis_config import redis_service
 
 
-def get_cases_from_cache(user_id) -> list | None:
-    cache_key = f"{user_id}_cases"
-    cached_data = redis_client.get(cache_key)
+
+async def get_cases_from_cache(user_id) -> list | None:
+    cache_key = f"cases:{user_id}_"
+    cached_data = await redis_service.get_value(key=cache_key)
     if cached_data:
         try:
             cases = json.loads(cached_data) # type: ignore
@@ -15,8 +16,8 @@ def get_cases_from_cache(user_id) -> list | None:
             print("Ошибка с редисом", e)
             cases = None
 
-def save_cases_to_cache(user_id, cases) -> bool:       
+async def save_cases_to_cache(user_id, cases) -> bool:       
     json_cases = json.dumps(cases)
-    redis_client.set(f"{user_id}_cases", json_cases, ex=100)
+    await redis_service.set_value(key=f"cases:{user_id}_", value=json_cases, expire=100)
     return True
 
