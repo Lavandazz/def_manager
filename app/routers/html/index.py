@@ -71,7 +71,7 @@ async def login(
     user_service: UserService = Depends(get_user_service)
 ):
     # Проверяем пользователя (та же логика, что в API /login)
-    print("Папорль:", password)
+    print("=========Папорль потому что я забыла тестовые пароли: ========", password)
     if not telegram_id and not email:
         return templates.TemplateResponse(
             request, "user/login.html",
