@@ -110,7 +110,7 @@ async def case_detail(
     documents, total_docs = await case_service.get_case_documents_paginated(case_id, page, size)
     total_pages = (total_docs + size - 1) // size if total_docs > 0 else 1
 
-    cached_data = get_cases_from_cache(user_id=user.id) # получаем cases из кэша
+    cached_data = await get_cases_from_cache(user_id=user.id) # получаем cases из кэша
 
     context = {
         "request": request,
@@ -140,7 +140,7 @@ async def delete_case(
             return templates.TemplateResponse(request, "index.html", 
                                             context={"title": "Главная страница",
                                                     "message": "Необходимо авторизоваться"})
-    cached_data = get_cases_from_cache(user_id=user.id) # получаем cases из кэша
+    cached_data = await get_cases_from_cache(user_id=user.id) # получаем cases из кэша
     delete_case = await case_service.delete_case(case_id=case_id)
     
     context = {

@@ -217,10 +217,10 @@ async def register_user(
                     {"email": email, "message": str(e)},
                 )
             # Отправляем задачу в Celery и показываем пользователю страницу для ввода кода из письма. 
-            print("перехожу к отправке письма с кодом", code)
-            send_verification_email.delay(email, code)
+            # send_verification_email.delay(email, code)
             exists = await redis_service.redis_client.exists(f"verify:{email}")
-            print("🔑 Ключ сохранён, exists =", exists, "| ключ:", repr(f"verify:{email}"))
+            print("🔑 Ключ сохранён, exists =", exists, "| ключ:", repr(f"verify:{email}"), 
+                  f"Код {code}")
 
             # Показываем страницу ввода кода
             return templates.TemplateResponse(
@@ -228,27 +228,6 @@ async def register_user(
                 {"email": email}
               )
 
-
-        #     user = UserRegistration(
-        #         username=username,
-        #         email=email,
-        #         telegram_id=telegram_id if telegram_id else None,
-        #         password=hashed_password,
-        #         second_password=second_password
-        #     )
-
-        #     # Сохраняем в бд
-        #     await user_service.create_user(user_data=user)  # сохраняем пользователя в базе данных
-
-
-        #     profile_logger.info("Зарегистрирован новый пользователь")
-
-        #     context = {
-        #         "request": request,
-        #         "title": "Страница входа"
-        #     }
-        # return templates.TemplateResponse(request, "user/login.html", context)
-        
     except Exception as e:
         profile_logger.exception("Ошибка при проверке существования пользователя: %s", e)
         return templates.TemplateResponse(

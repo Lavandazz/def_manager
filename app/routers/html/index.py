@@ -35,7 +35,7 @@ async def main_page(
         return templates.TemplateResponse(request, "index.html", context)
 
     cases = await get_cases_from_cache(user_id=user.id) # получение кэша
-    
+
     if cases is None:
         # Получаем из базы
         cases_orm = await case_service.get_user_cases(user_id=user.id)
@@ -81,7 +81,6 @@ async def login(
     existing_user = await user_service.get_user(email=email, telegram_id=telegram_id)
 
     if not existing_user or not PasswordHasher.verify_password(password, existing_user.hashed_password):
-
         return templates.TemplateResponse(
             request, "user/login.html",
             {"error": "Неверный email или пароль"}
