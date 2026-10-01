@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from config.db.models import CourtSession, ParsDocument
 from core.services.case_service import CaseService
 from core.services.court_service import CourtService
@@ -62,6 +64,15 @@ class ParserDataSaver:
         else:
             print("ParserDataSaver: doc_save вернул false")
             return False
+        
+    async def save_case_date(self, case_number: str, date_case: str):
+        """
+        Преобразует строку case_date в объект datetime и вызывает метод update_case_date сервиса CaseService для обновления даты дела в базе данных.
+        :param case_number: Номер дела, для которого нужно обновить дату.
+        :param case_date: Строка с датой в формате "дд.мм
+        """
+        parsed_date = datetime.strptime(date_case, "%d.%m.%Y").date()
+        await self.case_service.update_case_date(case_number=case_number, date_case=parsed_date)
 
     async def save_case_link(self, case_number: str, link: str):
         """Изменение ссылки на дело в базе данных"""

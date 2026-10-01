@@ -1,6 +1,9 @@
 
+from datetime import date
+
 from sqlalchemy import desc, func, select, update
 from sqlalchemy.orm import selectinload
+from tomlkit import datetime
 from config.db.abstract_repository import AbstractCaseRepository
 from config.db.models import Case, ParsDocument, Debtor, Account, Bank, MailAddress, ResidentialAddress
 from config.logger_config import db_logger
@@ -188,6 +191,25 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         else:
             db_logger.warning("Дело с id %s не найдено для обновления ссылки.", case_id)
             return None
+
+    async def update_date(self, case_id: int, date_case: date) -> Case | None:
+        """
+        Обновление даты дела.
+        """
+        case = await self.session.get(Case, case_id)
+        if case:
+            case.date_case = date_case
+            try:
+                await self.session.commit()
+                return case
+            except Exception as e:
+                db_logger.exception("не удалось обновить дату дела %s: %s", case_id, e)
+                await self.session.rollback()
+                return None
+        else:
+            db_logger.warning("Дело с id %s не найдено для обновления даты.", case_id)
+            return None
+
 
 
     async def delete_case(self, case_id):

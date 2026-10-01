@@ -4,6 +4,7 @@ python -m parser.parser_plw
 """
 import asyncio
 from datetime import datetime
+from math import e
 
 from httpx import TimeoutException
 from parso.cache import try_to_save_module
@@ -49,7 +50,6 @@ class ParserKad:
             # await page.close()
             await page.reload()
             return page
-            # return None
 
     async def run(self):
         """ Запуск парсера """
@@ -65,6 +65,9 @@ class ParserKad:
         await self.enter_case_number()
         if await self.check_page():
             return
+        # получаем дату решения дела в суде и сохраняем в бд
+        await self.search_and_save_date_case()
+
         await self.click_link_case()
         # Если не удалось перейти на новую страницу – завершаем и закрываем парсер
         if not self.new_page:
@@ -214,39 +217,66 @@ class ParserKad:
         except Exception as e:
             print("Не нашел инн",e)
 
-    async def search_date_case(self):
+    async def _search_date_case(self):
         """
         Получаем дату решения дела в суде. 
-
         """
         try:
             date_case = self.page.locator('div.bankruptcy')
-            date_case2= self.page.locator("div.bankruptcy").locator("span")
             date_text = await date_case.inner_text()
-            date_text2 = await date_case2.inner_text()
-
-            print("Дата решения дела", date_text)
-            print("Дата решения дела2", date_text2)
-            return date_case
+            return date_text
 
         except Exception as e:
-            print("Не нашел дату решения дела",e)
+            return None
+
+    async def _save_date_case(self, case_number, case_date):
+        """
+        Сохраняем дату решения дела в базе данных
+        """
+        try:
+            if case_date:
+                await self.data_saver.save_case_date(case_number=case_number, date_case=case_date)
+                parser_logger.info("Сохранил дату решения дела %s", case_date,
+                                extra={
+                                    "case_number": self.case_number, 
+                                    "step": "save_date_case",
+                                    "system": "parser",
+                                })
+            else:
+                parser_logger.info("Дата не найдена или не соответствует",)
+        except Exception as e:
+            parser_logger.error("Ошибка при сохранении даты дела", e)
+            pass
+
+    async def search_and_save_date_case(self):
+        """
+        Получаем дату решения дела в суде и сохраняем в бд
+        """
+        date_case = await self._search_date_case()
+        await self._save_date_case(case_number=self.case_number, case_date=date_case)
+
+        
+    async def _save_link_case(self, case_number, link):
+        """
+        Сохраняем ссылку на дело в базе данных
+        """
+        try:
+            await self.data_saver.save_case_link(case_number=case_number, link=link)
+            parser_logger.info("Сохранил ссылку на дело %s", link,
+                               extra={
+                                   "case_number": self.case_number,  # Основной идентификатор
+                                   "step": "save_link_case",
+                                   "system": "parser",
+                               })
+        except Exception as e:
+            parser_logger.error("Ошибка при сохранении ссылки на дело", e)
+            pass
 
     async def click_link_case(self):
         """
         Обнаружение знака + для раскрытия данных о деле. 
         При клике будет открыта новая вкладка и осуществлен переход на нее.
         """
-        try:
-            await self.search_date_case()
-        except Exception as e:
-            parser_logger.error("Ошибка при поиске даты решения дела %s", e,
-                                extra={
-                                    "case_number": self.case_number,  # Основной идентификатор
-                                    "step": "click_link_case",
-                                    "error": e,
-                                    "system": "parser",
-                                })
         try:
             case_number_link = self.page.locator("a[target='_blank'].num_case", has_text=self.case_number)
 
@@ -262,7 +292,7 @@ class ParserKad:
             current_url = self.new_page.url  # получаем адрес новой странички
 
             # Сохраняем ссылку на дело в базу данных
-            await self.data_saver.save_case_link(case_number=self.case_number, link=current_url)  # сохраняем ссылку в бд
+            await self._save_link_case(case_number=self.case_number, link=current_url)  # сохраняем ссылку в бд
             
             parser_logger.info("Переход на новую страницу",
                                extra={

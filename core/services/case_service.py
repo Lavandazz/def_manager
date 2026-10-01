@@ -1,4 +1,7 @@
 
+from datetime import date, datetime
+
+
 class CaseService:
     """
     Сервис для работы с репозиторием (например CaseAlchemyRepository) для api.
@@ -28,19 +31,23 @@ class CaseService:
     async def get_user_cases(self, user_id: int):
         return await self.repository.get_cases_by_user(user_id)
 
-    async def get_user_cases_by_type(self, user_id: int, debtor_type):
         return await self.repository.get_cases_by_type(user_id, debtor_type)
 
     async def update_case(self, case_id: int, attr: dict):
         return await self.repository.update_case(case_id, **attr)
 
+    async def update_case_date(self, case_number: str, date_case: date):
+        case = await self.get_case_by_number(case_number)
+        if case.date_case is None:
+            return await self.repository.update_date(case.id, date_case)
+        return case
+
+
     async def update_case_link(self, case_number: str, link: str):
         case = await self.repository.get_case_by_number(case_number)
-        if case.link == None:
-            print(f"Сохраняю ссылку на дело {case_number}: {link}")
+        if case.link is None:
             return await self.repository.update_link(case.id, link)
-        print(f"Ссылка на дело {case_number} уже существует: {case.link}")
-        return True
+        return case
 
 
     async def delete_case(self, case_id: int):
