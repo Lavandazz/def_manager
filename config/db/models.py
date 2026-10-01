@@ -17,7 +17,7 @@ class Case(Base):
     debtor_name: Mapped[str] = mapped_column(Text, nullable=True)
     status: Mapped[int] = mapped_column(Integer, nullable=True, default=0)
     link: Mapped[int] = mapped_column(Text, nullable=True)
-
+    date_case: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     debtor_id: Mapped[Optional[int]] = mapped_column(ForeignKey("debtors.id"), nullable=True)  # поле для связи с таблицей Debtor
     
     debtor: Mapped[Optional["Debtor"]] = relationship(back_populates="cases")

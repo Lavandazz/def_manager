@@ -164,19 +164,20 @@ async def delete_case(
     
 
 
-@router.get("/generate_bank/{case_id}", tags=["html_docs"], response_class=HTMLResponse)
-async def get_generate_bank(
+
+async def get_generate_documents(
     request: Request, 
     case_id: int,
     user: User = Depends(get_optional_user)):
+
     if not user:
         return templates.TemplateResponse(request, "index.html", 
                                           context={"title": "Главная страница",
                                                    "message": "Для отображения календаря войдите или зарегистрируйтесь"})
     today = date.today()
     context = {
-    "request": request,
-    "title": "Главная страница",}
+        "request": request,
+        "title": "Главная страница",}
     context["user"] = user
 
     return templates.TemplateResponse(

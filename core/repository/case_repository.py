@@ -2,7 +2,7 @@
 from sqlalchemy import desc, func, select, update
 from sqlalchemy.orm import selectinload
 from config.db.abstract_repository import AbstractCaseRepository
-from config.db.models import Case, ParsDocument, Debtor
+from config.db.models import Case, ParsDocument, Debtor, Account, Bank, MailAddress, ResidentialAddress
 from config.logger_config import db_logger
 
 
@@ -50,6 +50,38 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
+    
+    async def get_case_for_documents(self, case_id: int) -> Case | None:
+        """
+        Дело + должник + адреса + счета/банки + документы суда.
+        Подружаются все связные модели. Нужно для генерации Word-шаблонов.
+        """
+        stmt = (
+            select(Case)
+            .where(Case.id == case_id)
+            .options(
+                selectinload(Case.pars_documents),
+                selectinload(Case.debtor).selectinload(Debtor.birth_region),
+                selectinload(Case.debtor)
+                    .selectinload(Debtor.residential_address)
+                    .selectinload(ResidentialAddress.region),
+                selectinload(Case.debtor)
+                    .selectinload(Debtor.residential_address)
+                    .selectinload(ResidentialAddress.address),
+                selectinload(Case.debtor)
+                    .selectinload(Debtor.accounts)
+                    .selectinload(Account.bank)
+                    .selectinload(Bank.mail_address)
+                    .selectinload(MailAddress.region),
+                selectinload(Case.debtor)
+                    .selectinload(Debtor.accounts)
+                    .selectinload(Account.bank)
+                    .selectinload(Bank.mail_address)
+                    .selectinload(MailAddress.address),
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
     
     async def get_case_by_number(self, case_number):
         """
@@ -122,7 +154,6 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         stmt = select(Case).where(Case.status == 0)
         result = await self.session.execute(stmt)
         return result.scalars().all()
-
 
     async def update_case(self, case_id, **fields):
         """

@@ -3,12 +3,7 @@
 """
 from datetime import datetime, date, timedelta
 
-from schemas.bank_schemas import Bank
-from schemas.case_schemas import Case
-from schemas.debtor import Debtor
-from mock_data.debtor import person_data
-from mock_data.bank import bank_data
-from mock_data.case import case as case_data
+
 from utils.context_utils import text_helper
 
 debtor = Debtor.model_validate(person_data)

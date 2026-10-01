@@ -27,17 +27,7 @@ class DocumentGenerator:
         docx.save(output_path)
         return output_path
 
-    # async def generate( self, context: dict, output_filename: str, subdir: str | None = None) -> Path:
-    #     out_dir = OUTPUT_DIR / subdir if subdir else OUTPUT_DIR
-    #     output_path = out_dir / output_filename
 
-    #     loop = asyncio.get_running_loop()
-    #     return await loop.run_in_executor(
-    #         None,
-    #         self._render_sync,
-    #         context,
-    #         output_path,
-    #     )
     async def generate(
         self,
         context: dict,

@@ -6,6 +6,7 @@ import asyncio
 from datetime import datetime
 
 from httpx import TimeoutException
+from parso.cache import try_to_save_module
 from playwright.async_api import async_playwright, Page, BrowserContext, expect
 
 from config.db.db_config import get_db
@@ -213,11 +214,39 @@ class ParserKad:
         except Exception as e:
             print("Не нашел инн",e)
 
+    async def search_date_case(self):
+        """
+        Получаем дату решения дела в суде. 
+
+        """
+        try:
+            date_case = self.page.locator('div.bankruptcy')
+            date_case2= self.page.locator("div.bankruptcy").locator("span")
+            date_text = await date_case.inner_text()
+            date_text2 = await date_case2.inner_text()
+
+            print("Дата решения дела", date_text)
+            print("Дата решения дела2", date_text2)
+            return date_case
+
+        except Exception as e:
+            print("Не нашел дату решения дела",e)
+
     async def click_link_case(self):
         """
         Обнаружение знака + для раскрытия данных о деле. 
         При клике будет открыта новая вкладка и осуществлен переход на нее.
         """
+        try:
+            await self.search_date_case()
+        except Exception as e:
+            parser_logger.error("Ошибка при поиске даты решения дела %s", e,
+                                extra={
+                                    "case_number": self.case_number,  # Основной идентификатор
+                                    "step": "click_link_case",
+                                    "error": e,
+                                    "system": "parser",
+                                })
         try:
             case_number_link = self.page.locator("a[target='_blank'].num_case", has_text=self.case_number)
 
