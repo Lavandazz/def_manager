@@ -3,6 +3,14 @@
 {% block content %}
   <h2>Дело: {{ case.number_case }}</h2>
   <p><strong>Должник:</strong> {{ case.debtor.name }}</p>
+  {% if case.link %}
+    <p>
+      <strong>Ссылка на КадАрбитр:</strong>
+      <a href="{{ case.link }}" target="_blank" rel="noopener noreferrer">
+        Перейти к делу
+      </a>
+    </p>
+  {% endif %}
   <p>
     <strong class="tooltip-trigger" data-bs-toggle="tooltip" data-bs-placement="top" title="Статус показывает актуально ли дело">Статус:</strong> {{ "В работе" if case.status == 0 else "Не активно" }}
   </p>
