@@ -30,6 +30,7 @@ from core.repository.court_session_repositoty import CourtSessionAlchemyReposito
 from core.repository.token_repository import TokenAlchemyRepository
 from core.repository.user_repository import UserAlchemyRepository
 
+from documents.services.doc_service import DocumentService
 
 security = HTTPBearer()
 
@@ -226,3 +227,7 @@ def get_redis_service(
     Оборачивает клиент в доменный сервис.
     """
     return RedisService(client)
+
+
+async def get_document_service() -> DocumentService:
+    return DocumentService()

@@ -76,13 +76,29 @@
 
   <p class="text-muted text-center">Показано {{ documents|length }} из {{ total_docs }} документов</p>
 
-  <div class="alert alert-success mt-3 d-grid gap-2 d-md-flex justify-content-md-end">
-      <span> <!-- Оборачиваем весь текст в один контейнер -->
-          <strong>Генерация запросов в госорганы</strong> 
-          <p></p>
-      </span>
-      <a href="/user/cases/generate_documents/{{ case.id }}" class="btn btn-success">Перейти</a>
+
+  <div class="alert alert-success mt-3">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <strong>Генерация запросов в госорганы</strong>
+      <p class="mb-0 text-muted small">Запрос в ФНС / суд, запросы в банки</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <!-- форма с параметрами -->
+      <a href="/user/cases/generate_documents/{{ case.id }}" class="btn btn-success">
+        Настроить и сгенерировать
+      </a>
+      <!-- быстрое скачивание без формы (POST через form) -->
+      <form method="post" action="/user/cases/generate_documents/{{ case.id }}" class="d-inline">
+        <input type="hidden" name="template" value="requests">
+        <input type="hidden" name="region_court" value="Московской области">
+        <button type="submit" class="btn btn-outline-success">
+          Скачать запрос (.docx)
+        </button>
+      </form>
+    </div>
   </div>
+</div>
 
   <div class="alert alert-secondary mt-3 d-grid gap-2 d-md-flex justify-content-md-end">
       <span> <!-- Оборачиваем весь текст в один контейнер -->

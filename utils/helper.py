@@ -1,7 +1,9 @@
 
+from datetime import date, timedelta
+
 from marmel_grammar import MarmelGrammar
 
-from config.db.models import Bank, Debtor
+from config.db.models import Bank, Case, Debtor
 
 
 class TextHelper:
@@ -44,8 +46,8 @@ class TextHelper:
     
     @staticmethod
     def snils_str(snils: int) -> str:
-        snils = str(snils)
-        return f"{snils[:3]}-{snils[3:6]}-{snils[6:9]} {snils[9:]}"
+        str_snils = str(snils)
+        return f"{str_snils[:3]}-{str_snils[3:6]}-{str_snils[6:9]} {str_snils[9:]}"
 
     @staticmethod
     def get_bank_address_str(bank: Bank) -> str:
@@ -60,9 +62,8 @@ class TextHelper:
     def get_debtor_address_str(debtor: Debtor, birth: bool) -> str:
         if birth:
             return f"""{
-                f"{debtor.birth_region.region_name}," if debtor.birth_region.region.region_name else ""
-                } г.{debtor.birth_region.city}"""
-        
+                f"{debtor.birth_region.region_name}," if debtor.birth_region.region_name else ""
+                } г. {debtor.birth_region.city}"""
         return f"""{
                 f"{debtor.residential_address.region.region_name}," if debtor.residential_address.region.region_name else ""
                 } г.{debtor.residential_address.region.city}, {debtor.residential_address.address.street}, д. {

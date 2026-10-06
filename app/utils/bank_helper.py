@@ -87,5 +87,5 @@ def _parse_accounts_from_form(form) -> tuple[list[dict], list[str]]:
             continue
 
         accounts.append(item)
-
+    print("accounts", accounts)
     return accounts, errors

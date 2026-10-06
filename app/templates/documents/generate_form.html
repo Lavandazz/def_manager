@@ -6,7 +6,7 @@
     <div class="col-lg-9">
 
       <div class="d-flex align-items-center mb-4">
-        <h1 class="h3 mb-0">Генерация документа</h1>
+        <h1 class="h3 mb-0">Данные для генерации документа</h1>
         <span class="badge text-bg-secondary ms-3">тестовый режим</span>
       </div>
 
@@ -23,186 +23,249 @@
         </div>
       {% endif %}
 
-      <form method="post" action="/documents/generate" novalidate>
-
-        {# ---------- Должник ---------- #}
-        <div class="card shadow-sm mb-4">
-          <div class="card-header bg-primary text-white">
-            <h2 class="h6 mb-0">Данные должника</h2>
-          </div>
-          <div class="card-body">
-
-            <div class="mb-3">
-              <label for="debtor_full_name" class="form-label">
-                ФИО полностью <span class="text-danger">*</span>
-              </label>
-              <input type="text" class="form-control" id="debtor_full_name"
-                     name="debtor_full_name" required
-                     placeholder="Иванов Иван Иванович"
-                     value="{{ form.debtor_full_name or '' }}">
-              <div class="form-text">
-                Инициалы, краткое имя и падежные формы считаются автоматически.
-              </div>
-            </div>
-
-            <div class="row g-3">
-              <div class="col-md-4">
-                <label for="debtor_birthday" class="form-label">
-                  Дата рождения <span class="text-danger">*</span>
-                </label>
-                <input type="date" class="form-control" id="debtor_birthday"
-                       name="debtor_birthday" required
-                       value="{{ form.debtor_birthday or '' }}">
-              </div>
-              <div class="col-md-4">
-                <label for="debtor_snils" class="form-label">СНИЛС</label>
-                <input type="text" class="form-control" id="debtor_snils"
-                       name="debtor_snils"
-                       placeholder="123-456-789 00"
-                       value="{{ form.debtor_snils or '' }}">
-              </div>
-              <div class="col-md-4">
-                <label for="debtor_inn" class="form-label">ИНН</label>
-                <input type="text" class="form-control" id="debtor_inn"
-                       name="debtor_inn"
-                       placeholder="123456789012"
-                       value="{{ form.debtor_inn or '' }}">
-              </div>
-            </div>
-
-            <div class="mt-3">
-              <label for="debtor_birth_address" class="form-label">
-                Адрес рождения
-              </label>
-              <input type="text" class="form-control" id="debtor_birth_address"
-                     name="debtor_birth_address"
-                     placeholder="г. Москва, ул. Ленина, д. 1"
-                     value="{{ form.debtor_birth_address or '' }}">
-            </div>
-
-            <div class="mt-3">
-              <label for="debtor_address" class="form-label">
-                Адрес проживания
-              </label>
-              <input type="text" class="form-control" id="debtor_address"
-                     name="debtor_address"
-                     placeholder="г. Москва, ул. Пушкина, д. 10, кв. 5"
-                     value="{{ form.debtor_address or '' }}">
-            </div>
-
-          </div>
+      {# ---------- Должник ---------- #}
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h2 class="h6 mb-0">Данные должника</h2>
         </div>
+        <div class="card-body">
 
-        {# ---------- Дело ---------- #}
-        <div class="card shadow-sm mb-4">
-          <div class="card-header bg-primary text-white">
-            <h2 class="h6 mb-0">Данные дела {{case_number}} </h2>
-          </div>
-          <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-4">ФИО</dt>
+            <dd class="col-sm-8">{{ debtor.name or '—' }}</dd>
 
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label for="case_number" class="form-label">
-                  Номер дела <span class="text-danger">*</span>
-                </label>
-                <input type="text" class="form-control" id="case_number"
-                       name="case_number" required
-                       placeholder="{{ form.case_number if form.case_number }}А40-12345/2024"
-                       value="{{ form.case_number or '' }}">
-              </div>
-              <div class="col-md-6">
-                <label for="case_date" class="form-label">
-                  Дата дела <span class="text-danger">*</span>
-                </label>
-                <input type="date" class="form-control" id="case_date"
-                       name="case_date" required
-                       value="{{ form.case_date or '' }}">
-              </div>
-            </div>
+            <dt class="col-sm-4">Дата рождения</dt>
+            <dd class="col-sm-8">
+              {% if debtor.birthday %}
+                {{ debtor.birthday.strftime('%d.%m.%Y') }}
+              {% else %}—{% endif %}
+            </dd>
 
-            <div class="mt-3">
-              <label for="region_court" class="form-label">Регион суда</label>
-              <input type="text" class="form-control" id="region_court"
-                     name="region_court"
-                     placeholder="Московской области"
-                     value="{{ form.region_court or 'Московской области' }}">
-            </div>
+            <dt class="col-sm-4">СНИЛС</dt>
+            <dd class="col-sm-8">{{ debtor.snils or '—' }}</dd>
 
-          </div>
+            <dt class="col-sm-4">ИНН</dt>
+            <dd class="col-sm-8">{{ debtor.inn or '—' }}</dd>
+
+            <dt class="col-sm-4">Адрес рождения</dt>
+            <dd class="col-sm-8">
+              {% if birth_address %}
+                {{ birth_address }}
+                {# {% if birth_address.region_name %}{{ birth_address.region_name }}, {% endif %} #}
+                {# {% if birth_address.city %} г. {{ birth_address.city }} {% endif %} #}
+              {% else %}—{% endif %}
+            </dd>
+
+            <dt class="col-sm-4">Адрес проживания</dt>
+            <dd class="col-sm-8">
+              {% if reg_address %}
+                {{ reg_address }}
+                {# --- Регион --- #}
+                {# {% if reg_address.region and reg_address.region.region_name %} #}
+                  {# {{ reg_address.region.region_name }} #}
+                {# {% else %} #}
+                  {# <span class="text-muted" title="Не указан регион">— регион —</span> #}
+                {# {% endif %}, #}
+
+                {# {% if reg_address.region and reg_address.region.city %} #}
+                  {# г. {{ reg_address.region.city }} #}
+                {# {% else %} #}
+                  {# <span class="text-muted" title="Не указан город">— город —</span> #}
+                {# {% endif %}, #}
+
+                {# --- Адрес: улица / дом / строение --- #}
+                {# {% if reg_address.address and reg_address.address.street %} #}
+                  {# ул. {{ reg_address.address.street }} #}
+                {# {% else %} #}
+                  {# <span class="text-muted" title="Не указана улица">— улица —</span> #}
+                {# {% endif %}, #}
+
+                {# {% if reg_address.address and reg_address.address.house %} #}
+                  {# д. {{ reg_address.address.house }} #}
+                {# {% else %} #}
+                  {# <span class="text-muted" title="Не указан дом">— дом —</span> #}
+                {# {% endif %} #}
+
+                {# {% if reg_address.address and reg_address.address.building %} #}
+                  {# , стр. {{ reg_address.address.building }} #}
+                {# {% endif %} #}
+
+                {# --- Квартира --- #}
+                {# {% if reg_address.flat %} #}
+                  {# , кв. {{ reg_address.flat }} #}
+                {# {% else %} #}
+                  {# <span class="text-muted" title="Не указана квартира">, кв. —</span> #}
+                {# {% endif %} #}
+              {% else %}
+                <span class="text-muted">Адрес проживания не заполнен</span>
+              {% endif %}
+            </dd>
+          </dl>
+
         </div>
+      </div>
 
-        {# ---------- Запрос ---------- #}
-        <div class="card shadow-sm mb-4">
-          <div class="card-header bg-primary text-white">
-            <h2 class="h6 mb-0">Параметры запроса</h2>
-          </div>
-          <div class="card-body">
+      {# ---------- Дело ---------- #}
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h2 class="h6 mb-0">Данные дела</h2>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-4">Номер дела</dt>
+            <dd class="col-sm-8">{{ case.number_case or '—' }}</dd>
 
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label for="request_date" class="form-label">
-                  Дата запроса <span class="text-danger">*</span>
-                </label>
-                <input type="date" class="form-control" id="request_date"
-                       name="request_date" required
-                       value="{{ form.request_date or '' }}">
-                <div class="form-text">Используется год для формулировки запроса.</div>
-              </div>
-              <div class="col-md-6">
-                <label for="date_for" class="form-label">
-                  Дата, на которую запрашиваются сведения <span class="text-danger">*</span>
-                </label>
-                <input type="date" class="form-control" id="date_for"
-                       name="date_for" required
-                       value="{{ form.date_for or '' }}">
-              </div>
+            <dt class="col-sm-4">Дата дела</dt>
+            <dd class="col-sm-8">
+              {% if case.date_case %}
+                {{ case.date_case.strftime('%d.%m.%Y') }}
+              {% else %}—{% endif %}
+            </dd>
+          </dl>
+        </div>
+      </div>
+
+      {# ---------- Банки и счета должника ---------- #}
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h2 class="h6 mb-0">Банки и счета должника</h2>
+          <span class="badge text-bg-light">{{ debtor.accounts|length }}</span>
+        </div>
+        <div class="card-body">
+          {% if debtor.accounts %}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">№ счёта</th>
+                    <th scope="col">Банк</th>
+                    <th scope="col">Почтовый адрес банка</th>
+                  </tr>
+                </thead>
+                <tbody>{% for acc in debtor.accounts %}
+                <tr>
+                  <td><code>{{ acc.number }}</code></td>
+
+                  {# --- Название банка --- #}
+                  <td>
+                    {% if acc.bank and acc.bank.name %}
+                      {{ acc.bank.name }}
+                    {% else %}
+                      <span class="text-muted" title="Не указан банк">— банк —</span>
+                    {% endif %}
+                  </td>
+
+                  {# --- Почтовый адрес банка --- #}
+                  <td>
+                    {% if acc.bank and acc.bank.mail_address %}
+                      {% set ma = acc.bank.mail_address %}
+
+                      {# Индекс #}
+                      {% if ma.mail_index %}
+                        {{ ma.mail_index }}
+                      {% else %}
+                        <span class="text-muted" title="Не указан почтовый индекс">— индекс —</span>
+                      {% endif %},
+
+                      {# Регион #}
+                      {% if ma.region and ma.region.region_name %}
+                        {{ ma.region.region_name }}
+                      {% else %}
+                        <span class="text-muted" title="Не указан регион">— регион —</span>
+                      {% endif %},
+
+                      {# Город #}
+                      {% if ma.region and ma.region.city %}
+                        г. {{ ma.region.city }}
+                      {% else %}
+                        <span class="text-muted" title="Не указан город">— город —</span>
+                      {% endif %},
+
+                      {# Улица #}
+                      {% if ma.address and ma.address.street %}
+                        ул. {{ ma.address.street }}
+                      {% else %}
+                        <span class="text-muted" title="Не указана улица">— улица —</span>
+                      {% endif %},
+
+                      {# Дом #}
+                      {% if ma.address and ma.address.house %}
+                        д. {{ ma.address.house }}
+                      {% else %}
+                        <span class="text-muted" title="Не указан дом">— дом —</span>
+                      {% endif %}
+
+                      {# Строение — опционально, без прочерка #}
+                      {% if ma.address and ma.address.building %}
+                        , стр. {{ ma.address.building }}
+                      {% endif %}
+
+                    {% else %}
+                      <span class="text-muted" title="Не указан почтовый адрес банка">Адрес банка не заполнен</span>
+                    {% endif %}
+                  </td>
+                  </tr>
+                {% else %}
+                  {# Сюда попадём, если debtor.accounts пуст #}
+                  <tr>
+                    <td colspan="3" class="text-center text-muted">Счета не найдены</td>
+                  </tr>
+                {% endfor %}
+              </table>
             </div>
-
-          </div>
+          {% else %}
+            <p class="text-muted mb-0">Счета не найдены.</p>
+          {% endif %}
         </div>
+      </div>
 
-        {# ---------- Тип шаблона и банк ---------- #}
-        <div class="card shadow-sm mb-4">
-          <div class="card-header bg-primary text-white">
-            <h2 class="h6 mb-0">Шаблон</h2>
-          </div>
-          <div class="card-body">
-
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label for="template" class="form-label">
-                  Шаблон <span class="text-danger">*</span>
-                </label>
-                <select class="form-select" id="template" name="template" required>
-                  <option value="requests" {% if form.template == 'requests' %}selected{% endif %}>
-                    Запрос в ФНС / суд (requests_mo.docx)
-                  </option>
-                  <option value="bank" {% if form.template == 'bank' %}selected{% endif %}>
-                    Запрос в банк (bank_mo.docx)
-                  </option>
-                </select>
-              </div>
-              <div class="col-md-6">
-                <label for="bank_name" class="form-label">Название банка</label>
-                <input type="text" class="form-control" id="bank_name"
-                       name="bank_name"
-                       placeholder="Сбербанк"
-                       value="{{ form.bank_name or '' }}">
-                <div class="form-text">Заполняется только для шаблона «Запрос в банк».</div>
-              </div>
-            </div>
-
-          </div>
+      {# ---------- Параметры запроса (только для отображения) ---------- #}
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h2 class="h6 mb-0">Параметры запроса</h2>
         </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-4">Дата запроса</dt>
+            <dd class="col-sm-8">
+              {% if request_date %}
+                {{ request_date.strftime('%d.%m.%Y') if request_date.strftime is defined else request_date }}
+              {% else %}—{% endif %}
+            </dd>
 
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-primary">
-            Сгенерировать документ
-          </button>
-          <a href="/" class="btn btn-outline-secondary">Отмена</a>
+            <dt class="col-sm-4">Дата, до которой запрашиваются сведения</dt>
+            <dd class="col-sm-8">
+              {% if date_for %}
+                {{ date_for.strftime('%d.%m.%Y') if date_for.strftime is defined else date_for }}
+              {% else %}—{% endif %}
+            </dd>
+
+            <dt class="col-sm-4">Шаблон</dt>
+            <dd class="col-sm-8">
+              {% if template == 'bank' %}
+                Запрос в банк (bank_mo.docx)
+              {% elif template == 'requests' %}
+                Запрос в ФНС / суд (requests_mo.docx)
+              {% else %}
+                {{ template or '—' }}
+              {% endif %}
+            </dd>
+          </dl>
         </div>
+      </div>
 
-      </form>
+      <div class="d-flex gap-2">
+        {# Кнопка запуска генерации — POST-запрос в тот же роут #}
+        <form method="post" action="{{ url_for('generate_documents', case_id=case.id) }}" class="d-inline">
+          <input type="hidden" name="template" value="{{ template or 'requests' }}">
+          {% if bank_name %}
+            <input type="hidden" name="bank_name" value="{{ bank_name }}">
+          {% endif %}
+          <button type="submit" class="btn btn-primary">Сгенерировать документ</button>
+        </form>
+        <a href="/" class="btn btn-outline-secondary">Назад</a>
+      </div>
+
     </div>
   </div>
 </div>

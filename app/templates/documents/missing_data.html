@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <div class="card shadow-sm border-warning">
+        <div class="card-header bg-warning-subtle border-warning">
+          <h1 class="h5 mb-0 text-warning-emphasis">
+            Не хватает данных для генерации документа
+          </h1>
+        </div>
+        <div class="card-body">
+
+          <p class="mb-3">
+            Дело <strong>{{ case_number or case_id }}</strong> найдено, но
+            для генерации документа нужно заполнить следующие поля:
+          </p>
+
+          <ul class="list-group list-group-flush mb-4">
+            {% for m in missing %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                  <i class="bi bi-exclamation-circle text-warning me-2"></i>
+                  {{ m.label }}
+                </span>
+                <a href="{{ m.url }}" class="btn btn-sm btn-outline-primary">
+                  Заполнить
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+
+          <div class="d-flex gap-2">
+            <a href="/user/debtor/{{ debtor.id }}/edit" class="btn btn-primary">
+              Перейти к выбору должника
+            </a>
+            <a href="/" class="btn btn-outline-secondary">На главную</a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock content %}

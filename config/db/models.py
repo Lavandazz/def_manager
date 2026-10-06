@@ -16,7 +16,7 @@ class Case(Base):
     id_user: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     debtor_name: Mapped[str] = mapped_column(Text, nullable=True)
     status: Mapped[int] = mapped_column(Integer, nullable=True, default=0)
-    link: Mapped[int] = mapped_column(Text, nullable=True)
+    link: Mapped[str] = mapped_column(Text, nullable=True)
     date_case: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     debtor_id: Mapped[Optional[int]] = mapped_column(ForeignKey("debtors.id"), nullable=True)  # поле для связи с таблицей Debtor
     
@@ -25,6 +25,10 @@ class Case(Base):
     pars_documents = relationship("ParsDocument", back_populates="case")
     court_sessions = relationship("CourtSession", back_populates="case")
     user = relationship("User", back_populates="cases", foreign_keys=[id_user])
+
+    def __repr__(self) -> str:
+        return f"<Case id={self.id} number_case={self.number_case!r} date_case={self.date_case!r} id_user={self.id_user}>"
+
 
 
 class DebtorType(enum.Enum):
@@ -56,6 +60,9 @@ class Debtor(Base):
 
     # Обратная связь с делами
     cases: Mapped[List["Case"]] = relationship("Case", back_populates="debtor")
+
+    def __repr__(self) -> str:
+        return f"<Debtor id={self.id} name={self.name!r} inn={self.inn} snils={self.snils}>"
 
     
 class User(Base):
@@ -120,6 +127,8 @@ class ParsDocument(Base):
 
     case = relationship("Case", back_populates="pars_documents")
 
+    def __repr__(self) -> str: 
+            return f"<ParsDocument id={self.id}, id_case={self.id_case!r}, date={self.date!r}, document={self.document!r}>"
 
 class Court(Base):
     __tablename__ = "courts"
@@ -174,6 +183,10 @@ class Region(Base):
     region_name: Mapped[str] = mapped_column(Text, nullable=True, default=None)
     city: Mapped[str] = mapped_column(Text, nullable=False)
 
+
+    def __repr__(self) -> str: 
+        return f"<Region id={self.id}, region_name={self.region_name!r}, city={self.city!r}>"
+
 class Address(Base):
     """
     Таблица адреса используется в почтовом, адресе регистрации должника. Указывается только улица, дом, строение
@@ -184,6 +197,9 @@ class Address(Base):
     house: Mapped[str] = mapped_column(Text, nullable=False)
     building: Mapped[str] = mapped_column(Text, nullable=True, default=None)
 
+    def __repr__(self) -> str: 
+        return f"<Address id={self.id}, street={self.street!r}, house={self.house!r}, building={self.building!r}>"
+    
 class MailAddress(Base):
     """Почтовый адрес используется для указания адреса Банка.
     Связь с банком
@@ -196,6 +212,10 @@ class MailAddress(Base):
 
     region: Mapped["Region"] = relationship()
     address: Mapped["Address"] = relationship()
+
+    def __repr__(self) -> str: 
+        return f"<MailAddress id={self.id}, mail_index={self.mail_index}, region_id={self.region_id}, address_id={self.address_id}>"
+    
 
 
 class ResidentialAddress(Base):
@@ -211,6 +231,9 @@ class ResidentialAddress(Base):
     region: Mapped["Region"] = relationship()
     address: Mapped["Address"] = relationship()
 
+    def __repr__(self) -> str: 
+        return f"<ResidentialAddress id={self.id}, address_id={self.address_id}, address_id={self.address_id}, flat={self.flat}>"
+    
 
 class Bank(Base):
     """
@@ -227,6 +250,10 @@ class Bank(Base):
     mail_address: Mapped["MailAddress"] = relationship(cascade="all, delete-orphan",single_parent=True,) # 
     accounts: Mapped[list["Account"]] = relationship(back_populates="bank")
 
+    def __repr__(self) -> str: 
+        return f"<Bank id={self.id}, name={self.name!r}, mail_address_id={self.mail_address_id}>"
+    
+
 
 class Account(Base):
     __tablename__ = "account"
@@ -240,4 +267,4 @@ class Account(Base):
     bank: Mapped["Bank"] = relationship(back_populates="accounts")
 
     def __repr__(self) -> str:
-        return f"Account(id={self.id!r}, number={self.number!r})"
+        return f"<Account id={self.id!r}, number={self.number!r}>"

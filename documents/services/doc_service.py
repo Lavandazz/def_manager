@@ -46,25 +46,32 @@ class DocumentService:
         self.bank_template = DocumentGenerator(TEMPLATES_DIR / "bank_mo.docx")
         self.requests_template = DocumentGenerator(TEMPLATES_DIR / "requests_mo.docx")
 
-    async def generate_bank_doc(self, context: dict, short_name: str, bank_name: str) -> Path:
-        return await self.bank_template.generate(
-            context=context,
-            output_filename=f"{short_name}_{bank_name}.docx",
-            subdir="banks",
-        )
-
     async def generate_request_doc(self, context: dict, short_name: str) -> Path:
+        """Возвращаем ссылку на документ"""
         return await self.requests_template.generate(
             context=context,
             output_filename=f"{short_name}.docx",
             subdir="requests",
         )
 
-    async def generate_many(self, tasks_spec: list[dict]) -> list[Path]:
+    async def _generate_bank_doc(self, context: dict, short_name: str, bank_name: str) -> Path:
+        """Возвращаем ссылку на документ"""
+        return await self.bank_template.generate(
+            context=context,
+            output_filename=f"{short_name}_{bank_name}.docx",
+            subdir="banks",
+        )
+
+
+    async def generate_banks_docs(self, contexts: list[dict], short_name: str,) -> list[Path]:
         """Запустить несколько генераций параллельно."""
         tasks = [
-            self.generate_request_doc(spec["context"], spec["short_name"])
-            for spec in tasks_spec
+            self._generate_bank_doc(
+                context=ctx,
+                short_name=short_name,
+                bank_name=ctx["debtor_bank"]
+            )
+            for ctx in contexts
         ]
         return await asyncio.gather(*tasks)
     

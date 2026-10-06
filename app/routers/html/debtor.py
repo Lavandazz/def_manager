@@ -42,8 +42,6 @@ async def get_choice_debtor(
 
     if cached_data:
         context["cases"] = cached_data
-    print("~~~~", cases_physical)
-    
 
     return templates.TemplateResponse(
         request, 
@@ -88,7 +86,7 @@ async def debtor_edit(
 
     banks = await bank_service.list_banks()                
     debtor_data = await debtor_service.get_debtor(user.id, debtor_id)
-    print("debtor_data:", debtor_data.debtor.residential_address)   
+
     if debtor_data is None:
         raise HTTPException(404, "Должник не найден")
     
@@ -151,7 +149,7 @@ async def debtor_edit_post(
     #  Достаём поля для банков через getlist ──
     form = await request.form()
     accounts, account_errors = _parse_accounts_from_form(form)
-
+    print("из формы ", accounts)
     # 1. Собираем словарь — уже с нормальными типами
     data = {
         # скалярные поля

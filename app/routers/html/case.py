@@ -1,16 +1,22 @@
 
-from datetime import date
+from datetime import date, timedelta
 import re
 
 from fastapi import APIRouter, Depends, Form, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
+from jinja2 import UndefinedError
 from app.utils.caches_data import get_cases_from_cache
 from core.services.case_service import CaseService
-from app.utils.dependensy import get_case_service, get_debtor_service, get_optional_user
+from app.utils.dependensy import get_case_service, get_debtor_service, get_document_service, get_optional_user
 from celery_tasks.task_manager import parsing_task
-from config.db.models import Case, Debtor, User
+from config.db.models import Account, Case, Debtor, User
 from core.services.debtor_service import DebtorService
+from documents.services.doc_service import OUTPUT_DIR, DocumentService
+from documents.utils.context_builder import ContextBuilder
+from documents.utils.models import GenerateFormData
+from utils.helper import text_helper
+
 
 
 router = APIRouter()
@@ -161,40 +167,156 @@ async def delete_case(
             
     return templates.TemplateResponse(request, "index.html", context, status_code=200)
 
-    
 
-
-
+@router.get("/generate_documents/{case_id}", tags=["html_docs"], response_class=HTMLResponse)
 async def get_generate_documents(
-    request: Request, 
+    request: Request,
     case_id: int,
-    user: User = Depends(get_optional_user)):
-
+    user: User = Depends(get_optional_user),
+    case_service: CaseService = Depends(get_case_service),
+):
+    """
+    Роут отображает данные пользователю, которые попадут в генерацию документов.
+    """
     if not user:
-        return templates.TemplateResponse(request, "index.html", 
-                                          context={"title": "Главная страница",
-                                                   "message": "Для отображения календаря войдите или зарегистрируйтесь"})
-    today = date.today()
-    context = {
-        "request": request,
-        "title": "Главная страница",}
-    context["user"] = user
+        return templates.TemplateResponse(
+            request, "index.html",
+            context={
+                "title": "Главная страница",
+                "message": "Для отображения календаря войдите или зарегистрируйтесь",
+            },
+        )
+
+    case: Case | None = await case_service.get_case_for_documents(case_id)
+
+    if not case or case.id_user != user.id:
+        return templates.TemplateResponse(
+            request, "index.html",
+            context={"message": "Дело не найдено"},
+            status_code=404,
+        )
+
+    # Достаём должника и связанные данные с помощью метода text_helper
+    # context = text_helper.make_context(case)
+    ctx = ContextBuilder(case)
+    context: dict = ctx.base_context()
+    context["user"]=user
+    context["template"]= "requests"
+
+    try:
+        return templates.TemplateResponse(
+            request,
+            "documents/generate_form.html",
+            context
+        )
+    except (AttributeError, UndefinedError) as e:
+        return templates.TemplateResponse(
+            request, "documents/missing_data.html",
+            {
+                "user": user,
+                "title": "Ошибка данных",
+                "case_id": case_id,
+                "case_number": case.number_case,
+                "debtor": case.debtor,
+            },
+            status_code=500,
+        )
+    
+@router.post("/generate_documents/{case_id}", tags=["html_docs"], response_class=HTMLResponse)
+async def generate_documents(
+    request: Request,
+    case_id: int,
+    # form: GenerateFormData = Form(),
+    # template: str = Form(...),          # "requests" | "bank"
+    region_court: str = Form("Московской области"),
+    user: User = Depends(get_optional_user),
+    case_service: CaseService = Depends(get_case_service),
+    doc_service: DocumentService = Depends(get_document_service),
+):
+    print("генерация документа")
+    if not user:
+        return templates.TemplateResponse(
+            request, "index.html",
+            context={"message": "Необходимо авторизоваться"},
+            status_code=401,
+        )
+
+    # Собираем контекст
+    case: Case | None = await case_service.get_case_for_documents(case_id)
+    
+    if not case or case.id_user != user.id:
+        return templates.TemplateResponse(
+            request, "index.html",
+            context={"message": "Дело не найдено"},
+            status_code=404,
+        )
+    
+    context_builder = ContextBuilder(case)
+    context: dict = context_builder.build_requests_context()
+    context_bank = context_builder.build_bank_contexts()
+    context["user"]=user
+    context["template"]= "requests"
+    short_name = text_helper.get_short_name(context.get("debtor_full_name")) # создаем наименование файла
+    try:
+        try:
+            # Генерируется запрос в госорганы
+            paths_requests = await doc_service.generate_request_doc(
+                    context=context,
+                    short_name=short_name,
+                )
+        except Exception as e:
+                print("ошибка запросов в госорганы", e)
+        try:
+            # Генерируется запрос в банки
+            paths_banks = await doc_service.generate_banks_docs(
+                contexts=context_bank, 
+                short_name=short_name)
+
+        except Exception as e:
+            print("ошибка запросов в банк", e)
+
+    except Exception as e:
+        print("ошибка запросы сгенерирвоаны", e)
+        return templates.TemplateResponse(
+            request, "documents/generate_form.html",
+            {"user": user,
+            "title": f"Генерация документов — {case.number_case}",
+            "case_id": case_id,
+            "case": case,
+            "case_number": case.number_case,            
+            "debtor": case.debtor, "message": f"Ошибка генерации: {e}"},
+            status_code=500,
+        )
 
     return templates.TemplateResponse(
         request,
-        "/documents/generate_form.html",
+        "documents/generate_form.html",
         {
             "user": user,
-            "title": "Генерация запроса",
-
-            "form": {
-                
-                "request_date": today.isoformat(),
-                "date_for": today.isoformat(),
-                "region_court": "Московской области",
-                "template": "requests",
-            },
-        },
+            "title": f"Генерация документов — {case.number_case}",
+            "case_id": case_id,
+            "case": case,
+            "case_number": case.number_case,            
+            "debtor": case.debtor,
+        }
     )
 
-
+@router.get("/download/{subdir}/{filename}", tags=["html_docs"])
+async def download_document(
+    subdir: str,
+    filename: str,
+    user: User = Depends(get_optional_user),
+):
+    if not user:
+        return HTMLResponse("Необходимо авторизоваться", status_code=401)
+    # защита от path traversal
+    if ".." in subdir or ".." in filename or "/" in filename:
+        return HTMLResponse("Некорректный путь", status_code=400)
+    file_path = (OUTPUT_DIR / subdir / filename).resolve()
+    if not file_path.is_relative_to(OUTPUT_DIR.resolve()) or not file_path.exists():
+        return HTMLResponse("Файл не найден", status_code=404)
+    return FileResponse(
+        file_path,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        filename=filename,
+    )

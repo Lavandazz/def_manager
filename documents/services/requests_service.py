@@ -13,7 +13,7 @@ from schemas.case_schemas import Case
 from schemas.debtor import Debtor
 from mock_data.debtor import person_data
 from mock_data.case import case as case_data
-from utils.context_utils import text_helper
+from utils.helper import text_helper
 
 debtor = Debtor.model_validate(person_data)
 short_name = text_helper.get_short_name(debtor.name)
