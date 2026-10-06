@@ -148,8 +148,10 @@ async def debtor_edit_post(
 
     #  Достаём поля для банков через getlist ──
     form = await request.form()
+
     accounts, account_errors = _parse_accounts_from_form(form)
-    print("из формы ", accounts)
+    accounts, account_errors = _parse_accounts_from_form(form)
+  
     # 1. Собираем словарь — уже с нормальными типами
     data = {
         # скалярные поля
@@ -176,8 +178,7 @@ async def debtor_edit_post(
         "new_ra_flat": new_ra_flat.strip() or None,
         "accounts": accounts,
     }
-    print("полученный данные из редактирования:", data)
-    
+
     if account_errors:
         # вернуть форму с ошибками (нужны те же зависимости, что в GET)
         debtor_data = await debtor_service.get_debtor(user.id, debtor_id)
@@ -211,7 +212,6 @@ async def debtor_edit_post(
         banks = await bank_service.list_banks()
         regions = await region_service.list_regions()
         residential_addresses = await residential_service.list_addresses()
-        print("банки после ошибки :", banks)
         
         return templates.TemplateResponse(
             request,

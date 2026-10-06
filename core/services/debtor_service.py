@@ -60,7 +60,6 @@ class DebtorService:
 
         # 2. Регион рождения
         birth_mode = data.get("birth_region_mode")
-        print("1 ~~ birth_region_mode:", birth_mode)
 
         if birth_mode == "existing":
             debtor.birth_region_id = data.get("birth_region_id")
@@ -74,11 +73,9 @@ class DebtorService:
                     region_name=region_name,
                 )
                 debtor.birth_region_id = region.id
-            print("2 ~~ birth region created, id =", debtor.birth_region_id)
 
         # 3. Адрес прописки
         ra_mode = data.get("residential_address_mode")
-        print("3 ~~ residential_address_mode:", ra_mode)
 
         if ra_mode == "existing":
             new_id = data.get("residential_address_id")
@@ -110,9 +107,9 @@ class DebtorService:
                     flat=flat
                 )
                 debtor.residential_address_id = ra.id
-                print("5 ~~ address id =", debtor.residential_address_id)
 
         accounts_data = data.get("accounts") or []
+
         await self.account_service.sync_accounts(
             debtor_id=debtor.id,
             accounts_data=accounts_data,

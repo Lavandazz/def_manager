@@ -38,7 +38,8 @@
   </form>
 </div>
 
-{# ---------- Скрытие полей, не относящихся к физлицу ---------- #}<script>
+<script>
+{# ---------- Скрытие полей, не относящихся к физлицу ---------- #}
   (function () {
     /* ---------- Переключатель "существующий / новый" для региона рождения ---------- */
     function bindModeToggle(radioName, showSelector, hideSelector) {
@@ -64,7 +65,7 @@
     bindModeToggle("residential_address_mode",
                    "[data-ra-new]",
                    "[data-ra-existing]");
-    updateEmptyHint();
+
   })();
   
 </script>

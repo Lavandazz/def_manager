@@ -35,7 +35,6 @@ class AccountService:
             number = (item.get("number") or "").strip()
             bank_id = item.get("bank_id")
             bank_name = (item.get("bank_name") or "").strip()
-
             # полностью пустая строка — пропускаем
             if not number and not bank_id and not bank_name:
                 continue
