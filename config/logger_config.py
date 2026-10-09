@@ -3,6 +3,8 @@ import os
 
 from colorlog import ColoredFormatter
 
+from parser_app import efrsb_parser
+
 
 class BaseLogger:
     """ Базовый класс логгера """
@@ -98,6 +100,13 @@ class ParserLogger(BaseLogger):
         log_file = os.path.join(log_folder, "pars_logs.log")
         super().__init__(name="plw_logger", log_file=log_file)
 
+class ParserEFRSBLogger(BaseLogger):
+    def __init__(self):
+        log_folder = "logs"
+        os.makedirs(log_folder, exist_ok=True)
+        log_file = os.path.join(log_folder, "efrsb_logs.log")
+        super().__init__(name="efrsb_logger", log_file=log_file)
+
 class FastApiLogger(BaseLogger):
     def __init__(self):
         log_folder = "logs"
@@ -120,3 +129,4 @@ db_logger = DBLogger().get_logger()
 fastapi_logger = FastApiLogger().get_logger()
 parser_logger = ParserLogger().get_logger()
 task_logger = TaskLogger().get_logger()
+efrsb_logger = ParserEFRSBLogger().get_logger()

@@ -13,7 +13,7 @@ from celery_tasks.task_manager import parsing_task
 
 from config.db.models import User
 from config.logger_config import fastapi_logger
-from parser_app.parser_plw import run_playwright_parsing
+from parser_app.kad_parser import run_playwright_parsing
 
 
 templates = Jinja2Templates(directory="app/templates")
