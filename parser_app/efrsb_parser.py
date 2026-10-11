@@ -32,16 +32,20 @@ class ParserEFRSB:
         self.page = await self.setup_for_page(self.context) # type: ignore
         if self.page is None:
             raise RuntimeError(f"Не удалось открыть страницу для {self.person_name}")
+        # вызываем по-шаговый процесс парсинга 
+        await self.process_parsing()
 
-        await self._process_parsing()
-        await self.fill_fio()
-        await self.press_fio()
-        await self.get_text_data()
 
     async def _process_parsing(self):
         """ Основной процесс парсинга """
         # ждем появления поля ввода фамилии
         await self.wait_selector("#ctl00_cphBody_ArbitrManagerList1_tbLastName")
+        await self.fill_fio()
+        await self.get_text_data()
+        await self.get_sro_data()
+
+    async def process_parsing(self):
+        await self._process_parsing()
 
     async def wait_selector(self, selector: str):
         """Ожидание появления элемента на странице"""
@@ -89,17 +93,22 @@ class ParserEFRSB:
         except Exception as e:
             efrsb_logger.error(f"ОШИБКА при нажатии кнопки поиска: {e}")
 
-    async def _press_fio(self):
+    async def _press_link(self, link: str, name_link: str):
         try:
-            await self.page.click("a[title='Карточка арбитражного управляющего']")
+            await self.page.click(link)
         except Exception as e:
-            efrsb_logger.error(f"Не удалось нажать ссылку на ФИО: {e}")  
+            efrsb_logger.error(f" _press_link Не удалось нажать ссылку {name_link}: {e}")  
             await asyncio.sleep(3)
             await self.page.close()
 
-    async def press_fio(self):
-        await asyncio.sleep(3)
-        await self._press_fio()
+    async def press_link(self, link: str, name_link: str):
+        """
+        Нажатие на ссылку.
+        link: ссылка
+        name_link: наименование ссылки для отображение в логере
+        """
+        await asyncio.sleep(3.3)
+        await self._press_link(link, name_link)
 
     async def press_btn(self, selector: str | None = None):
         """ Нажатие кнопки """
@@ -157,7 +166,66 @@ class ParserEFRSB:
         efrsb_logger.debug(f"Получение даных с сайта {data}")
 
     async def get_text_data(self):
+        """
+        Получение данных о арбитражном управляющем
+        """
+        await self.press_link("a[title='Карточка арбитражного управляющего']", "fio_person")
         await self._get_person_data()
+
+    
+    async def _get_sro_data(self) -> dict:
+        """Сбор данных с карточки СРО."""
+        await self.page.wait_for_selector("#ctl00_cphBody_tblSroCardInfo", timeout=10000)
+
+        fields = {
+            "name":                         "#ctl00_cphBody_trName",
+            "reg_num":                      "#ctl00_cphBody_trRegNum",
+            "reg_date":                     "#ctl00_cphBody_trRegDate",
+            "inn":                          "#ctl00_cphBody_trInn",
+            "ogrn":                         "#ctl00_cphBody_trOgrn",
+            "ur_address_sro":               "#ctl00_cphBody_trUrAddressSro",
+            "ur_address_reestr":            "#ctl00_cphBody_trUrAddressReestr",
+            "phone":                        "#ctl00_cphBody_trPhone",
+            "email":                        "#ctl00_cphBody_trEmail",
+            "url":                          "#ctl00_cphBody_trUrl",
+            "comp_fund_size_sro":           "#ctl00_cphBody_trCompFundSizeSro",
+            "comp_fund_refresh_date_sro":   "#ctl00_cphBody_trCompFundRefreshDateSro",
+            "comp_fund_size_reestr":        "#ctl00_cphBody_trCompFundSizeReestr",
+            "comp_fund_refresh_date_reestr":"#ctl00_cphBody_trCompFundRefreshDateReestr",
+            "first_manager":                "#ctl00_cphBody_trFirstManager",
+            "arbitr_managers_count":        "#ctl00_cphBody_trArbitrManagersCount",
+        }
+
+        data = {}
+        for key, row_sel in fields.items():
+            cell = self.page.locator(f"{row_sel} td:last-child")
+            if await cell.count() == 0:          # строки нет — не ждём 30 сек
+                data[key] = None
+                continue
+            try:
+                data[key] = (await cell.inner_text(timeout=2000)).strip()
+            except Exception as e:
+                data[key] = None
+                efrsb_logger.error(f"Не удалось прочитать {key}: {e}")
+
+        # Ссылка на список управляющих — отдельно
+        try:
+            data["managers_list_url"] = await self.page.locator(
+                "#ctl00_cphBody_hlAuList"
+            ).get_attribute("href")
+        except Exception:
+            data["managers_list_url"] = None
+        efrsb_logger.debug(f"Получены данне о СРО: {data}")
+        return data        
+
+    async def get_sro_data(self) -> dict:
+        """
+        Получение данных о СРО
+        """
+        await self.press_link("#ctl00_cphBody_lnkSro", "sro")
+        await asyncio.sleep(4.6)
+        data = await self._get_sro_data()
+        return data
 
     def get_person_data(self) -> tuple[str, str, str]:
         """
