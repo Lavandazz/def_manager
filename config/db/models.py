@@ -268,3 +268,30 @@ class Account(Base):
 
     def __repr__(self) -> str:
         return f"<Account id={self.id!r}, number={self.number!r}>"
+
+
+
+class Sro(Base):
+    """Саморегулируемая организация арбитражных управляющих."""
+    __tablename__ = "sro"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    name: Mapped[str] = mapped_column(Text, nullable=False)          # Наименование
+    reg_num: Mapped[Optional[str]] = mapped_column(Text, nullable=True)     # Регистрационный номер
+    reg_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)   # Дата регистрации
+    inn: Mapped[Optional[str]] = mapped_column(Text, nullable=True)         # ИНН
+    ogrn: Mapped[Optional[str]] = mapped_column(Text, nullable=True)        # ОГРН
+    ur_address_sro: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Адрес (по данным СРО)
+    phone: Mapped[Optional[str]] = mapped_column(Text, nullable=True)       # Телефон/Факс
+    email: Mapped[Optional[str]] = mapped_column(Text, nullable=True)       # e-mail
+    url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)         # сайт
+
+    # Один SRO - много управляющих (User)
+    managers: Mapped[list["User"]] = relationship(back_populates="sro")
+
+    def __repr__(self) -> str:
+        return f"<Sro id={self.id}, name={self.name!r}, inn={self.inn!r}>"
+
+    def __str__(self) -> str:
+        return f"СРО {self.name} (ИНН {self.inn})"
