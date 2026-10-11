@@ -74,6 +74,23 @@ class User(Base):
     username: Mapped[str] = mapped_column(Text)
     telephone: Mapped[str] = mapped_column(Text, nullable=True)
     telegram_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=True)
+
+    #  Данные арбитражного управляющего (из карточки EFRSB) 
+    inn: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    snils: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    reg_num: Mapped[Optional[str]] = mapped_column(Text, nullable=True)      # Рег. номер в Росреестре
+    reg_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)    # Дата регистрации
+    date_begin: Mapped[Optional[date]] = mapped_column(Date, nullable=True)  # Дата вступления в СРО
+
+    #  Связь с СРО (многие User - один Sro) 
+    sro_id: Mapped[Optional[int]] = mapped_column(ForeignKey("sro.id"), nullable=True)
+    sro: Mapped[Optional["Sro"]] = relationship(back_populates="users") #  ссылается на Sro.users
+
+    #  Почтовый адрес для корреспонденции 
+    mail_address_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("mail_address.id"), nullable=True
+    )
+    mail_address: Mapped[Optional["MailAddress"]] = relationship()
     
     # связь с ролями через таблицу user_roles
     user_role: Mapped[Optional["UserRole"]] = relationship(back_populates="user")
@@ -278,7 +295,7 @@ class Sro(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     name: Mapped[str] = mapped_column(Text, nullable=False)          # Наименование
-    reg_num: Mapped[Optional[str]] = mapped_column(Text, nullable=True)     # Регистрационный номер
+    reg_num: Mapped[Optional[str]] = mapped_column(Text, nullable=True)     # Регистрационный номер как текст, тк номер начинается с нулей
     reg_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)   # Дата регистрации
     inn: Mapped[Optional[str]] = mapped_column(Text, nullable=True)         # ИНН
     ogrn: Mapped[Optional[str]] = mapped_column(Text, nullable=True)        # ОГРН
@@ -288,7 +305,7 @@ class Sro(Base):
     url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)         # сайт
 
     # Один SRO - много управляющих (User)
-    managers: Mapped[list["User"]] = relationship(back_populates="sro")
+    users: Mapped[list["User"]] = relationship(back_populates="sro") #  ссылается на User.sro
 
     def __repr__(self) -> str:
         return f"<Sro id={self.id}, name={self.name!r}, inn={self.inn!r}>"
