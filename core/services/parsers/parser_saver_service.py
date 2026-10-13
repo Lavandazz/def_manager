@@ -24,9 +24,6 @@ class ParserDataSaver:
     async def _get_id_case(self, case_number):
         return await self.case_service.get_case_by_number(case_number)
 
-    async def update_link(self, case_number, link):
-        return await self.case_service.update_case(case_number=case_number, attr={"link": link})
-
     async def save_court_data(self, court_name, case_number, date_court, time_court, hall_court):
         court = await self.court_service.get_or_create_court(court_name) # получаем или сохраняем наименование суда
         case = await self._get_id_case(case_number)

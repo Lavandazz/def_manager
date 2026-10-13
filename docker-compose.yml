@@ -24,11 +24,14 @@ services:
   celery-beat:
     build: .
     command: celery -A config.tasks_config beat --loglevel=info
+    # volumes:
+    #   - .:/app 
     depends_on:
       redis:
         condition: service_healthy
     env_file:
       - .env
+      - .env_mail
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -38,14 +41,15 @@ services:
 
   celery-worker-parsing:
     build: .
-    volumes:
-      - .:/app   # монтируем текущую папку в /app внутри контейнера
+    # volumes:
+    #   - .:/app   # монтируем текущую папку в /app внутри контейнера
     command: celery -A config.tasks_config worker -Q parsing --concurrency=1 --hostname=worker-parsing@%h
     depends_on:
       redis:
         condition: service_healthy
     env_file:
       - .env
+      - .env_mail
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -55,7 +59,27 @@ services:
 
   celery-worker-messages:
     build: .
+    # volumes:
+    #   - .:/app 
     command: celery -A config.tasks_config worker -Q messages --concurrency=2 -n=worker-messages@%h
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+      - .env_mail
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - PYTHONPATH=/app
+    restart: always
+
+  celery-worker-parsing-efrsb:
+    build: .
+    volumes:
+      - .:/app
+    command: celery -A config.tasks_config worker -Q parsing_efrsb --concurrency=1 --hostname=worker-efrsb@%h
     depends_on:
       redis:
         condition: service_healthy
@@ -70,6 +94,8 @@ services:
 
   celery-flower:
     build: .
+    # volumes:
+    #   - .:/app 
     command: celery -A config.tasks_config flower --port=5555
     ports:
       - "5555:5555"
@@ -78,6 +104,7 @@ services:
         condition: service_healthy
     env_file:
       - .env
+      - .env_mail
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379

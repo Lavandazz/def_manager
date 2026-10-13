@@ -14,7 +14,7 @@ from config.db.db_config import get_db
 from config.logger_config import parser_logger
 
 from config.schemas.court_schema import CourtSessionSchema
-from core.services.parser_saver_service import ParserDataSaver
+from core.services.parsers.parser_saver_service import ParserDataSaver
 from parser_app.dependency import create_parser_data_saver
 from parser_app.utils.helpers import TextHepler
 from parser_app.utils.sleep import random_sleep_for_search, random_sleep, random_start_sleep
@@ -38,7 +38,7 @@ class ParserKad:
         """ Открытие страницы """
         page = await context.new_page()
         try:
-            await page.goto (self.url, timeout=10000)
+            await page.goto(self.url, timeout=15000, wait_until="domcontentloaded")
             # user_agent = await page.evaluate("() => navigator.userAgent")
             return page
         
@@ -46,15 +46,30 @@ class ParserKad:
             # Когда браузер открывает страницу, но не может закрыть всплывающее окно,
             # возникает ошибка TimeoutError: Timeout 10000ms exceeded.
             # Чтобы не прерывать работу парсера, мы перезагружаем страницу и продолжаем работу.
-            parser_logger.error("Не удалось открыть страницу; Дело № %s: Ошибка %s", self.case_number, e)
-            # await page.close()
-            await page.reload()
+            parser_logger.warning("Не удалось открыть страницу; Дело № %s: Ошибка %s", self.case_number, e)
+
+            try:
+                parser_logger.debug(f"Еще перезагрузка : {self.case_number}")
+                await page.reload(timeout=10000, wait_until="domcontentloaded")
+                # await page.reload()
+
+                await page.wait_for_selector('input[placeholder="например, А50-5568/08"]', timeout=15000)
+                print("дождался жлемента")
+
+            except Exception as e2:
+                # сли страница не готова, закрываем парсер и страницу
+                parser_logger.error("Reload тоже не удался: %s", e2)
+                await page.close()
+                return None 
+            
             return page
 
     async def run(self):
         """ Запуск парсера """
         self.page = await self.setup_for_page(self.context) # type: ignore
         if self.page is None:
+            parser_logger.error(f"Ошибка RuntimeError: {self.case_number}")
+             
             raise RuntimeError(f"Не удалось открыть страницу для {self.case_number}")
     
         await self.run_full_path()

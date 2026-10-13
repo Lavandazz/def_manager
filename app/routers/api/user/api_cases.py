@@ -6,7 +6,7 @@ from core.services.case_service import CaseService
 from app.utils.dependensy import get_case_service, get_verify_user
 from config.db.models import User, Case
 from config.logger_config import profile_logger
-from config.schemas.user_schemas import CaseResponseSchema, CaseSchema
+from config.schemas.user_schemas import CaseSchema
 
 
 router = APIRouter()

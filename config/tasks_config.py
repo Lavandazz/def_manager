@@ -49,9 +49,12 @@ app = Celery(
 # Автоматически находим задачи в модулях внутри пакета celery_tasks
 app.autodiscover_tasks(['celery_tasks'], related_name='task_manager')
 
+# Распределяем задачи по очередям
+# Слева название задачи, справа сама очередь
 app.conf.task_routes = {
     'celery_tasks.task_manager.send_verification_email': {'queue': 'messages'},
-    'celery_tasks.task_manager.start_parsing':           {'queue': 'parsing'},
+    # 'celery_tasks.task_manager.start_parsing':           {'queue': 'parsing'},
+    'celery_tasks.task_manager.start_efrsb_parsing':           {'queue': 'parsing_efrsb'}
 }
 
 app.conf.beat_schedule = {

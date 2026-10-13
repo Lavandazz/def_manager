@@ -78,7 +78,7 @@ class AbstractUserRepository(ABC):
     Абстрактный класс для патерна Репозиторий.
     """
     @abstractmethod
-    async def create_user(self, user: User):
+    async def create_user(self, user: User) -> User | None:
         pass
 
     @abstractmethod

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from celery_tasks.task_manager import send_verification_email
+from celery_tasks.task_manager import send_verification_email, start_efrsb_parsing
 from core.services.redis_service import RedisService
 from core.services.user_service import UserService
 from app.utils.dependensy import get_optional_user, get_redis_service, get_user_service
@@ -278,9 +278,20 @@ async def verify_user(
     )
 
     # Сохраняем в бд
-    await user_service.create_user(user_data=user)  # сохраняем пользователя в базе данных
-
+    user = await user_service.create_user(user_data=user)  # сохраняем пользователя в базе данных
+    if user is None:
+        return templates.TemplateResponse(
+            request, "user/verify_email.html",
+            {"email": email, "message": "Ошибка регистрации. Попробуйте позже."},
+        )
+    print("Пользователь создан в базе данных", user, user.username, user.email, user.telegram_id)
     profile_logger.info("Зарегистрирован новый пользователь")
+
+    # В этом месте необходимо запустить парсер ЕФРСБ для получения данных о СРО и сохранения их в базу данных.
+    # Создаем экземпляр ParserSroDataSaver и передаем его в ParserEFRSB
+    start_efrsb_parsing.delay(user_id=user.id, person_name=user.username)  # запускаем Celery задачу для парсинга ЕФРСБ
+
+
 
     context = {
         "title": "Страница входа",

@@ -71,5 +71,15 @@ class TextHelper:
                                                 debtor.residential_address.address.building if debtor.residential_address.address.building else ""
         } {f"кв.{debtor.residential_address.flat}" if debtor.residential_address.flat else ""}"""
 
+
+    @staticmethod
+    def return_date(date_str: str) -> date:
+        """
+        Преобразует строку в объект datetime.date
+        :param date_str: строка с датой в формате "дд.мм.гггг"
+        :return: объект datetime.date
+        """
+        day, month, year = map(int, date_str.split('.'))
+        return date(year, month, day)
     
 text_helper = TextHelper()

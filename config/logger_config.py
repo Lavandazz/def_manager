@@ -3,8 +3,6 @@ import os
 
 from colorlog import ColoredFormatter
 
-from parser_app import efrsb_parser
-
 
 class BaseLogger:
     """ Базовый класс логгера """

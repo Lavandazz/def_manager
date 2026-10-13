@@ -84,11 +84,12 @@ async def add_case(
     id_user=user.id
     )
     case = await case_service.add_case(new_case)
+    
     # Создается таска для парсинга дела
 
     task = parsing_task.delay(case_number=number_case)
-
-    print("Дело успешно добавлено","Запускаю парсинг по делу %s", number_case, task)
+    
+    print("Дело успешно добавлено","Запускаю парсинг по делу ", number_case, task)
 
     context = {"message":"Дело успешно добавлено",
                "user": user}

@@ -1,14 +1,20 @@
 import asyncio
 
 from playwright.async_api import async_playwright, Page
-from config.logger_config import efrsb_logger
+from config.db.db_config import get_db
 
+from core.services.parsers.parser_sro_service import ParserSroDataSaver
+from parser_app.dependency import create_parser_sro_data_saver
+from config.logger_config import efrsb_logger
+from parser_app.utils.helpers import TextHepler
 
 class ParserEFRSB:
-    def __init__(self, url: str, person_name: str):
+    def __init__(self, url: str, person_name: str, user_id: int, data_saver: ParserSroDataSaver):
         self.url = url
         self.person_name = person_name
-        self.page: Page = None
+        self.user_id = user_id
+        self.data_saver = data_saver
+        self.page: Page = None # type: ignore
 
     async def setup_for_page(self, context):
         """ Открытие страницы """
@@ -22,7 +28,7 @@ class ParserEFRSB:
             # Когда браузер открывает страницу, но не может закрыть всплывающее окно,
             # возникает ошибка TimeoutError: Timeout 10000ms exceeded.
             # Чтобы не прерывать работу парсера, мы перезагружаем страницу и продолжаем работу.
-            efrsb_logger.exception("Не удалось открыть страницу; ", e)
+            print("Не удалось открыть страницу; ", e)
             # await page.close()
             await page.reload()
             return page
@@ -41,8 +47,12 @@ class ParserEFRSB:
         # ждем появления поля ввода фамилии
         await self.wait_selector("#ctl00_cphBody_ArbitrManagerList1_tbLastName")
         await self.fill_fio()
-        await self.get_text_data()
-        await self.get_sro_data()
+        # Получаем и сохраняем данные пользователя
+        user_data = await self.get_text_data()
+        await self.update_user_data(user_data)
+        # Получаем и сохраняем данные СРО
+        sro_data = await self.get_sro_data()
+        await self.save_user_sro_data(sro_data)
 
     async def process_parsing(self):
         await self._process_parsing()
@@ -123,29 +133,28 @@ class ParserEFRSB:
                 efrsb_logger.error(f"Не удалось нажать кнопку {selector}: {e}")
 
     async def fill_fio(self):
-        surname, name, patronymic = self.get_person_data()
+        """
+        Заполнение полей на портале (ФИО)
+        """
+        surname, name, patronymic = TextHepler.get_person_data(self.person_name)
         await self._fill_surname(surname)
         await self._fill_name(name)
         await self._fill_patronymic(patronymic)
         await self.press_btn()
 
 
-    async def _get_person_data(self):
+    async def _get_person_data(self) -> dict:
         """
         Парсинг блока с информацией об управляющем
         """
         await asyncio.sleep(5.5)
         
         fields = {
-            "last_name":  "#ctl00_cphBody_trLastName",
-            "first_name": "#ctl00_cphBody_trFirstName",
-            "middle_name":"#ctl00_cphBody_trMiddleName",
             "inn":        "#ctl00_cphBody_trInn",
             "snils":      "#ctl00_cphBody_trSnils",
             "reg_num":    "#ctl00_cphBody_trRegNumFrs",
             "reg_date":   "#ctl00_cphBody_trRegDate",
             "date_begin": "#ctl00_cphBody_trDateBegin",
-
         }
         data = {}
         for key, loc in fields.items():
@@ -164,13 +173,17 @@ class ParserEFRSB:
             data["sro_name"] = None
 
         efrsb_logger.debug(f"Получение даных с сайта {data}")
+        return data
 
-    async def get_text_data(self):
+    async def get_text_data(self) -> dict:
         """
         Получение данных о арбитражном управляющем
         """
         await self.press_link("a[title='Карточка арбитражного управляющего']", "fio_person")
-        await self._get_person_data()
+        return await self._get_person_data()
+
+    async def update_user_data(self, data: dict):
+        await self.data_saver.save_user_data(user_id=self.user_id, user_data=data)
 
     
     async def _get_sro_data(self) -> dict:
@@ -184,16 +197,9 @@ class ParserEFRSB:
             "inn":                          "#ctl00_cphBody_trInn",
             "ogrn":                         "#ctl00_cphBody_trOgrn",
             "ur_address_sro":               "#ctl00_cphBody_trUrAddressSro",
-            "ur_address_reestr":            "#ctl00_cphBody_trUrAddressReestr",
             "phone":                        "#ctl00_cphBody_trPhone",
             "email":                        "#ctl00_cphBody_trEmail",
             "url":                          "#ctl00_cphBody_trUrl",
-            "comp_fund_size_sro":           "#ctl00_cphBody_trCompFundSizeSro",
-            "comp_fund_refresh_date_sro":   "#ctl00_cphBody_trCompFundRefreshDateSro",
-            "comp_fund_size_reestr":        "#ctl00_cphBody_trCompFundSizeReestr",
-            "comp_fund_refresh_date_reestr":"#ctl00_cphBody_trCompFundRefreshDateReestr",
-            "first_manager":                "#ctl00_cphBody_trFirstManager",
-            "arbitr_managers_count":        "#ctl00_cphBody_trArbitrManagersCount",
         }
 
         data = {}
@@ -216,6 +222,7 @@ class ParserEFRSB:
         except Exception:
             data["managers_list_url"] = None
         efrsb_logger.debug(f"Получены данне о СРО: {data}")
+
         return data        
 
     async def get_sro_data(self) -> dict:
@@ -227,16 +234,15 @@ class ParserEFRSB:
         data = await self._get_sro_data()
         return data
 
-    def get_person_data(self) -> tuple[str, str, str]:
+
+    async def save_user_sro_data(self, sro_data: dict):
         """
-        :return: tuple[str, str, str] - Фамилия, Имя, Отчество
+        Сохранение данных о СРО в базу данных и пользователя
         """
-        name_parts = self.person_name.split(" ")
-        return name_parts[0], name_parts[1], name_parts[2]
+        return await self.data_saver.save_user_sro_data(sro_data, self.user_id)
 
 
-
-async def process_parsing(browser, person_name: str):
+async def process_parsing(browser, person_name: str, user_id: int, data_saver: ParserSroDataSaver):
     """ Запуск парсинга """
     context = await browser.new_context(
         viewport=None,  # Использовать размер экрана по умолчанию (как у обычного браузера)
@@ -244,7 +250,9 @@ async def process_parsing(browser, person_name: str):
     )
     parser = ParserEFRSB(
         url='https://old.bankrot.fedresurs.ru/ArbitrManagersList.aspx', 
-        person_name=person_name
+        person_name=person_name,
+        user_id=user_id,
+        data_saver=data_saver,
         )
     parser.context = context  # передаем context внутрь парсера
     await parser.run()  # запуск парсера
@@ -252,7 +260,7 @@ async def process_parsing(browser, person_name: str):
     await context.close()
 
 
-async def run_playwright_parsing(person_name: str):
+async def run_efrsb_parsing(user_id: int, person_name: str):
     """Обертка для запуска парсера из внешнего кода"""
     browser = None
     try:
@@ -271,13 +279,18 @@ async def run_playwright_parsing(person_name: str):
                 chromium_sandbox=False,
                 ignore_default_args=["--enable-automation"],  # Отключаем automation флаг
             )
+            async for uow in get_db(): 
+                # async for получает первый и единственный uow
+                # открывает сессию
+                try:
+                    data_saver = create_parser_sro_data_saver(uow.session)
+                    await process_parsing(browser, person_name, user_id, data_saver)
+                finally:
+                    # pass для избежания ошибки с Pylance 
+                    # Python запрещает использовать break, continue или return внутри блока finally в async for
+                    pass
+                break   # выполняется после finally и закрывает соединение
 
-            try:
-                await process_parsing(browser=browser, person_name=person_name)
-            finally:
-                # pass для избежания ошибки с Pylance 
-                # Python запрещает использовать break, continue или return внутри блока finally в async for
-                pass
     finally:
         if browser:
             await browser.close()

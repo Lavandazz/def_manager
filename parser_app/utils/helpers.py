@@ -68,6 +68,15 @@ class TextHepler:
                 return True
 
 
+    @staticmethod
+    def get_person_data(person_name) -> tuple[str, str, str]:
+        """
+        :return: tuple[str, str, str] - Фамилия, Имя, Отчество
+        """
+        name_parts = person_name.split(" ")
+        return name_parts[0], name_parts[1], name_parts[2]
+
+
 
 def check_date(date_of_court: date) -> bool:
     """Проверка даты + 2 месяца"""

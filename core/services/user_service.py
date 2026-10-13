@@ -1,11 +1,8 @@
 
-import email
-
 from app.utils.auth.password_hasher import PasswordHasher
 from config.db.models import User
-from config.schemas.user_schemas import UserPasswordSchema, UserRegistration, UserSchema, UserUpdateSchema
-from core.services.redis_service import RedisService
-
+from config.schemas.user_schemas import UserEfrsbSchema, UserPasswordSchema, UserRegistration, UserSroUpdateSchema,  UserUpdateSchema
+from config.logger_config import db_logger
 
 class UserService:
 
@@ -22,7 +19,7 @@ class UserService:
                 hashed_password=user_data.password,
                 telegram_id=user_data.telegram_id
             )
-        await self.repository.create_user(new_user)
+        return await self.repository.create_user(new_user)
 
 
     async def get_user(self, telegram_id=None, email=None) -> User | None:
@@ -78,12 +75,21 @@ class UserService:
         await self.set_password(user, new_password)
         return True
 
-    async def update_user(self, user: User, user_data: UserUpdateSchema):
+    async def update_user(self, user: User, user_data: UserUpdateSchema|UserEfrsbSchema):
         """
         Изменение данных ползователей
         """
-        print("ЮЗЕР ДАТА", user_data)
+        db_logger.debug(f"Обновление данных пользователя user_data: {user_data}")
         return await self.repository.update_user(user, user_data)
+
+
+    async def attach_user_to_sro(self, user_id: int, sro_id: int) -> bool:
+        """Связь пользователя и СРО """
+        user = await self.repository.get_user(id=user_id)
+        if user is None:
+            return False
+        return await self.repository.update_user(user, UserSroUpdateSchema(sro_id=sro_id))
+
 
     async def delete_user(self, email):
         """

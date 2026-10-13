@@ -44,6 +44,16 @@ def send_verification_email(self, email: str, code: str):
         self.retry(exc=exc)
         
 
-@app.task(queue="parsing")
-def start_parsing(self):
-    pass
+@app.task(bind=True, max_retries=2, default_retry_delay=60, queue="parsing")
+def start_efrsb_parsing(self, user_id: int, person_name: str):
+    from parser_app.efrsb_parser import run_efrsb_parsing
+    try:
+        # запуск асинхронной функции внутри синхронного контекста Celery
+        print(f"Запуск задачи парсинга для дела {person_name}")
+        asyncio.run(run_efrsb_parsing(user_id, person_name))
+        print(f"Задача парсинга для дела {person_name} успешно завершена")
+        return True
+    
+    except Exception as exc:
+        print(f"Ошибка при выполнении задачи парсинга для дела {person_name}: {exc}")
+        self.retry(exc=exc)
