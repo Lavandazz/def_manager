@@ -36,7 +36,7 @@ class AuthService:
         
         return user
     
-    async def get_user_from_cookie(self, request: Request) -> User:
+    async def get_user_from_cookie(self, request: Request) -> User | None:
         """
         Метод для получения текущего пользователя по токену из cookie.
         Извлекает токен из cookie, проверяет его и возвращает пользователя.
@@ -47,4 +47,7 @@ class AuthService:
             print(401, "Токен не найден в cookie")
             return None
         
-        return await self.get_current_user(token)
+        try:
+            return await self.get_current_user(token)
+        except HTTPException:
+                return None

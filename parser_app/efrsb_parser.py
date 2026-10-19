@@ -1,8 +1,10 @@
 import asyncio
 
-from playwright.async_api import async_playwright, Page
+from patchright.async_api import async_playwright, Page
+
 from config.db.db_config import get_db
 
+from config.settings_folders import BASE_FOLDER
 from core.services.parsers.parser_sro_service import ParserSroDataSaver
 from parser_app.dependency import create_parser_sro_data_saver
 from config.logger_config import efrsb_logger
@@ -39,8 +41,25 @@ class ParserEFRSB:
         if self.page is None:
             raise RuntimeError(f"Не удалось открыть страницу для {self.person_name}")
         # вызываем по-шаговый процесс парсинга 
+        await self._check_page()
+
         await self.process_parsing()
 
+    async def _check_page(self):
+        await asyncio.sleep(4.5)
+        print("URL:", self.page.url)
+        print("Title:", await self.page.title())
+        print("HTML head:", (await self.page.content())[:2000])
+        await self.page.screenshot(path=f"{BASE_FOLDER}/screen/efrsb_after_goto.png", full_page=True)
+        html = await self.page.content()
+        print("HTML length:", len(html))
+        with open(f"{BASE_FOLDER}/screen/html/efrsb.html", "w", encoding="utf-8") as f:
+            f.write(html)
+            print(f"HTML сохранен в {BASE_FOLDER}/screen/html/efrsb.html")
+        await asyncio.sleep(4.5)
+        print("Закрываю страницу")
+        await self.page.close() 
+        
 
     async def _process_parsing(self):
         """ Основной процесс парсинга """
@@ -245,8 +264,9 @@ class ParserEFRSB:
 async def process_parsing(browser, person_name: str, user_id: int, data_saver: ParserSroDataSaver):
     """ Запуск парсинга """
     context = await browser.new_context(
+        locale='ru-RU',
         viewport=None,  # Использовать размер экрана по умолчанию (как у обычного браузера)
-        # user_agent=ua  # используем рандомный агент
+        user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"  # используем рандомный агент
     )
     parser = ParserEFRSB(
         url='https://old.bankrot.fedresurs.ru/ArbitrManagersList.aspx', 
@@ -264,8 +284,9 @@ async def run_efrsb_parsing(user_id: int, person_name: str):
     """Обертка для запуска парсера из внешнего кода"""
     browser = None
     try:
-        async with async_playwright() as playwright:
-            browser = await playwright.chromium.launch(
+
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
                 headless=False,  # True для безголового режима, False для визуального
                 args=[
                     "--start-maximized",  # Окно на весь экран

@@ -44,7 +44,7 @@ def send_verification_email(self, email: str, code: str):
         self.retry(exc=exc)
         
 
-@app.task(bind=True, max_retries=2, default_retry_delay=60, queue="parsing")
+@app.task(bind=True, max_retries=2, default_retry_delay=60, queue="parsing_efrsb")
 def start_efrsb_parsing(self, user_id: int, person_name: str):
     from parser_app.efrsb_parser import run_efrsb_parsing
     try:

@@ -7,7 +7,7 @@ from colorlog import ColoredFormatter
 class BaseLogger:
     """ Базовый класс логгера """
 
-    def __init__(self, name: str, log_file: str, logging_level=logging.INFO):
+    def __init__(self, name: str, log_file: str, logging_level=logging.DEBUG):
         self.name = name
         self.log_file = log_file
         self.logger = logging.getLogger(name)
@@ -110,7 +110,7 @@ class FastApiLogger(BaseLogger):
         log_folder = "logs"
         os.makedirs(log_folder, exist_ok=True)
         log_file = os.path.join(log_folder, "pstp_logs.log")
-        super().__init__(name="fstp_logger", log_file=log_file)
+        super().__init__(name="fstp_logger", log_file=log_file, logging_level=logging.DEBUG)
 
 
 class TaskLogger(BaseLogger):

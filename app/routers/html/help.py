@@ -17,8 +17,9 @@ async def help_index(
     context = {
         "request": request,
         "title": "Инструкция пользователя",}
-    
-    context["user"] = user
+    if  user:
+        print("пользователь")
+        context["user"] = user
 
     return templates.TemplateResponse(
         request,
@@ -35,8 +36,10 @@ async def help_portal(
         "request": request,
         "title": "Руководство пользователя",}
     
-    context["user"] = user
-    
+    if  user:
+        print("пользователь есть")
+        context["user"] = user
+    print("пользователя нет")
     return templates.TemplateResponse(
         request,
         "documentation/portal.html",

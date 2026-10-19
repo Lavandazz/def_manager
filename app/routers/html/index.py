@@ -1,10 +1,8 @@
-import json
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.utils.caches_data import get_cases_from_cache, save_cases_to_cache
-from config.redis_config import redis_client
 from config.schemas.case_schemas import CaseSchema
 from core.services.case_service import CaseService
 from core.services.user_service import UserService
@@ -32,6 +30,7 @@ async def main_page(
         "title": "Главная страница",}
     
     if not user:
+        print("главная страница, нет пользователя")
         return templates.TemplateResponse(request, "index.html", context)
 
     cases = await get_cases_from_cache(user_id=user.id) # получение кэша

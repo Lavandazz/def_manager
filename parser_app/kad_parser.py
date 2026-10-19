@@ -4,11 +4,9 @@ python -m parser.parser_plw
 """
 import asyncio
 from datetime import datetime
-from math import e
 
 from httpx import TimeoutException
-from parso.cache import try_to_save_module
-from playwright.async_api import async_playwright, Page, BrowserContext, expect
+from patchright.async_api import async_playwright, Page, BrowserContext, expect
 
 from config.db.db_config import get_db
 from config.logger_config import parser_logger
@@ -356,7 +354,7 @@ class ParserKad:
 
                         return False # продолжаем парсинг
                 
-                 # Если цикл закончился и строка не найдена
+            # Если цикл закончился и строка не найдена
             parser_logger.info("Текста 'Следующее заседание' - нет. Закрываю дело.",
                            extra={
                                "case_number": self.case_number,

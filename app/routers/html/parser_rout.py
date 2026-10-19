@@ -3,8 +3,6 @@
 В проде использоваться не будет
 """
 
-import asyncio
-
 from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
 
@@ -34,10 +32,11 @@ async def start_efrsb_parsing_from_button(request: Request,
         # fastapi_logger.debug(f"Запускаю парсинг {user.username}, task: {task}, {task.id}")
 
         # Запуск парсинга для отладки без задачи
+        fastapi_logger.debug(f"===== Пользователь {user.username} запускает задачу celery")
+        # await run_efrsb_parsing(user_id=user.id,person_name=user.username)
+        start_efrsb_parsing.delay(user_id=user.id, person_name=user.username)  # запускаем Celery задачу для парсинга ЕФРСБ
 
-        await run_efrsb_parsing(user_id=user.id,person_name=user.username)
-        # await run_efrsb_parsing(user_id=user.id, person_name="Сатышев Михаил Николаевич")
-        fastapi_logger.debug(f"Запускаю парсинг {user.username}")
+        # fastapi_logger.debug(f"Запускаю парсинг {user.username}")
         
         context = {
             "user": user,

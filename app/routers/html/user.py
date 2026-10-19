@@ -289,6 +289,7 @@ async def verify_user(
 
     # В этом месте необходимо запустить парсер ЕФРСБ для получения данных о СРО и сохранения их в базу данных.
     # Создаем экземпляр ParserSroDataSaver и передаем его в ParserEFRSB
+    
     start_efrsb_parsing.delay(user_id=user.id, person_name=user.username)  # запускаем Celery задачу для парсинга ЕФРСБ
 
 
