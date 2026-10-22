@@ -1,3 +1,5 @@
+import asyncio
+
 from click.core import V
 from fastapi import APIRouter, Depends, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -11,6 +13,7 @@ from app.utils.auth.password_hasher import PasswordHasher
 from config.db.models import User
 from config.schemas.user_schemas import UserRegistration, UserUpdateSchema
 from config.logger_config import profile_logger
+from parser_app.efrsb_parser import run_efrsb_parsing
 from utils.exceptions import VerificationCodeAlreadySent
 
 
@@ -290,9 +293,9 @@ async def verify_user(
     # В этом месте необходимо запустить парсер ЕФРСБ для получения данных о СРО и сохранения их в базу данных.
     # Создаем экземпляр ParserSroDataSaver и передаем его в ParserEFRSB
     
-    start_efrsb_parsing.delay(user_id=user.id, person_name=user.username)  # запускаем Celery задачу для парсинга ЕФРСБ
+    # start_efrsb_parsing.delay(user_id=user.id, person_name=user.username)  # запускаем Celery задачу для парсинга ЕФРСБ
 
-
+    # asyncio.run(run_efrsb_parsing(user_id=user.id, person_name=user.username))
 
     context = {
         "title": "Страница входа",

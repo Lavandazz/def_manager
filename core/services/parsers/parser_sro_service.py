@@ -19,9 +19,10 @@ class ParserSroDataSaver:
 
     async def save_user_data(self, user_id: int, user_data: dict) -> User:
         user = await self.user_service.get_user_by_id(user_id=user_id)  
+        efrsb_logger.debug(f"Получил пользователя по айди {user}")
         if user is None:
         # либо исключение
-            raise ValueError(f"Пользователь с id={user_id} не найден")
+            efrsb_logger.debug(f"Пользователь с id={user_id} не найден в ParserSroDataSaver.save_user_data")
         # Приводим  dict к Pydantic-схеме
         parsed = UserEfrsbSchema(
             inn=user_data.get("inn"),
@@ -30,7 +31,7 @@ class ParserSroDataSaver:
             reg_date=text_helper.return_date(user_data.get("reg_date") or ""),
             date_begin=text_helper.return_date(user_data.get("date_begin") or ""),
         )
-
+        efrsb_logger.debug(f"Обновление данных пользователя: {parsed}")
         # Обновляем данные пользователя
         return await self.user_service.update_user(user=user, user_data=parsed)
 
@@ -52,6 +53,7 @@ class ParserSroDataSaver:
 
     async def save_sro_to_user(self, sro: Sro, user_id: int) -> bool :
         user = await self.user_service.get_user_by_id(user_id=user_id)
+        efrsb_logger.debug(f"Получил пользователя по айди в save_sro_to_user: {user}")
         if not user:
             efrsb_logger.error(f"Ошибка: пользователь с id {user_id} не найден")
             return False

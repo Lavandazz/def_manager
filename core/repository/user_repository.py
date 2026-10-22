@@ -47,7 +47,7 @@ class UserAlchemyRepository(AbstractUserRepository):
                 db_logger.debug("Поиск пользователя по ID: %s", id)
                 result = await self.session.execute(select(User).where(User.id == id))
                 user = result.scalar_one_or_none()
-                db_logger.debug("Пользователь по ID: %s", user)
+                db_logger.debug(f"Пользователь по ID: {id}, {user.username}")
                 return user
             
         except Exception as e:

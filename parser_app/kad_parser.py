@@ -12,18 +12,26 @@ from config.db.db_config import get_db
 from config.logger_config import parser_logger
 
 from config.schemas.court_schema import CourtSessionSchema
+from config.settings_folders import BASE_FOLDER
 from core.services.parsers.parser_saver_service import ParserDataSaver
 from parser_app.dependency import create_parser_data_saver
 from parser_app.utils.helpers import TextHepler
 from parser_app.utils.sleep import random_sleep_for_search, random_sleep, random_start_sleep
 
+SCREEN_PATH = BASE_FOLDER.cwd() / "screens" / "screens_kad"
+
+if not SCREEN_PATH.exists():
+    SCREEN_PATH.mkdir(parents=True, exist_ok=True)
 
 class ParserKad:
     def __init__(self, url: str, case_number: str, data_saver: ParserDataSaver):
-        # self.browser = self.setup_browser()
         """
         :param url: полный url адрес
         :param case_number: номер дела, например А52-542198
+        :param data_saver: класс для работы с БД для сохранения полученных данных
+        :param page: главная страница
+        :param new_page: страница для парсинга дела
+        :param context: context настройки браузера
         """
         self.url: str = url
         self.case_number: str = case_number
@@ -44,7 +52,7 @@ class ParserKad:
             # Когда браузер открывает страницу, но не может закрыть всплывающее окно,
             # возникает ошибка TimeoutError: Timeout 10000ms exceeded.
             # Чтобы не прерывать работу парсера, мы перезагружаем страницу и продолжаем работу.
-            parser_logger.warning("Не удалось открыть страницу; Дело № %s: Ошибка %s", self.case_number, e)
+            parser_logger.warning(f"Не удалось открыть страницу; Дело № {self.case_number}: Ошибка {e}")
 
             try:
                 parser_logger.debug(f"Еще перезагрузка : {self.case_number}")
@@ -63,7 +71,7 @@ class ParserKad:
             return page
 
     async def run(self):
-        """ Запуск парсера """
+        """ Настройки страницы и запуск парсера """
         self.page = await self.setup_for_page(self.context) # type: ignore
         if self.page is None:
             parser_logger.error(f"Ошибка RuntimeError: {self.case_number}")
@@ -73,29 +81,37 @@ class ParserKad:
         await self.run_full_path()
 
     async def run_full_path(self):
-        """ Полный путь через главную страницу """
+        """ 
+        Полный путь парсинга:
+        :promo_notification_popup_close: Закрытие всплывающего окна. Если не получилось закрыть, то происходит reload страницы без окна.
+        :enter_case_number: Ввод номера дела в окно ввода.
+        :check_page: Проверка страницы на текст 'Нет результатов', если текст есть, значит введено не верное дело - происходит закрытие парсера.
+        :click_link_case: Клик по ссылке номера дела, установка self.new_page - как новая страница.
+        :if not self.new_page: проверка существования новой страницы, либо закрытие парсера.
+        :search_and_save_date_case: Получение даты решения дела в суде и сохранение в бд.
+        :search_red_calendar: Поиск текста 'Следующее заседание' и раскрытие данных нажатием на +, если текста нет - дело считается не активным и закрывается браузер
+        :click_online_case: Поиск кнопки 'Электронное дело' и переход к парсингу ответов от суда. 
+        :parse_mod: Сбор информации об ответах от судов. (Дата ответа, наименование суда, наименование документа)
+        :close_page: Закрытие парсера.
+        """
         await self.promo_notification_popup_close()
         await self.enter_case_number()
         if await self.check_page():
             return
-        # получаем дату решения дела в суде и сохраняем в бд
-        await self.search_and_save_date_case()
 
-        await self.click_link_case()
-        # Если не удалось перейти на новую страницу – завершаем и закрываем парсер
-        if not self.new_page:
+        await self.click_link_case() # Клик по ссылке номера дела, установка self.new_page - как новая страница
+
+        if not self.new_page:        # Если не удалось перейти на новую страницу – завершаем и закрываем парсер
             await self.close_page()
             return
         
-        # Раздел - поиск дат заседаний
+        # ====== Раздел - поиск даты дела ======
+        await self.search_and_save_date_case()
 
-        # Данный раздел закомментирован, так как если нет заседаний, то все-равно необходимо проверить документы
-        # Если search_red_calendar вернул True – дальше не идём
-        # if await self.search_red_calendar():
-        #     return
+        # ====== Раздел - поиск дат заседаний ======
         await self.search_red_calendar()
         
-        # Раздел с поиском документа
+        # ====== Раздел с поиском документа ======
         await self.click_online_case()
         await self.parse_mod()
         await self.close_page()
@@ -115,7 +131,9 @@ class ParserKad:
             close_btn = self.page.locator('a.b-promo_notification-popup-close')
             await close_btn.wait_for(state='visible')
             await close_btn.click()
-            parser_logger.info("Всплывающее окно закрыто. Парсинг %s", self.case_number,
+
+
+            parser_logger.info(f"Всплывающее окно закрыто. Парсинг {self.case_number}", 
                             extra={
                                 "case_number": self.case_number,  # Основной идентификатор
                                 "step": "popup_close",
@@ -142,7 +160,7 @@ class ParserKad:
         for attempt in range(1, retries + 1):
             try:
                 parser_logger.info(f"Попытка {attempt} — ищу поле для ввода номера дела: {self.case_number}")
-
+                await asyncio.sleep(1.3)
                 # Явное ожидание появления поля
                 try:
                     input_field = self.page.get_by_placeholder('например, А50-5568/08')
@@ -151,10 +169,20 @@ class ParserKad:
                     parser_logger.error("Ошибка при поиске поля ввода номера дела: %s", attr_err)
                     await self.page.reload()
                     continue
+
                 if input_field:
                     await input_field.fill(self.case_number)
-                    await asyncio.sleep(2)
-                    await input_field.press('Enter')
+                    parser_logger.debug("✅ Ввод номера дела успешно выполнен")
+                    await asyncio.sleep(2.6)
+
+                    await input_field.focus()
+                    # await self.page.keyboard.press('Enter')
+                    # await self.page.get_by_role("button", name="Найти").click()
+
+
+                    parser_logger.debug(f"✅ нажатие Enter после ввода номера дела, делаю скрин")
+                    await asyncio.sleep(2.3)
+                    await self.page.screenshot(path=f"{SCREEN_PATH}/{self.case_number}_enter.png", full_page=True)
 
                     parser_logger.info("✅ Ввод номера дела успешно выполнен",
                                     extra={
@@ -184,122 +212,23 @@ class ParserKad:
                                             "error": str(e),
                                             "system": "parser",
                                         })
-                    
-    async def check_page(self):
-        """
-        Метод проверяет существование данных по номеру дела.
-        Если номер дела не верный, будет отображено 'Нет результатов' и браузер закроется
-        """
-        await asyncio.sleep(1)
-        no_results = self.page.get_by_text('Нет результатов', exact=True)
-        btn = self.page.get_by_role("button", name="Отправить запрос")
-
-        if await no_results.is_visible() and await btn.is_visible():
-            await self.close_page()
-            return True  # Возвращаем True, чтобы прервать выполнение
-        return False
-
-    async def search_name(self):
-        """
-        Получаем наименование должника из текста страницы. 
-        Если наименование не совпадает, закрываем страницу.
-        Если наименование совпадает, получаем ИНН должника для сохранения в бд
-        """
-        # Проверка содержимого текста респондента на примере дела А40-23673/2024
-        try:
-            respondent_cell = self.page.locator('td.respondent').filter(
-            has_text='ООО "ИТМ ИНЖИНИРИНГ"')
-
-            # print("respondent_cell", await expect(respondent_cell).to_contain_text('ООО "ИТМ ИНЖИНИРИНГ"'))
-            # name = expect(respondent_cell).to_contain_text('ООО "ИТМ ИНЖИНИРИНГ"')
-
-            # Имитируем наведение, чтобы показать скрытый блок
-            await respondent_cell.hover()
-            # или клик: await org.click()
-            # Теперь скрытый span стал видимым
-            hidden_span = respondent_cell.locator('span.js-rolloverHtml')
-            # Получаем текст из скрытого содержимого (наименование, адрес, инн)
-            text = await hidden_span.inner_text()
-            # print("ИНН",inn_text)  # Содержит ИНН, адрес и т.д.
-            text = TextHepler.split_text(text)
-
-            name = TextHepler.take_name(text)
-            inn = TextHepler.take_inn(text)
-            print("Получил ИНН и название должника", inn, name)
-
-        except Exception as e:
-            print("Не нашел инн",e)
-
-    async def _search_date_case(self):
-        """
-        Получаем дату решения дела в суде. 
-        """
-        try:
-            date_case = self.page.locator('div.bankruptcy')
-            date_text = await date_case.inner_text()
-            return date_text
-
-        except Exception as e:
-            return None
-
-    async def _save_date_case(self, case_number, case_date):
-        """
-        Сохраняем дату решения дела в базе данных
-        """
-        try:
-            if case_date:
-                await self.data_saver.save_case_date(case_number=case_number, date_case=case_date)
-                parser_logger.info("Сохранил дату решения дела %s", case_date,
-                                extra={
-                                    "case_number": self.case_number, 
-                                    "step": "save_date_case",
-                                    "system": "parser",
-                                })
-            else:
-                parser_logger.info("Дата не найдена или не соответствует",)
-        except Exception as e:
-            parser_logger.error("Ошибка при сохранении даты дела", e)
-            pass
-
-    async def search_and_save_date_case(self):
-        """
-        Получаем дату решения дела в суде и сохраняем в бд
-        """
-        date_case = await self._search_date_case()
-        await self._save_date_case(case_number=self.case_number, case_date=date_case)
-
-        
-    async def _save_link_case(self, case_number, link):
-        """
-        Сохраняем ссылку на дело в базе данных
-        """
-        try:
-            await self.data_saver.save_case_link(case_number=case_number, link=link)
-            parser_logger.info("Сохранил ссылку на дело %s", link,
-                               extra={
-                                   "case_number": self.case_number,  # Основной идентификатор
-                                   "step": "save_link_case",
-                                   "system": "parser",
-                               })
-        except Exception as e:
-            parser_logger.error("Ошибка при сохранении ссылки на дело", e)
-            pass
 
     async def click_link_case(self):
         """
-        Обнаружение знака + для раскрытия данных о деле. 
-        При клике будет открыта новая вкладка и осуществлен переход на нее.
+        Клик по ссылке на номер дела после его поиска.
         """
         try:
             case_number_link = self.page.locator("a[target='_blank'].num_case", has_text=self.case_number)
-
-            # Проверяем текст по названию должника для удостоверения правильности страницы для дальнейшего парсинга
-            # await self.search_name()
-                
             await asyncio.sleep(random_sleep())
+            parser_logger.debug("Нашел ссылку на дело case_number_link, делаю клик по нему") 
+
             # ожидаем открытия новой вкладки
             async with self.page.context.expect_page() as new_page:
                 await case_number_link.click()
+
+            parser_logger.debug(f"Кликнул по ссылке дела, {new_page.value}")
+
+            await self.page.screenshot(path=f"{SCREEN_PATH}/{self.case_number}_link.png", full_page=True)
 
             self.new_page = await new_page.value
             current_url = self.new_page.url  # получаем адрес новой странички
@@ -317,7 +246,80 @@ class ParserKad:
             return self.new_page
 
         except Exception as e:
-            parser_logger.error("Ошибка при переходе на новую страницу %s", e)
+            parser_logger.error(f"Ошибка при переходе на новую страницу {e}")
+    
+    async def check_page(self):
+        """
+        Метод проверяет существование данных по номеру дела.
+        Если номер дела не верный, будет отображено 'Нет результатов' и браузер закроется
+        """
+        await asyncio.sleep(1)
+        no_results = self.page.get_by_text('Нет результатов', exact=True)
+        btn = self.page.get_by_role("button", name="Отправить запрос")
+
+        if await no_results.is_visible() and await btn.is_visible():
+            await self.close_page()
+            return True  # Возвращаем True, чтобы прервать выполнение
+        return False
+
+
+    async def _search_date_case(self):
+        """
+        Получаем дату решения дела в суде. 
+        """
+        try:
+            date_case = self.page.locator('div.bankruptcy')
+            date_text = await date_case.inner_text()
+            parser_logger.debug(f"Дата документа найдена, {date_case}",)
+            return date_text
+
+        except Exception as e:
+            return None
+
+    async def _save_date_case(self, case_number, case_date):
+        """
+        Сохраняем дату решения дела в базе данных
+        """
+        try:
+            if case_date:
+                await self.data_saver.save_case_date(case_number=case_number, date_case=case_date)
+                parser_logger.info(f"Сохранил дату решения {case_date} для дела {case_number}",
+                                    extra={"case_number": self.case_number, 
+                                    "step": "save_date_case",
+                                    "system": "parser",
+                                })
+            else:
+                parser_logger.info(f"Дата дела case_date не найдена или не соответствует: {case_date}, делаю скрин")
+                await self.page.screenshot(path=f"{SCREEN_PATH}/{self.case_number}_no_case_date.png", full_page=True)
+
+        except Exception as e:
+            parser_logger.error("Ошибка при сохранении даты дела", e)
+            pass
+
+    async def search_and_save_date_case(self):
+        """
+        Получаем дату решения дела в суде и сохраняем в бд
+        """
+        date_case = await self._search_date_case()
+        parser_logger.debug(f"Найдена дата дела: {date_case}")
+        await self._save_date_case(case_number=self.case_number, case_date=date_case)
+
+        
+    async def _save_link_case(self, case_number, link):
+        """
+        Сохраняем ссылку на дело в базе данных
+        """
+        try:
+            await self.data_saver.save_case_link(case_number=case_number, link=link)
+            parser_logger.info(f"Сохранил ссылку на дело {link}",
+                               extra={
+                                   "case_number": self.case_number,  # Основной идентификатор
+                                   "step": "save_link_case",
+                                   "system": "parser",
+                               })
+        except Exception as e:
+            parser_logger.error("Ошибка при сохранении ссылки на дело", e)
+            pass
 
 
     async def search_red_calendar(self):
@@ -525,7 +527,7 @@ async def run_playwright_parsing(case_number: str):
     try:
         async with async_playwright() as playwright:
             browser = await playwright.chromium.launch(
-                headless=False,  # True для безголового режима, False для визуального
+                headless=True,  # True для безголового режима, False для визуального
                 args=[
                     "--start-maximized",  # Окно на весь экран
                     "--disable-blink-features=AutomationControlled",  # Убираем флаг автоматизации

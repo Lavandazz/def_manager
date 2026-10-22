@@ -41,7 +41,6 @@ services:
 
   celery-worker-parsing:
     build: .
-    image: ghcr.io/borski/patchright-docker
     # volumes:
     #   - .:/app   # монтируем текущую папку в /app внутри контейнера
     command: celery -A config.tasks_config worker -Q parsing --concurrency=1 --hostname=worker-parsing@%h
@@ -52,6 +51,7 @@ services:
       - .env
       - .env_mail
     environment:
+      - POSTGRES_HOST=host.docker.internal # преопределение подключения к локальной бд
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -77,29 +77,35 @@ services:
     restart: always
 
   celery-worker-parsing-efrsb:
-    # build: .
-    image: ghcr.io/borski/patchright-docker
-    init: true
-
-    entrypoint: >
-      sh -c "rm -f /tmp/.X99-lock /tmp/.X11-unix/X99 && exec \"$0\" \"$@\""
-
-    volumes:
-      - .:/app
-      - ./screens:/app/screens             # папка для скриншотов
-    command: celery -A config.tasks_config worker -Q parsing_efrsb --concurrency=1 --hostname=worker-efrsb@%h
-    depends_on:
-      redis:
-        condition: service_healthy
-    env_file:
-      - .env
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - DISPLAY=:99
-      - PYTHONPATH=/app
-    restart: always
+      # image: ghcr.io/borski/patchright-docker
+      build:
+        context: .
+        dockerfile: Dockerfile.celery
+      init: true
+      entrypoint: []                #  сбрасываем entrypoint образа
+      # command: celery -A config.tasks_config worker -Q parsing_efrsb --concurrency=1 --hostname=worker-parsing-efrsb@%h
+      command: >
+        xvfb-run -a --server-args="-screen 0 1920x1080x24"
+        celery -A config.tasks_config worker
+        -Q parsing_efrsb
+        --concurrency=1
+        --hostname=worker-parsing-efrsb@%h
+      volumes:
+        - .:/app
+        - ./screens:/app/screens
+      depends_on:
+        redis:
+          condition: service_healthy
+      env_file:
+        - .env
+      environment:
+        - POSTGRES_HOST=host.docker.internal # преопределение подключения к локальной бд
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+        - REDIS_PASSWORD=${REDIS_PASSWORD}
+        - PYTHONPATH=/app
+      shm_size: '1gb' 
+      restart: always
 
   celery-flower:
     build: .

@@ -9,6 +9,19 @@ from core.services.parsers.parser_sro_service import ParserSroDataSaver
 from parser_app.dependency import create_parser_sro_data_saver
 from config.logger_config import efrsb_logger
 from parser_app.utils.helpers import TextHepler
+from utils.exceptions import AccessForbidden
+
+# Для корректной работы patchright с xvfb (виртуальным дисплеем) в контейнере Docker 
+# xvfb - виртуальный графический дисплей, который позволяет запускать графические приложения (X-сервер) в среде без физического дисплея.
+# Необхоим для обхода ошибок 403 на сайте efrsb, которые возникают при попытке открыть браузер без графического интерфейса. 
+# Устанавливаем глобальные _playwright и _browser для того, чтобы браузер не закрывался в своем контейнере после завершения задачи парсинга.
+# Для парсинга необходимо передавать контекст.
+
+SCREEN_PATH = BASE_FOLDER.cwd() / "screens" / "screens_efrsb"
+
+if not SCREEN_PATH.exists():
+    SCREEN_PATH.mkdir(parents=True, exist_ok=True)
+
 
 class ParserEFRSB:
     def __init__(self, url: str, person_name: str, user_id: int, data_saver: ParserSroDataSaver):
@@ -22,43 +35,53 @@ class ParserEFRSB:
         """ Открытие страницы """
         page = await context.new_page()
         try:
-            await page.goto (self.url, timeout=10000)
-            # user_agent = await page.evaluate("() => navigator.userAgent")
+            response = await page.goto(
+                self.url, 
+                timeout=30000,
+                wait_until="domcontentloaded",
+                referer="https://old.bankrot.fedresurs.ru/Default.aspx",)
+
+            if response.status == 403:
+                efrsb_logger.debug(f"Открыта страница {self.url} для {self.person_name}, статус: {response.status}")
+                await page.screenshot(path=f"{SCREEN_PATH}/403_page.png", full_page=True)
+                efrsb_logger.debug(f"Скриншот страницы 403 сохранён в {SCREEN_PATH}/403_page.png")
+                await page.close()
+                return None
+
             return page
         
         except Exception as e:
-            # Когда браузер открывает страницу, но не может закрыть всплывающее окно,
-            # возникает ошибка TimeoutError: Timeout 10000ms exceeded.
-            # Чтобы не прерывать работу парсера, мы перезагружаем страницу и продолжаем работу.
-            print("Не удалось открыть страницу; ", e)
-            # await page.close()
-            await page.reload()
-            return page
+            efrsb_logger.warning(f"Не удалось открыть {self.url}: {e}")
+            await page.close()
+            return None
     
     async def run(self):
         """ Запуск парсера """
         self.page = await self.setup_for_page(self.context) # type: ignore
         if self.page is None:
-            raise RuntimeError(f"Не удалось открыть страницу для {self.person_name}")
-        # вызываем по-шаговый процесс парсинга 
-        await self._check_page()
-
-        await self.process_parsing()
+            raise AccessForbidden(f"Не удалось открыть страницу для {self.person_name}")
+        # вызываем по-шаговый процесс парсинга c проверкой на ошибку 403
+        check = await self._check_page()
+        if check:
+            efrsb_logger.error(f"Ошибка 403 при открытии страницы для {self.person_name}. Возможно, сайт заблокировал доступ.")
+            await self.page.close()
+        try:
+            await self.process_parsing()
+        finally:
+            if self.page and not self.page.is_closed():
+                await self.page.close()
 
     async def _check_page(self):
         await asyncio.sleep(4.5)
         print("URL:", self.page.url)
-        print("Title:", await self.page.title())
-        print("HTML head:", (await self.page.content())[:2000])
-        await self.page.screenshot(path=f"{BASE_FOLDER}/screen/efrsb_after_goto.png", full_page=True)
+        print("Title:", await self.page.title())      
+
+        await self.page.screenshot(path=f"{SCREEN_PATH}/main_page.png", full_page=True)
         html = await self.page.content()
         print("HTML length:", len(html))
-        with open(f"{BASE_FOLDER}/screen/html/efrsb.html", "w", encoding="utf-8") as f:
-            f.write(html)
-            print(f"HTML сохранен в {BASE_FOLDER}/screen/html/efrsb.html")
+
         await asyncio.sleep(4.5)
-        print("Закрываю страницу")
-        await self.page.close() 
+ 
         
 
     async def _process_parsing(self):
@@ -66,8 +89,13 @@ class ParserEFRSB:
         # ждем появления поля ввода фамилии
         await self.wait_selector("#ctl00_cphBody_ArbitrManagerList1_tbLastName")
         await self.fill_fio()
+
+        await self.page.screenshot(path=f"{SCREEN_PATH}/fio_page.png", full_page=True)
+        print(f"Скриншот сохранён в {SCREEN_PATH}/fio_page.png")
+
         # Получаем и сохраняем данные пользователя
         user_data = await self.get_text_data()
+        efrsb_logger.info(f"получил данные из блока АУ")
         await self.update_user_data(user_data)
         # Получаем и сохраняем данные СРО
         sro_data = await self.get_sro_data()
@@ -161,10 +189,10 @@ class ParserEFRSB:
         await self._fill_patronymic(patronymic)
         await self.press_btn()
 
-
     async def _get_person_data(self) -> dict:
         """
-        Парсинг блока с информацией об управляющем
+        Парсинг блока с информацией об управляющем.
+        Получение данных по строкам, сохранение данных в словарь.
         """
         await asyncio.sleep(5.5)
         
@@ -196,15 +224,20 @@ class ParserEFRSB:
 
     async def get_text_data(self) -> dict:
         """
-        Получение данных о арбитражном управляющем
+        Получение данных о арбитражном управляющем. 
+        1) Нажатие на ссылку ФИО 
+        2) Парсинг данных из блока Карточки арбитражного управляющего
+        3) Возвращение готового словаря с данными
         """
         await self.press_link("a[title='Карточка арбитражного управляющего']", "fio_person")
         return await self._get_person_data()
 
     async def update_user_data(self, data: dict):
+        """
+        Обновление данных АУ в бд
+        """
         await self.data_saver.save_user_data(user_id=self.user_id, user_data=data)
 
-    
     async def _get_sro_data(self) -> dict:
         """Сбор данных с карточки СРО."""
         await self.page.wait_for_selector("#ctl00_cphBody_tblSroCardInfo", timeout=10000)
@@ -253,7 +286,6 @@ class ParserEFRSB:
         data = await self._get_sro_data()
         return data
 
-
     async def save_user_sro_data(self, sro_data: dict):
         """
         Сохранение данных о СРО в базу данных и пользователя
@@ -263,11 +295,7 @@ class ParserEFRSB:
 
 async def process_parsing(browser, person_name: str, user_id: int, data_saver: ParserSroDataSaver):
     """ Запуск парсинга """
-    context = await browser.new_context(
-        locale='ru-RU',
-        viewport=None,  # Использовать размер экрана по умолчанию (как у обычного браузера)
-        user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"  # используем рандомный агент
-    )
+    context = await browser.new_context()
     parser = ParserEFRSB(
         url='https://old.bankrot.fedresurs.ru/ArbitrManagersList.aspx', 
         person_name=person_name,
@@ -289,13 +317,13 @@ async def run_efrsb_parsing(user_id: int, person_name: str):
             browser = await p.chromium.launch(
                 headless=False,  # True для безголового режима, False для визуального
                 args=[
-                    "--start-maximized",  # Окно на весь экран
+                    # "--start-maximized",  # Окно на весь экран
                     "--disable-blink-features=AutomationControlled",  # Убираем флаг автоматизации
                     "--disable-infobars",  # Убираем сообщение "Chrome is being controlled"
                     "--disable-dev-shm-usage",  # Улучшаем работу в контейнерах
                     "--no-sandbox",  # Полезно в некоторых окружениях
                     "--disable-popup-blocking",
-                    "--window-size=1920,1080"
+                    # "--window-size=1920,1080"
                 ],
                 chromium_sandbox=False,
                 ignore_default_args=["--enable-automation"],  # Отключаем automation флаг
