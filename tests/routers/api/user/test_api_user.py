@@ -1,6 +1,6 @@
 from unittest.mock import AsyncMock, patch
 
-from app.utils.auth.password_hasher import PasswordHasher
+from web_app.utils.auth.password_hasher import PasswordHasher
 
 
 class TestGetProfile:

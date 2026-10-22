@@ -1,0 +1,52 @@
+"""
+Запуск сервера: 
+fastapi dev
+uvicorn app.app:app --reload
+"""
+
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+
+from shared.config.settings_folders import WEB_APP
+from web_app.routers.api.api import router as api_router
+from web_app.routers.api.user.api_user import router as api_user_router
+from web_app.routers.api.user.api_cases import router as api_cases_router
+
+
+from web_app.routers.html.user import router as user_router
+from web_app.routers.html.case import router as case_router
+from web_app.routers.html.index import router as main_router
+from web_app.routers.html.courts import router as court_router
+from web_app.routers.html.debtor import router as debtor_router
+from web_app.routers.html.help import router as help_router
+from web_app.routers.html.parser_rout import router as parser_router
+
+
+app = FastAPI(debug=True)
+
+app.mount("/static", StaticFiles(directory=f"{WEB_APP}/static"), name="static")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=(),
+    allow_methods=("GET",),
+    allow_headers=(),
+    allow_credentials=False,
+    allow_origin_regex=None,
+    allow_private_network=False,
+    expose_headers=(),
+    max_age=600,
+)
+
+app.include_router(api_router, prefix="/api")
+app.include_router(api_user_router, prefix="/api/user")
+app.include_router(api_cases_router, prefix="/api/cases")
+app.include_router(main_router)
+app.include_router(help_router, prefix="/help")
+app.include_router(user_router, prefix="/user")
+app.include_router(case_router, prefix="/user/cases")
+app.include_router(court_router, prefix="/user/courts")
+app.include_router(debtor_router, prefix="/user/debtor")
+
+app.include_router(parser_router, prefix="/parsing")

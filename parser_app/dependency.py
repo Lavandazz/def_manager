@@ -1,17 +1,17 @@
-from core.repository.case_repository import CaseAlchemyRepository
-from core.repository.court_repository import CourtRepository
-from core.repository.court_session_repositoty import CourtSessionAlchemyRepository
-from core.repository.pars_documents_repository import ParsDocumentAlchemyRepository
-from core.repository.sro_repository import SroAlchemyRepository
-from core.repository.user_repository import UserAlchemyRepository
-from core.services.case_service import CaseService
-from core.services.parsers.parser_saver_service import ParserDataSaver
-from core.services.court_service import CourtService
-from core.services.court_session_service import CourtSessionService
-from core.services.pars_document_service import ParsDocumentService
-from core.services.parsers.parser_sro_service import ParserSroDataSaver
-from core.services.sro_service import SroService
-from core.services.user_service import UserService
+from shared.core.repository.case_repository import CaseAlchemyRepository
+from shared.core.repository.court_repository import CourtRepository
+from shared.core.repository.court_session_repositoty import CourtSessionAlchemyRepository
+from shared.core.repository.pars_documents_repository import ParsDocumentAlchemyRepository
+from shared.core.repository.sro_repository import SroAlchemyRepository
+from shared.core.repository.user_repository import UserAlchemyRepository
+from shared.core.services.case_service import CaseService
+from shared.core.services.parsers.parser_saver_service import ParserDataSaver
+from shared.core.services.court_service import CourtService
+from shared.core.services.court_session_service import CourtSessionService
+from shared.core.services.pars_document_service import ParsDocumentService
+from shared.core.services.parsers.parser_sro_service import ParserSroDataSaver
+from shared.core.services.sro_service import SroService
+from shared.core.services.user_service import UserService
 
 
 

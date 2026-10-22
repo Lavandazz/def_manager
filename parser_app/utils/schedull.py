@@ -1,9 +1,9 @@
 import asyncio
 
 
-from config.db.db_config import get_db
-from core.repository.case_repository import CaseAlchemyRepository
-from core.services.case_service import CaseService
+from shared.config.db.db_config import get_db
+from shared.core.repository.case_repository import CaseAlchemyRepository
+from shared.core.services.case_service import CaseService
 
 
 async def det_number_cases(service: CaseService):

@@ -1,6 +1,6 @@
 from unittest.mock import AsyncMock
 
-from app.utils.dependensy import get_case_service, get_verify_user
+from web_app.utils.dependensy import get_case_service, get_verify_user
 
 
 class TestGetUserCases:

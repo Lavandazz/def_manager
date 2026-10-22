@@ -2,7 +2,7 @@
 from patchright.async_api import async_playwright
 import asyncio
 
-from config.settings_folders import BASE_FOLDER
+from shared.config.settings_folders import BASE_FOLDER
 
 
 async def main():

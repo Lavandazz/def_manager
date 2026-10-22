@@ -4,11 +4,11 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.routers.api.api import router as api_router
-from app.routers.api.user.api_cases import router as api_cases_router
-from app.routers.api.user.api_user import router as api_user_router
-from app.utils.dependensy import get_case_service, get_token_service, get_user_service, get_verify_user
-from config.db.models import Case, User
+from web_app.routers.api.api import router as api_router
+from web_app.routers.api.user.api_cases import router as api_cases_router
+from web_app.routers.api.user.api_user import router as api_user_router
+from web_app.utils.dependensy import get_case_service, get_token_service, get_user_service, get_verify_user
+from shared.config.db.models import Case, User
 
 
 def create_test_app() -> FastAPI:

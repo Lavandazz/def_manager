@@ -2,14 +2,14 @@ import asyncio
 
 from patchright.async_api import async_playwright, Page
 
-from config.db.db_config import get_db
+from shared.config.db.db_config import get_db
 
-from config.settings_folders import BASE_FOLDER
-from core.services.parsers.parser_sro_service import ParserSroDataSaver
+from shared.config.settings_folders import BASE_FOLDER
+from shared.core.services.parsers.parser_sro_service import ParserSroDataSaver
 from parser_app.dependency import create_parser_sro_data_saver
-from config.logger_config import efrsb_logger
+from shared.config.logger_config import efrsb_logger
 from parser_app.utils.helpers import TextHepler
-from utils.exceptions import AccessForbidden
+from shared.utils.exceptions import AccessForbidden
 
 # Для корректной работы patchright с xvfb (виртуальным дисплеем) в контейнере Docker 
 # xvfb - виртуальный графический дисплей, который позволяет запускать графические приложения (X-сервер) в среде без физического дисплея.

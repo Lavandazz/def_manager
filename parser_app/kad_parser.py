@@ -8,12 +8,12 @@ from datetime import datetime
 from httpx import TimeoutException
 from patchright.async_api import async_playwright, Page, BrowserContext, expect
 
-from config.db.db_config import get_db
-from config.logger_config import parser_logger
+from shared.config.db.db_config import get_db
+from shared.config.logger_config import parser_logger
 
-from config.schemas.court_schema import CourtSessionSchema
-from config.settings_folders import BASE_FOLDER
-from core.services.parsers.parser_saver_service import ParserDataSaver
+from shared.config.schemas.court_schema import CourtSessionSchema
+from shared.config.settings_folders import BASE_FOLDER
+from shared.core.services.parsers.parser_saver_service import ParserDataSaver
 from parser_app.dependency import create_parser_data_saver
 from parser_app.utils.helpers import TextHepler
 from parser_app.utils.sleep import random_sleep_for_search, random_sleep, random_start_sleep

@@ -10,9 +10,9 @@ python run_flower.py
 """
 import asyncio
 
-from app.utils.mail import send_verification_email_async
-from config.tasks_config import celery_app
-from utils.exceptions import AccessForbidden
+from web_app.utils.mail import send_verification_email_async
+from shared.config.tasks_config import celery_app
+from shared.utils.exceptions import AccessForbidden
 
 @celery_app.task(bind=True, max_retries=2, default_retry_delay=60, queue="parsing")
 def parsing_task(self, case_number: str):

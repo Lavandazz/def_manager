@@ -8,7 +8,7 @@
 
 import os
 import subprocess
-from config.settings_env import settings
+from shared.config.settings_env import settings
 
 broker_url = os.environ["CELERY_BROKER_URL"] = f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/0"
 
