@@ -15,7 +15,7 @@ from shared.core.services.debtor_service import DebtorService
 from shared.documents.services.doc_service import OUTPUT_DIR, DocumentService
 from shared.documents.utils.context_builder import ContextBuilder
 from shared.documents.utils.models import GenerateFormData
-from shared.utils.helper import text_helper
+from shared.utils.document_text_helper import document_helper
 
 
 
@@ -257,7 +257,7 @@ async def generate_documents(
     context_bank = context_builder.build_bank_contexts()
     context["user"]=user
     context["template"]= "requests"
-    short_name = text_helper.get_short_name(context.get("debtor_full_name")) # создаем наименование файла
+    short_name = document_helper.get_short_name(context.get("debtor_full_name")) # создаем наименование файла
     try:
         try:
             # Генерируется запрос в госорганы

@@ -4,10 +4,8 @@
 from datetime import datetime, date, timedelta
 from itertools import groupby
 
-
-
 from shared.config.db.models import Account, Case, Debtor
-from shared.utils.helper import text_helper
+from shared.utils.document_text_helper import document_helper
 
 class ContextBuilder:
     def __init__(self, case: Case):
@@ -18,10 +16,10 @@ class ContextBuilder:
         return self._make_context()
 
     def _birth_address(self, debtor) -> str:
-        return text_helper.get_debtor_address_str(debtor=debtor, birth=True)
+        return document_helper.get_debtor_address_str(debtor=debtor, birth=True)
 
     def _residential_address(self, debtor) -> str:
-        return text_helper.get_debtor_address_str(debtor=debtor, birth=False)
+        return document_helper.get_debtor_address_str(debtor=debtor, birth=False)
 
     def _make_context(self) -> dict:
         """Создание контекста для страницы отображения данных о должнике"""
@@ -47,8 +45,8 @@ class ContextBuilder:
         case_date: date = self.case.date_case # type: ignore
         request_date = date(case_date.year - 3, 1, 1)
         date_for = datetime.now().date() + timedelta(days=20)
-        decline = text_helper.get_decline_name(self.debtor.name)
-        short_name = text_helper.get_short_name(self.debtor.name)
+        decline = document_helper.get_decline_name(self.debtor.name)
+        short_name = document_helper.get_short_name(self.debtor.name)
 
         return {
             "debtor_decline_name": decline[0],
@@ -62,10 +60,10 @@ class ContextBuilder:
             "case_number": self.case.number_case,
 
             "debtor_birthday": self.debtor.birthday.strftime("%d.%m.%Y") if self.debtor.birthday else "",
-            "debtor_birth_address": text_helper.get_debtor_address_str(self.debtor, birth=True),
-            "debtor_snils": text_helper.snils_str(self.debtor.snils) if self.debtor.snils else "",
+            "debtor_birth_address": document_helper.get_debtor_address_str(self.debtor, birth=True),
+            "debtor_snils": document_helper.snils_str(self.debtor.snils) if self.debtor.snils else "",
             "debtor_inn": str(self.debtor.inn) if self.debtor.inn else "",
-            "debtor_address": text_helper.get_debtor_address_str(self.debtor, birth=False),
+            "debtor_address": document_helper.get_debtor_address_str(self.debtor, birth=False),
 
             "request_date": f"01.01.{request_date.year}",
             "date_for": date_for.strftime("%d.%m.%Y"),
@@ -76,7 +74,7 @@ class ContextBuilder:
         """Коонтекст для запросов в госорганы"""
         ctx = self._base_debtor_context(region_court)
         ctx.update({
-            "fio": text_helper.get_initials(self.debtor.name),
+            "fio": document_helper.get_initials(self.debtor.name),
             "year": datetime.now().year,
             "creation_date": datetime.now().strftime("%d.%m.%Y"),
         })
@@ -99,7 +97,7 @@ class ContextBuilder:
             ctx = {
                 **base,
                 "debtor_bank": bank.name,
-                "bank_address": text_helper.get_bank_address_str(bank),
+                "bank_address": document_helper.get_bank_address_str(bank),
                 "debtor_accounts": ", ".join(a.number for a in accs),
                 "_short_name": short_name,   # служебное — для имени файла
                 "_bank_name": bank.name,

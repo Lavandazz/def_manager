@@ -14,8 +14,8 @@ from celery_tasks.task_manager import parsing_task, start_efrsb_parsing
 from shared.config.tasks_config import celery_app
 from shared.config.db.models import User
 from shared.config.logger_config import fastapi_logger
-from parser_app.efrsb_parser import run_efrsb_parsing
-from parser_app.kad_parser import run_playwright_parsing
+from worker_patchright.utils.run_parsing import run_efrsb_parsing
+from worker_playwright.utils.run_parsing import run_playwright_parsing
 from shared.utils.exceptions import AccessForbidden
 
 

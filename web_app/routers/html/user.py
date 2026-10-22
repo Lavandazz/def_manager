@@ -14,7 +14,7 @@ from web_app.utils.auth.password_hasher import PasswordHasher
 from shared.config.db.models import User
 from shared.config.schemas.user_schemas import UserRegistration, UserUpdateSchema
 from shared.config.logger_config import profile_logger
-from parser_app.efrsb_parser import run_efrsb_parsing
+
 from shared.utils.exceptions import VerificationCodeAlreadySent
 
 

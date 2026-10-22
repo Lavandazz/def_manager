@@ -20,10 +20,9 @@ class TextHepler:
         """Поиск названия суда из строки парсинга"""
         find_text = ["АС", "Верховный", "арбитражный", "Первая"]
         full_text = text.split()
-        # print("full_text", full_text)
         court_index = [full_text.index(i) for i in find_text if i in full_text][0] # получаем индкес наименования суда
         court_name = full_text[court_index:court_index + 3]
-        # print("название суда", " ".join(court_name))
+
         return " ".join(court_name)
 
     @staticmethod

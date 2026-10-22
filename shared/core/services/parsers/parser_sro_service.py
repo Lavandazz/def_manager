@@ -3,7 +3,7 @@ from shared.config.db.models import Sro, User
 from shared.config.schemas.user_schemas import UserEfrsbSchema
 from shared.core.services.sro_service import SroService
 from shared.core.services.user_service import UserService
-from shared.utils.helper import text_helper
+from shared.utils.document_text_helper import document_helper
 from shared.config.logger_config import efrsb_logger
 
 
@@ -28,8 +28,8 @@ class ParserSroDataSaver:
             inn=user_data.get("inn"),
             snils=user_data.get("snils"),
             reg_num=user_data.get("reg_num"),
-            reg_date=text_helper.return_date(user_data.get("reg_date") or ""),
-            date_begin=text_helper.return_date(user_data.get("date_begin") or ""),
+            reg_date=document_helper.return_date(user_data.get("reg_date") or ""),
+            date_begin=document_helper.return_date(user_data.get("date_begin") or ""),
         )
         efrsb_logger.debug(f"Обновление данных пользователя: {parsed}")
         # Обновляем данные пользователя
@@ -39,7 +39,7 @@ class ParserSroDataSaver:
         sro = Sro(
                     name=sro_data.get("name"),
                     reg_num=sro_data.get("reg_num"),
-                    reg_date=text_helper.return_date(date_str=sro_data.get("reg_date")),
+                    reg_date=document_helper.return_date(date_str=sro_data.get("reg_date")),
                     inn=sro_data.get("inn"),
                     ogrn=sro_data.get("ogrn"),
                     ur_address_sro=sro_data.get("ur_address_sro"),

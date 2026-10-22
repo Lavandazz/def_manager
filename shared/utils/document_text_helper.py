@@ -1,12 +1,9 @@
-
-from datetime import date, timedelta
-
+from datetime import date
 from marmel_grammar import MarmelGrammar
+from shared.config.db.models import Bank, Debtor
 
-from shared.config.db.models import Bank, Case, Debtor
 
-
-class TextHelper:
+class DocumentHelper:
     """
     Класс для изменения текстового представления в документах.
     Создает экземпляр для работы с падежами, выявления рода имен
@@ -82,4 +79,4 @@ class TextHelper:
         day, month, year = map(int, date_str.split('.'))
         return date(year, month, day)
     
-text_helper = TextHelper()
+document_helper = DocumentHelper()
