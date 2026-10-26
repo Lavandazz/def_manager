@@ -9,13 +9,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from web_app.web_conf import templates
 
 from web_app.utils.dependensy import get_optional_user
-from celery_tasks.task_manager import parsing_task, start_efrsb_parsing
+from shared.celery_tasks.task_manager import parsing_task, start_efrsb_parsing
 
 from shared.config.tasks_config import celery_app
 from shared.config.db.models import User
 from shared.config.logger_config import fastapi_logger
-from worker_patchright.utils.run_parsing import run_efrsb_parsing
-from worker_playwright.utils.run_parsing import run_playwright_parsing
+# from worker_patchright.utils.run_parsing import run_efrsb_parsing
+# from worker_playwright.utils.run_parsing import run_playwright_parsing
 from shared.utils.exceptions import AccessForbidden
 
 
@@ -70,12 +70,12 @@ async def start_parser(request: Request,
     
     if user:
         # Передача задачи в celery
-        # task = parsing_task.delay(case_number=number_case)
-        # fastapi_logger.debug(f"Запускаю парсинг по делу {number_case}, task: {task}")
+        task = parsing_task.delay(case_number=number_case)
+        fastapi_logger.debug(f"Запускаю парсинг по делу {number_case}, task: {task}")
 
         # Запуск парсинга для отладки без задачи
-        print(f"Запуск парсинга для отладки без задачи {number_case}")
-        await run_playwright_parsing(number_case)
+        # print(f"Запуск парсинга для отладки без задачи {number_case}")
+        # await run_playwright_parsing(number_case)
         
         context = {
             "user": user,

@@ -28,7 +28,20 @@ Notes.md
 tasks.py
 run_flower.py
 screens
-
+venv/
+__pycache__/
+*.pyc
+logs/
+screens/
+screens_kad/
+dumps/
+.git/
+.pytest_cache/
+*.egg-info/
+celerybeat-schedule
+docker-compose*.yml
+README.md
+Notes.md
 
 # Сгенерированные документы
 documents/ready_documents/

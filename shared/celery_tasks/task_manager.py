@@ -12,10 +12,10 @@ from shared.utils.exceptions import AccessForbidden
 
 @celery_app.task(bind=True, max_retries=2, default_retry_delay=60, queue="parsing") # bind=True - флаг для доступа к атрибутам задачи, таким как self.retry
 def parsing_task(self, case_number: str):
-    from worker_playwright.utils.run_parsing import run_playwright_parsing
     """
     Запуск задачи для парсинга Картотеки арбитражныъ дел
     """
+    from worker_playwright.utils.run_parsing import run_playwright_parsing
     try:
         # запуск асинхронной функции внутри синхронного контекста Celery
         task_logger.info(f"Запуск задачи парсинга для дела {case_number}")
@@ -28,15 +28,15 @@ def parsing_task(self, case_number: str):
         self.retry(exc=exc)
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=60)
+@celery_app.task(bind=True, max_retries=3, default_retry_delay=60, queue="messages")
 def send_verification_email(self, email: str, code: str):
-    from web_app.utils.mail import send_verification_email_async
     """
     Запуск задачи для отправления сообщения на почту при регистрации.
     Синхронная Celery-таска. Внутри запускает async-функцию через asyncio.run.
     Таска зарегистрированна в очереди task_routes в tasks_config.py
     """
-    task_logger.debug(f"отправляю письмо с кодом", email, code)
+    from web_app.utils.mail import send_verification_email_async
+    task_logger.debug(f"отправляю письмо с кодом на почту: {email}")
     try:
         asyncio.run(send_verification_email_async(email, code))
         task_logger.info(f"Письмо с кодом отправлено на {email}")
@@ -47,10 +47,10 @@ def send_verification_email(self, email: str, code: str):
 
 @celery_app.task(bind=True, max_retries=1, default_retry_delay=80, queue="parsing_efrsb")
 def start_efrsb_parsing(self, user_id: int, person_name: str):
-    from worker_patchright.utils.run_parsing import run_efrsb_parsing
     """ 
     Синхронная Celery-таска. для запуска асинхронной задачи парсинга ЕФРСБ
     """
+    from worker_patchright.utils.run_parsing import run_efrsb_parsing
     try:
         # запуск асинхронной функции внутри синхронного контекста Celery
         task_logger.debug(f"Запуск задачи парсинга для дела {person_name}")

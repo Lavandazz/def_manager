@@ -29,12 +29,9 @@ task_routes	Куда класть задачу (в какую очередь)
 queue= в @app.task	Дефолтная очередь для этой таски (перебивается task_routes)
 apply_async(queue=...)	Очередь для одного конкретного вызова
 """
-import asyncio
 import sys
 import os
 from typing import Any
-
-from celery.signals import worker_process_init, worker_process_shutdown
 
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -52,14 +49,15 @@ celery_app = Celery(
 )
 
 # Автоматически находим задачи в модулях внутри пакета celery_tasks
-celery_app.autodiscover_tasks(['celery_tasks'], related_name='task_manager')
+celery_app.autodiscover_tasks(['shared.celery_tasks'], related_name='task_manager')
 
 # Распределяем задачи по очередям
-# Слева название задачи, справа сама очередь
+# Слева название задачи от корня проекта, справа сама очередь
 celery_app.conf.task_routes = {
-    'celery_tasks.task_manager.send_verification_email': {'queue': 'messages'},
-    'celery_tasks.task_manager.start_efrsb_parsing':           {'queue': 'parsing_efrsb'}
-}
+    'shared.celery_tasks.task_manager.send_verification_email': {'queue': 'messages'},
+    'shared.celery_tasks.task_manager.start_efrsb_parsing':     {'queue': 'parsing_efrsb'},
+    'shared.celery_tasks.task_manager.parsing_task':            {'queue': 'parsing'},
+    }
 
 
 beat_schedule: dict[str, Any] = {}

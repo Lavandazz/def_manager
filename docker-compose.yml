@@ -1,7 +1,63 @@
 services:
+  web-api:
+    container_name: web_manage_container
+    build:
+      context: . # корень проекта
+      dockerfile: web_app/Dockerfile
+    # command: uvicorn web_app.app:app --host 0.0.0.0 --port 8000 --workers 1
+    command: sh -c "alembic upgrade head && uvicorn web_app.app:app --host 0.0.0.0 --port 8000 --workers 1"
+    networks:
+      - def_manager_network
+    ports:
+      - "8000:8000"
+    depends_on: # фастапи стартует после проверки баз
+      redis:
+        condition: service_healthy
+      db_manager:
+        condition: service_healthy
+    env_file: 
+      - .env
+      - .env_mail
+    volumes:
+      - ./logs:/app/logs
+
+  db_manager:
+    container_name: db_manage_container
+    image: postgres:15
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}   
+    networks:
+      - def_manager_network
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # Получаем базу из дампа
+      # docker-entrypoint-initdb заполняет базу при первом запуске контейнера.
+      # В дальнейших перезапусках, так как база уже существует, initdb игнорируется
+      # - ./dumps/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+    # порт хоста:порт внутри контейнера
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:alpine
-    container_name: redis_def_manager
+    container_name: redis_manage_container
+    networks:
+      - def_manager_network
     env_file:
       - .env
     ports:
@@ -21,29 +77,16 @@ services:
       timeout: 5s
       retries: 5
 
-  celery-beat:
-    build: .
-    command: celery -A config.tasks_config beat --loglevel=info
-    # volumes:
-    #   - .:/app 
-    depends_on:
-      redis:
-        condition: service_healthy
-    env_file:
-      - .env
-      - .env_mail
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - PYTHONPATH=/app
-    restart: always
-
   celery-worker-parsing:
-    build: .
+    container_name: kad_manage_container
+    build:
+      context: .
+      dockerfile: worker_playwright/Dockerfile
     # volumes:
     #   - .:/app   # монтируем текущую папку в /app внутри контейнера
-    command: celery -A config.tasks_config worker -Q parsing --concurrency=1 --hostname=worker-parsing@%h
+    command: celery -A shared.config.tasks_config worker -Q parsing --concurrency=1 --hostname=worker-parsing@%h
+    networks:
+      - def_manager_network
     depends_on:
       redis:
         condition: service_healthy
@@ -51,7 +94,7 @@ services:
       - .env
       - .env_mail
     environment:
-      - POSTGRES_HOST=host.docker.internal # преопределение подключения к локальной бд
+      # - POSTGRES_HOST=host.docker.internal # преопределение подключения к локальной бд
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -59,12 +102,17 @@ services:
     restart: always
 
   celery-worker-messages:
-    build: .
-    # volumes:
-    #   - .:/app 
-    command: celery -A config.tasks_config worker -Q messages --concurrency=2 -n=worker-messages@%h
-    depends_on:
+    container_name: mess_manage_container
+    build:
+      context: . # корень проекта
+      dockerfile: web_app/Dockerfile
+    command: celery -A shared.config.tasks_config worker -Q messages --concurrency=2 -n=worker-messages@%h
+    networks:
+      - def_manager_network
+    depends_on: # фастапи стартует после проверки баз
       redis:
+        condition: service_healthy
+      db_manager:
         condition: service_healthy
     env_file:
       - .env
@@ -77,41 +125,48 @@ services:
     restart: always
 
   celery-worker-parsing-efrsb:
-      # image: ghcr.io/borski/patchright-docker
-      build:
-        context: .
-        dockerfile: Dockerfile.celery
-      init: true
-      entrypoint: []                #  сбрасываем entrypoint образа
-      # command: celery -A config.tasks_config worker -Q parsing_efrsb --concurrency=1 --hostname=worker-parsing-efrsb@%h
-      command: >
-        xvfb-run -a --server-args="-screen 0 1920x1080x24"
-        celery -A config.tasks_config worker
-        -Q parsing_efrsb
-        --concurrency=1
-        --hostname=worker-parsing-efrsb@%h
-      volumes:
-        - .:/app
-        - ./screens:/app/screens
-      depends_on:
-        redis:
-          condition: service_healthy
-      env_file:
-        - .env
-      environment:
-        - POSTGRES_HOST=host.docker.internal # преопределение подключения к локальной бд
-        - REDIS_HOST=redis
-        - REDIS_PORT=6379
-        - REDIS_PASSWORD=${REDIS_PASSWORD}
-        - PYTHONPATH=/app
-      shm_size: '1gb' 
-      restart: always
+    container_name: efrsb_manage_container
+    build:
+      context: .
+      dockerfile: worker_patchright/Dockerfile
+    init: true
+    networks:
+      - def_manager_network
+    entrypoint: []                #  сбрасываем entrypoint образа
+    # command: celery -A shared.config.tasks_config worker -Q parsing_efrsb --concurrency=1 --hostname=worker-parsing-efrsb@%h
+    command: >
+      xvfb-run -a --server-args="-screen 0 1920x1080x24"
+      celery -A shared.config.tasks_config worker
+      -Q parsing_efrsb
+      --concurrency=1
+      --hostname=worker-parsing-efrsb@%h
+    volumes:
+      - .:/app
+      - ./screens:/app/screens
+    depends_on: # фастапи стартует после проверки баз
+      redis:
+        condition: service_healthy
+      db_manager:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST=host.docker.internal # преопределение подключения к локальной бд
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - PYTHONPATH=/app
+    shm_size: '1gb' 
+    restart: always
 
   celery-flower:
-    build: .
-    # volumes:
-    #   - .:/app 
-    command: celery -A config.tasks_config flower --port=5555
+    container_name: flower_manage_container
+    build:
+      context: . # корень проекта
+      dockerfile: flower/Dockerfile
+
+    networks:
+      - def_manager_network
     ports:
       - "5555:5555"
     depends_on:
@@ -127,5 +182,33 @@ services:
       - PYTHONPATH=/app
     restart: always
 
+  celery-beat:
+    container_name: beat_manage_container
+    build:
+      context: . # корень проекта
+      dockerfile: web_app/Dockerfile
+    command: celery -A shared.config.tasks_config beat --loglevel=info
+    networks:
+      - def_manager_network
+    depends_on: # фастапи стартует после проверки баз
+      redis:
+        condition: service_healthy
+      db_manager:
+        condition: service_healthy
+    env_file:
+      - .env
+      - .env_mail
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - PYTHONPATH=/app
+    restart: always
+
 volumes:
   redis_data:
+  db_data:
+
+networks:
+  def_manager_network:
+    driver: bridge

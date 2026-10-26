@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from web_app.web_conf import templates
 
-from celery_tasks.task_manager import send_verification_email, start_efrsb_parsing
+from shared.celery_tasks.task_manager import send_verification_email, start_efrsb_parsing
 from shared.core.services.redis_service import RedisService
 from shared.core.services.user_service import UserService
 from web_app.utils.dependensy import get_optional_user, get_redis_service, get_user_service

@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     """
     model_config = SettingsConfigDict(env_file=ENV_FILE, env_file_encoding="utf-8")
 
-    POSTGRES_NAME: str
+    POSTGRES_DB: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_HOST: str
@@ -27,12 +27,14 @@ class Settings(BaseSettings):
     DEFAULT_PASSWORD: str
 
     def get_async_db_url(self):
+        """Асинхронное подключение используется во всем приложении"""
         return (f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
-                f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_NAME}")
+                f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
     
     def get_sync_db_url(self):
+        """Синхронное подключение используется для alembic, для миграций"""
         return (f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
-                f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_NAME}")
+                f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
 
 
 class MailSettings(BaseSettings):

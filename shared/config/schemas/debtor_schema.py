@@ -12,21 +12,11 @@ class AccountSchema(BaseModel):
     number: str
 
 
-class BankSchema(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
-    name: str
-    mail_address: MailAddress
-    accounts: AccountSchema
-
-
-
 class RegionSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     region_name : str | None = None
     city: str
-    
 
 
 class AddressSchema (BaseModel):
@@ -43,6 +33,15 @@ class MailAddress(BaseModel):
     mail_index: int
     region: RegionSchema
     address: AddressSchema
+    
+
+class BankSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    mail_address: MailAddress
+    accounts: AccountSchema
+
 
 
 class ResidentialAddress(BaseModel):

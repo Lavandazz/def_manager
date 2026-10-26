@@ -12,12 +12,17 @@ ENV TZ=Europe/Moscow
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY web_app/requirements.txt .
 
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt && \
-    pip install patchright && \
-    patchright install --with-deps chromium
+    pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Копируется общий код
+COPY shared/ /app/shared/
+COPY web_app/ /app/web_app/ 
 
+#  Миграции
+COPY alembic.ini /app/
+COPY alembic/ /app/alembic/
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -9,7 +9,7 @@ from web_app.web_conf import templates
 from web_app.utils.caches_data import get_cases_from_cache
 from shared.core.services.case_service import CaseService
 from web_app.utils.dependensy import get_case_service, get_debtor_service, get_document_service, get_optional_user
-from celery_tasks.task_manager import parsing_task
+from shared.celery_tasks.task_manager import parsing_task
 from shared.config.db.models import Account, Case, Debtor, User
 from shared.core.services.debtor_service import DebtorService
 from shared.documents.services.doc_service import OUTPUT_DIR, DocumentService

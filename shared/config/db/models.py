@@ -3,7 +3,7 @@ from datetime import date, datetime
 
 from typing import List, Optional
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import Date, ForeignKey, Integer, Text, TIMESTAMP, func, BigInteger, Enum as SQLEnum, String
+from sqlalchemy import Date, ForeignKey, Integer, Text, TIMESTAMP, func, BigInteger, Enum as SQLEnum
 
 
 class Base(DeclarativeBase):

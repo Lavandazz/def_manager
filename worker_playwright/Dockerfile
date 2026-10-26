@@ -12,7 +12,7 @@ ENV TZ=Europe/Moscow
 
 WORKDIR /app
 
-COPY worker-playwright/requirements.txt .
+COPY worker_playwright/requirements.txt .
 
 # Устанавливаем playwright
 RUN pip install --upgrade pip && \
@@ -20,5 +20,8 @@ RUN pip install --upgrade pip && \
     pip install playwright && \
     playwright install --with-deps chromium
 
-COPY . .
+COPY shared/ /app/shared/
 
+COPY worker_playwright/ /app/
+
+CMD ["celery", "-A", "tasks", "worker", "-Q", "playwright", "--loglevel=info"]
