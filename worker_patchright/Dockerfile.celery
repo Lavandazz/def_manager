@@ -1,7 +1,0 @@
-FROM ghcr.io/borski/patchright-docker
-
-USER root
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    xvfb \
-    xauth \
-    && rm -rf /var/lib/apt/lists/*

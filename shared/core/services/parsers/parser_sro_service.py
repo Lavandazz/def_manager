@@ -1,4 +1,6 @@
 
+from fastapi import HTTPException
+
 from shared.config.db.models import Sro, User
 from shared.config.schemas.user_schemas import UserEfrsbSchema
 from shared.core.services.sro_service import SroService
@@ -18,11 +20,14 @@ class ParserSroDataSaver:
         self.user_service = user_service
 
     async def save_user_data(self, user_id: int, user_data: dict) -> User:
-        user = await self.user_service.get_user_by_id(user_id=user_id)  
-        efrsb_logger.debug(f"Получил пользователя по айди {user}")
+        user = await self.user_service.get_user_by_id(user_id=user_id)
+        efrsb_logger.debug(f"Получил пользователя по айди в save_user_data: {user}")
+        
         if user is None:
         # либо исключение
             efrsb_logger.debug(f"Пользователь с id={user_id} не найден в ParserSroDataSaver.save_user_data")
+            raise HTTPException(404, "user not found")
+        
         # Приводим  dict к Pydantic-схеме
         parsed = UserEfrsbSchema(
             inn=user_data.get("inn"),
@@ -72,7 +77,7 @@ class ParserSroDataSaver:
             return False
 
         await self.save_sro_to_user(sro, user_id)
-        efrsb_logger.debug("Сохранены данные для пользователя и СРО")
+        efrsb_logger.debug(f"Сохранены данные для пользователя и СРО {sro.id},  user_id {user_id}")
 
         return True
 

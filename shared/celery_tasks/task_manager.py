@@ -20,7 +20,7 @@ def parsing_task(self, case_number: str):
         # запуск асинхронной функции внутри синхронного контекста Celery
         task_logger.info(f"Запуск задачи парсинга для дела {case_number}")
         asyncio.run(run_playwright_parsing(case_number))
-        task_logger.debug(f"Задача парсинга для дела {case_number} успешно завершена")
+        task_logger.info(f"Задача парсинга для дела {case_number} успешно завершена")
         return True
     
     except Exception as exc:

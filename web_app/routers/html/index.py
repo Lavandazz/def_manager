@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, Request, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from web_app.web_conf import templates
 from web_app.utils.caches_data import get_cases_from_cache, save_cases_to_cache
@@ -27,21 +27,22 @@ async def main_page(
         "request": request,
         "title": "Главная страница",}
     
-    if not user:
-        print("главная страница, нет пользователя")
-        return templates.TemplateResponse(request, "index.html", context)
+    # if not user:
+    #     print("главная страница, нет пользователя")
+    #     # return templates.TemplateResponse(request, "index.html", context)
+    #     return RedirectResponse(url="/", status_code=303)
+    if user:
+        cases = await get_cases_from_cache(user_id=user.id) # получение кэша
 
-    cases = await get_cases_from_cache(user_id=user.id) # получение кэша
-
-    if cases is None:
-        # Получаем из базы
-        cases_orm = await case_service.get_user_cases(user_id=user.id)
-        cases = [CaseSchema.model_validate(c).model_dump() for c in cases_orm]
-        await save_cases_to_cache(user_id=user.id, cases=cases)
+        if cases is None:
+            # Получаем из базы
+            cases_orm = await case_service.get_user_cases(user_id=user.id)
+            cases = [CaseSchema.model_validate(c).model_dump() for c in cases_orm]
+            await save_cases_to_cache(user_id=user.id, cases=cases)
 
 
-    context["cases"] = cases
-    context["user"] = user
+        context["cases"] = cases
+        context["user"] = user
 
     return templates.TemplateResponse(request, "index.html", context)
 

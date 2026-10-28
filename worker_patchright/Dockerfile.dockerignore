@@ -1,0 +1,3 @@
+worker_playwright/
+
+shared/config/settings_email.py

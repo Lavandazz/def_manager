@@ -1,4 +1,5 @@
 
+from shared.utils.exceptions import UserNotFoundError
 from web_app.utils.auth.password_hasher import PasswordHasher
 from shared.config.db.models import User
 from shared.config.schemas.user_schemas import UserEfrsbSchema, UserPasswordSchema, UserRegistration, UserSroUpdateSchema,  UserUpdateSchema
@@ -37,15 +38,28 @@ class UserService:
         
         else:
             return None
-        
+
+    async def get_user_profile(self, user_id) -> User | None:
+        """
+        Получаем юзера по id для получения данных + связные данные СРО, адреса  из БД при отображении профиля
+        :return: объект User, если найден, иначе исключение
+        """
+        user = await self.repository.get_user_with_profile(user_id=user_id)
+        if user is None:
+            raise UserNotFoundError(user_id)
+        return user
+
+
     async def get_user_by_id(self, user_id) -> User | None:
         """
         Получаем юзера по id для проверки токена и получения данных юзера из БД при авторизации
         :param user_id: id пользователя, извлекаемый из токена
-        :return: объект User, если найден, иначе None
+        :return: объект User, если найден, иначе исключение
         """
-        return await self.repository.get_user(id=user_id)
-    
+        user = await self.repository.get_user(id=user_id)
+        if user is None:
+            raise UserNotFoundError(user_id)
+        return user
     
     def needs_password_setup(self, user: User) -> bool:
         """

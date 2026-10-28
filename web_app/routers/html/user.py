@@ -25,19 +25,20 @@ MIN_PASSWORD_LENGTH = 8
 
 @router.get("/profile", tags=["profile"], response_class=HTMLResponse)
 async def get_profile(request: Request,
+                      user_service: UserService = Depends(get_user_service),
                       user: User = Depends(get_optional_user)):
     """
     Отображение данных пользователя
     :param user: данные берутся из data токена
     :return:
     """
-
     # Получаем данные из токена
     if not user:
         return templates.TemplateResponse(request, "index.html", context={"message": "Пользователь не авторизован"})
-    
+
+    user_profile = await user_service.get_user_profile(user_id=user.id)
     return templates.TemplateResponse(request, "/user/profile.html", {
-        "user": user
+        "user": user_profile
     })
 
 @router.get("/profile/edit", response_class=HTMLResponse)

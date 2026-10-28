@@ -1,5 +1,4 @@
 
-from datetime import date, timedelta
 import re
 
 from fastapi import APIRouter, Depends, Form, Query, Request
@@ -14,9 +13,8 @@ from shared.config.db.models import Account, Case, Debtor, User
 from shared.core.services.debtor_service import DebtorService
 from shared.documents.services.doc_service import OUTPUT_DIR, DocumentService
 from shared.documents.utils.context_builder import ContextBuilder
-from shared.documents.utils.models import GenerateFormData
 from shared.utils.document_text_helper import document_helper
-
+from shared.config.logger_config import fastapi_logger
 
 
 router = APIRouter()
@@ -76,7 +74,7 @@ async def add_case(
         )
     new_debtor = Debtor(name=debtor_name, debtor_type=debtor_type)
     debtor = await debtor_service.add_debtor(new_debtor)
-
+    fastapi_logger.debug(f"Добавлено новый должник {debtor}")
     
     new_case = Case(
     number_case=number_case,

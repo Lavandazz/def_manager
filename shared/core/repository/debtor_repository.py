@@ -17,7 +17,7 @@ class DebtorAlchemyRepository(AbstractDebtorRepository):
         """Добавить нового должника"""
         try:
             self.session.add(debtor)
-            await self.session.refresh(debtor)  # обновить объект (например, для получения id)
+            # await self.session.refresh(debtor)  # обновить объект (например, для получения id)
             await self.session.commit()
             return debtor
         except Exception as e:

@@ -1,7 +1,8 @@
 from sqlalchemy import select, update
+from sqlalchemy.orm import joinedload, selectinload
 
 from shared.config.db.abstract_repository import AbstractUserRepository
-from shared.config.db.models import User
+from shared.config.db.models import MailAddress, User
 from shared.config.logger_config import db_logger
 
 
@@ -33,27 +34,46 @@ class UserAlchemyRepository(AbstractUserRepository):
             if telegram_id:
                 result = await self.session.execute(select(User).where(User.telegram_id == telegram_id))
                 user = result.scalar_one_or_none()
-                db_logger.debug("Пользователь по Telegram ID: %s", user)
+                db_logger.debug(f"Пользователь по Telegram ID: {email}")
                 return user
             
             elif email:
-                db_logger.debug("Поиск пользователя по Email: %s", email)
+                db_logger.debug(f"Поиск пользователя по Email: {email}")
                 result = await self.session.execute(select(User).where(User.email == email))
                 user = result.scalar_one_or_none()
                 db_logger.debug("Пользователь по Email: %s", user)
                 return user
             
             else:
-                db_logger.debug("Поиск пользователя по ID: %s", id)
+                db_logger.debug(f"Поиск пользователя по ID: {id}")
                 result = await self.session.execute(select(User).where(User.id == id))
                 user = result.scalar_one_or_none()
-                db_logger.debug(f"Пользователь по ID: {id}, {user.username}")
+                db_logger.debug(f"Пользователь по ID: {id}, {user}")
                 return user
             
         except Exception as e:
-            db_logger.exception("Ошибка при получении пользователя: %s", e)
+            db_logger.exception(f"Ошибка при получении пользователя: {e}")
             return None
-        
+
+    async def get_user_with_profile(self, user_id: int) -> User | None:
+            """
+            Полный запрос для отображения профиля: подгружает sro, mail_address
+            """
+            stmt = (
+                select(User)
+                .where(User.id == user_id)
+                .options(
+                            joinedload(User.sro),
+                            joinedload(User.mail_address)
+                                .joinedload(MailAddress.region),
+                            joinedload(User.mail_address)
+                                .joinedload(MailAddress.address),       
+                                )
+            )
+            result = await self.session.execute(stmt)
+            user = result.scalar_one_or_none()
+            db_logger.debug(f"get_user_with_profile :{user}")
+            return user
     
     async def update_user(self, user: User, user_data):
         try:

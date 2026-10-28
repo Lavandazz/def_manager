@@ -5,7 +5,7 @@ services:
       context: . # корень проекта
       dockerfile: web_app/Dockerfile
     # command: uvicorn web_app.app:app --host 0.0.0.0 --port 8000 --workers 1
-    command: sh -c "alembic upgrade head && uvicorn web_app.app:app --host 0.0.0.0 --port 8000 --workers 1"
+    command: sh -c "alembic upgrade head && uvicorn web_app.app:app --host 0.0.0.0 --port 8000 --workers 1 --reload" # --reload тлько для разработки
     networks:
       - def_manager_network
     ports:
@@ -20,6 +20,7 @@ services:
       - .env_mail
     volumes:
       - ./logs:/app/logs
+      - .:/app          #  монтируем весь проект в /app
 
   db_manager:
     container_name: db_manage_container
@@ -41,7 +42,7 @@ services:
       # - ./dumps/dump.sql:/docker-entrypoint-initdb.d/dump.sql
     # порт хоста:порт внутри контейнера
     ports:
-      - "5432:5432"
+      - "5433:5432"
     deploy:
       resources:
         limits:
@@ -90,9 +91,10 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      db_manager:
+        condition: service_healthy
     env_file:
       - .env
-      - .env_mail
     environment:
       # - POSTGRES_HOST=host.docker.internal # преопределение подключения к локальной бд
       - REDIS_HOST=redis
@@ -133,7 +135,6 @@ services:
     networks:
       - def_manager_network
     entrypoint: []                #  сбрасываем entrypoint образа
-    # command: celery -A shared.config.tasks_config worker -Q parsing_efrsb --concurrency=1 --hostname=worker-parsing-efrsb@%h
     command: >
       xvfb-run -a --server-args="-screen 0 1920x1080x24"
       celery -A shared.config.tasks_config worker
@@ -141,7 +142,7 @@ services:
       --concurrency=1
       --hostname=worker-parsing-efrsb@%h
     volumes:
-      - .:/app
+      # - .:/app
       - ./screens:/app/screens
     depends_on: # фастапи стартует после проверки баз
       redis:
@@ -151,7 +152,7 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_HOST=host.docker.internal # преопределение подключения к локальной бд
+      # - POSTGRES_HOST=host.docker.internal # преопределение подключения к локальной бд
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}

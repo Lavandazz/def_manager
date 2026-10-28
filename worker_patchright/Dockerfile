@@ -13,6 +13,10 @@ ENV TZ=Europe/Moscow
 WORKDIR /app
 
 COPY worker_patchright/requirements.txt .
+# устанавливаем зависимости
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
+    pip install email-validator
 
 # Xvfb + xauth - для «визуального» режима внутри headless-сервера
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -21,10 +25,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY shared/ /app/shared/
-COPY worker_patchright/ /app/
-
-# Устанавливаем patchright
-# RUN pip install --upgrade pip && \
-#     pip install -r requirements.txt && \
-#     pip install patchright && \
-#     patchright install --with-deps chromium
+COPY worker_patchright/ /app/worker_patchright

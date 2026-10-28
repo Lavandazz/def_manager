@@ -4,16 +4,19 @@ fastapi dev
 uvicorn app.app:app --reload
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from shared.config.settings_folders import WEB_APP
+from shared.utils.exceptions import UserNotFoundError
 from web_app.routers.api.api import router as api_router
 from web_app.routers.api.user.api_user import router as api_user_router
 from web_app.routers.api.user.api_cases import router as api_cases_router
 
 
+from web_app.routers.html.exceptions import user_not_found_handler
 from web_app.routers.html.user import router as user_router
 from web_app.routers.html.case import router as case_router
 from web_app.routers.html.index import router as main_router
@@ -38,6 +41,8 @@ app.add_middleware(
     expose_headers=(),
     max_age=600,
 )
+
+app.add_exception_handler(UserNotFoundError, user_not_found_handler)
 
 app.include_router(api_router, prefix="/api")
 app.include_router(api_user_router, prefix="/api/user")

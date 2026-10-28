@@ -2,40 +2,225 @@
 
 {% block title %}Профиль пользователя{% endblock %}
 
+{# Значение или «Не указано» для скаляров #}
+{% macro field(value) -%}
+  {%- if value is none or value == '' -%}
+    <span class="text-muted fst-italic">Не указано</span>
+  {%- else -%}
+    {{ value }}
+  {%- endif -%}
+{%- endmacro %}
+
+{# Дата в формате ДД.ММ.ГГГГ #}
+{% macro date_field(value) -%}
+  {%- if value -%}
+    {{ value.strftime('%d.%m.%Y') }}
+  {%- else -%}
+    <span class="text-muted fst-italic">Не указано</span>
+  {%- endif -%}
+{%- endmacro %}
+
+{# Связанный объект: пробуем .name, иначе строковое представление #}
+{% macro rel(obj) -%}
+  {%- if obj is none -%}
+    <span class="text-muted fst-italic">Не указано</span>
+  {%- elif obj.name is defined -%}
+    {{ obj.name }}
+  {%- else -%}
+    {{ obj }}
+  {%- endif -%}
+{%- endmacro %}
+
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Ваш профиль</h3>
-                </div>
-                <div class="card-body">
-                    <table class="table table-borderless">
-                        <tr>
-                            <th>Имя пользователя:</th>
-                            <td>{{ user.username }}</td>
-                        </tr>
-                        <tr>
-                            <th>Email:</th>
-                            <td>{{ user.email|default("Не указан") }}</td>
-                        </tr>
-                        <tr>
-                            <th>Telegram ID:</th>
-                            <td>{{ user.telegram_id|default("Не указан") }}</td>
-                        </tr>
-                    </table>
-                    <div class="d-grid gap-2">
-                        <a href="/user/profile/edit" class="btn btn-outline-primary">Редактировать профиль</a>
-                        <a href="/" class="btn btn-secondary">На главную</a>
-                    </div>
-                </div>
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+
+      {# ─── Шапка профиля ────────────────────────────────────── #}
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body d-flex flex-column flex-sm-row align-items-sm-center gap-4">
+          <div class="flex-grow-1">
+            <h3 class="mb-1">{{ user.username }}</h3>
+            <div class="text-muted mb-2">{{ user.email or 'Email не указан' }}</div>
+            <div class="d-flex flex-wrap gap-2">
+              {% if user.telegram_id %}
+                <span class="badge text-bg-light border">
+                  <i class="bi bi-telegram me-1"></i>{{ user.telegram_id }}
+                </span>
+              {% endif %}
+              {% if user.sro %}
+                <span class="badge text-bg-success">{{ user.sro.name }}</span>
+              {% else %}
+                <span class="badge text-bg-secondary">Не в СРО</span>
+              {% endif %}
             </div>
+          </div>
         </div>
+      </div>
+
+      {# ─── Основная информация ─────────────────────────────── #}
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0"><i class="bi bi-person me-2"></i>Основная информация</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="small text-muted">Имя пользователя</div>
+              <div class="fw-semibold">{{ field(user.username) }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Email</div>
+              <div class="fw-semibold">{{ field(user.email) }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Telegram ID</div>
+              <div class="fw-semibold">{{ field(user.telegram_id) }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Телефон</div>
+              <div class="fw-semibold">{{ field(user.telephone) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ─── Данные арбитражного управляющего ──────────────────── #}
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0"><i class="bi bi-briefcase me-2"></i>Данные арбитражного управляющего</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="small text-muted">ИНН</div>
+              <div class="fw-semibold">{{ field(user.inn) }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">СНИЛС</div>
+              <div class="fw-semibold">{{ field(user.snils) }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Регистрационный номер в Росреестре</div>
+              <div class="fw-semibold">{{ field(user.reg_num) }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Дата регистрации</div>
+              <div class="fw-semibold">{{ date_field(user.reg_date) }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Дата вступления в СРО</div>
+              <div class="fw-semibold">{{ date_field(user.date_begin) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ─── СРО ──────────────────────────────────────────────── #}
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-bank me-2"></i>СРО</h5>
+          {% if user.sro and user.sro.url %}
+            {# <a href="{{ user.sro.url }}" target="_blank" rel="noopener" #}
+               {# class="small text-decoration-none"> #}
+              {# Сайт <i class="bi bi-box-arrow-up-right ms-1"></i> #}
+            {# </a> #}
+            {{ user.sro.url }}
+          {% endif %}
+        </div>
+        <div class="card-body">
+          {% if user.sro %}
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="small text-muted">Наименование</div>
+                <div class="fw-semibold">{{ field(user.sro.name) }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="small text-muted">Регистрационный номер</div>
+                <div class="fw-semibold">{{ field(user.sro.reg_num) }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="small text-muted">Дата регистрации</div>
+                <div class="fw-semibold">{{ date_field(user.sro.reg_date) }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="small text-muted">ИНН</div>
+                <div class="fw-semibold">{{ field(user.sro.inn) }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="small text-muted">ОГРН</div>
+                <div class="fw-semibold">{{ field(user.sro.ogrn) }}</div>
+              </div>
+              <div class="col-12">
+                <div class="small text-muted">Юридический адрес</div>
+                <div class="fw-semibold">{{ field(user.sro.ur_address_sro) }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="small text-muted">Телефон</div>
+                <div class="fw-semibold">{{ field(user.sro.phone) }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="small text-muted">Email</div>
+                <div class="fw-semibold">
+                  {% if user.sro.email %}
+                    <a href="mailto:{{ user.sro.email }}" class="text-decoration-none">
+                      {{ user.sro.email }}
+                    </a>
+                  {% else %}
+                    <span class="text-muted fst-italic">Не указано</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <p class="text-muted fst-italic mb-0">Пользователь не состоит в СРО.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ─── Почтовый адрес ───────────────────────────────────── #}
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0"><i class="bi bi-envelope me-2"></i>Почтовый адрес</h5>
+        </div>
+        <div class="card-body">
+          {% if user.mail_address %}
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="small text-muted">Индекс</div>
+                <div class="fw-semibold">{{ field(user.mail_address.mail_index) }}</div>
+              </div>
+              <div class="col-md-8">
+                <div class="small text-muted">Регион</div>
+                <div class="fw-semibold">{{ rel(user.mail_address.region) }}</div>
+              </div>
+              <div class="col-12">
+                <div class="small text-muted">Адрес</div>
+                <div class="fw-semibold">{{ rel(user.mail_address.address) }}</div>
+              </div>
+            </div>
+          {% else %}
+            <p class="text-muted fst-italic mb-0">Почтовый адрес не указан.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ─── Действия ─────────────────────────────────────────── #}
+      <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mb-4">
+        <div class="d-flex gap-2">
+          <a href="/user/profile/edit" class="btn btn-primary">
+            <i class="bi bi-pencil-square me-1"></i>Редактировать профиль
+          </a>
+          <a href="/" class="btn btn-outline-secondary">
+            <i class="bi bi-house me-1"></i>На главную
+          </a>
+        </div>
+        <a href="/parsing/efrsb_{{ user.id }}" class="btn btn-outline-danger">
+          <i class="bi bi-play-fill me-1"></i>Start parsing
+        </a>
+      </div>
+
     </div>
-</div>
-  {# кнопка парсинга для отладки #}
-  <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-    <a href="/parsing/efrsb_{{ user.id }}" class="btn btn-outline-danger">Start</a>
   </div>
+</div>
 {% endblock %}

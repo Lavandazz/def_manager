@@ -14,14 +14,16 @@ WORKDIR /app
 
 COPY worker_playwright/requirements.txt .
 
-# Устанавливаем playwright
-RUN pip install --upgrade pip && \
+# Устанавливаем playwright 
+# Все зависимости возьмет из кэша, если есть, для ускорения сборки
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
     pip install -r requirements.txt && \
     pip install playwright && \
     playwright install --with-deps chromium
 
 COPY shared/ /app/shared/
 
-COPY worker_playwright/ /app/
+COPY worker_playwright/ /app/worker_playwright
 
 CMD ["celery", "-A", "tasks", "worker", "-Q", "playwright", "--loglevel=info"]

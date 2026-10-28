@@ -93,7 +93,10 @@ class ParserEFRSB:
         # Получаем и сохраняем данные пользователя
         user_data = await self.get_text_data()
         efrsb_logger.info(f"получил данные из блока АУ")
+
         await self.update_user_data(user_data)
+        efrsb_logger.debug(f"обновил пользователя id {self.user_id}")
+
         # Получаем и сохраняем данные СРО
         sro_data = await self.get_sro_data()
         await self.save_user_sro_data(sro_data)
@@ -233,6 +236,7 @@ class ParserEFRSB:
         """
         Обновление данных АУ в бд
         """
+        efrsb_logger.debug(f"Обновляю данные пользователя {self.user_id}")
         await self.data_saver.save_user_data(user_id=self.user_id, user_data=data)
 
     async def _get_sro_data(self) -> dict:

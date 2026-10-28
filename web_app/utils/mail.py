@@ -1,6 +1,6 @@
 
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
-from shared.config.settings_env import mail_settings
+from shared.config.settings_email import mail_settings
 
 
 mail_conf = ConnectionConfig(
