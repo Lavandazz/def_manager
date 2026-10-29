@@ -1,4 +1,5 @@
-playwright==1.64.0
+playwright==1.63.0
+pytest-playwright==0.9.0
 
 celery==5.6.3
 redis==6.4.0
@@ -14,3 +15,6 @@ python-dateutil==2.9.0.post0
 httpx==0.28.1
 email-validator==2.3.0
 tomlkit==0.15.0
+
+greenlet==3.5.6
+pyee==13.0.1

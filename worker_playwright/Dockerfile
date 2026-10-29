@@ -19,7 +19,7 @@ COPY worker_playwright/requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --upgrade pip && \
     pip install -r requirements.txt && \
-    pip install playwright && \
+    # pip install playwright && \
     playwright install --with-deps chromium
 
 COPY shared/ /app/shared/

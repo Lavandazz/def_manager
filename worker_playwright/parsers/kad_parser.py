@@ -154,44 +154,32 @@ class ParserKad:
         Если ввода номера не произошло, то страница обновится (await self.page.reload())
         :param retries: Количество попыток ввода дела
         """
+        await asyncio.sleep(5.3)
+        input_field = self.page.get_by_placeholder('например, А50-5568/08')
+        search_button = self.page.get_by_role("button", name="Найти")
         for attempt in range(1, retries + 1):
             try:
                 parser_logger.info(f"Попытка {attempt} — ищу поле для ввода номера дела: {self.case_number}")
-                await asyncio.sleep(1.3)
-                # Явное ожидание появления поля
-                try:
-                    input_field = self.page.get_by_placeholder('например, А50-5568/08')
+                
+                await input_field.fill(self.case_number)
+                await asyncio.sleep(3.7)
+                await search_button.hover()
+                # await input_field.press('Enter')
+                parser_logger.debug(f"навел на кнопку Найти и делаю скрин")
+                await self.page.screenshot(path=SCREEN_PATH / f"{self.case_number}_hover.png", full_page=True)
+                await asyncio.sleep(2.9)
+                await search_button.click()
+                await self.page.screenshot(path=SCREEN_PATH / f"{self.case_number}_click.png", full_page=True)
 
-                except AttributeError as attr_err:
-                    parser_logger.error("Ошибка при поиске поля ввода номера дела: %s", attr_err)
-                    await self.page.reload()
-                    continue
-
-                if input_field:
-                    await input_field.fill(self.case_number)
-                    parser_logger.debug("✅ Ввод номера дела успешно выполнен")
-                    await asyncio.sleep(2.6)
-
-                    await input_field.focus()
-                    await self.page.keyboard.press('Enter')
-                    # await self.page.get_by_role("button", name="Найти").click()
-
-
-                    parser_logger.debug(f"✅ нажатие Enter после ввода номера дела, делаю скрин")
-                    await asyncio.sleep(2.3)
-                    await self.page.screenshot(path=f"{SCREEN_PATH}/{self.case_number}_enter.png", full_page=True)
-
-                    parser_logger.info("✅ Ввод номера дела успешно выполнен",
-                                    extra={
-                                        "case_number": self.case_number,
-                                        "step": "enter_case_number",
-                                        "system": "parser",
-                                    })
-                    return  # успех — выходим
-                else:
-                    parser_logger.warning("Поле для ввода номера дела не найдено на странице. Попытка %s", attempt)
-                    await self.page.reload()
-                    await asyncio.sleep(5)  # время на подгрузку
+                parser_logger.info("✅ Ввод номера дела успешно выполнен",
+                                   extra={
+                                       "case_number": self.case_number,
+                                       "step": "enter_case_number",
+                                       "system": "parser",
+                                   })
+                await asyncio.sleep(2.8)
+                await self.page.screenshot(path=SCREEN_PATH / f"{self.case_number}_after_click.png", full_page=True)
+                return  # успех — выходим
 
             except Exception as e:
                 parser_logger.warning(f"⚠️ Ошибка при вводе номера дела на попытке {attempt}: {e}")
@@ -199,8 +187,16 @@ class ParserKad:
                 if attempt < retries:
                     parser_logger.info("🔁 Обновляю страницу и повторяю попытку",
                                        extra={"step": "refresh_and_retry", "case_number": self.case_number})
-                    await self.page.reload()
+                    # await self.page.reload()
+                    await input_field.focus()
+                    await asyncio.sleep(2.3)
+                    parser_logger.debug(f"Сфокусировался на поле дела и делаю скрин перед нажатием на ENTER")
+                    await self.page.screenshot(path=SCREEN_PATH / f"{self.case_number}_hover.png", full_page=True)
+                    await input_field.press('Enter')
                     await asyncio.sleep(5)  # время на подгрузку
+                    parser_logger.warning(f"Клик по кнопке Найти ")
+
+                    # await search_button.click()
                 else:
                     parser_logger.error("❌ Все попытки ввода номера дела исчерпаны",
                                         extra={
@@ -209,6 +205,7 @@ class ParserKad:
                                             "error": str(e),
                                             "system": "parser",
                                         })
+                    
 
     async def click_link_case(self):
         """
@@ -216,9 +213,12 @@ class ParserKad:
         """
         try:
             case_number_link = self.page.locator("a[target='_blank'].num_case", has_text=self.case_number)
+            
             await asyncio.sleep(random_sleep())
-            parser_logger.debug("Нашел ссылку на дело case_number_link, делаю клик по нему") 
-
+            parser_logger.debug(f"Нашел ссылку на дело case_number_link, делаю клик по нему {case_number_link}") 
+            href = await case_number_link.get_attribute("href")
+            parser_logger.debug("href = %s", href)
+            
             # ожидаем открытия новой вкладки
             async with self.page.context.expect_page() as new_page:
                 await case_number_link.click()
@@ -228,6 +228,7 @@ class ParserKad:
             await self.page.screenshot(path=f"{SCREEN_PATH}/{self.case_number}_link.png", full_page=True)
 
             self.new_page = await new_page.value
+            await self.new_page.wait_for_load_state("domcontentloaded")
             current_url = self.new_page.url  # получаем адрес новой странички
 
             # Сохраняем ссылку на дело в базу данных

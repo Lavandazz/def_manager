@@ -20,6 +20,11 @@ async def process_parsing(browser, case: str, data_saver: ParserDataSaver):
     context = await browser.new_context(
         viewport=None,  # Использовать размер экрана по умолчанию (как у обычного браузера)
         # user_agent=ua  # используем рандомный агент
+        user_agent=(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
     )
     parser = ParserKad(
         url='https://kad.arbitr.ru/', 
@@ -39,6 +44,7 @@ async def run_playwright_parsing(case_number: str):
         async with async_playwright() as playwright:
             browser = await playwright.chromium.launch(
                 headless=True,  # True для безголового режима, False для визуального
+                channel="chromium",
                 args=[
                     "--start-maximized",  # Окно на весь экран
                     "--disable-blink-features=AutomationControlled",  # Убираем флаг автоматизации

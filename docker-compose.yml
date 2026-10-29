@@ -93,6 +93,8 @@ services:
         condition: service_healthy
       db_manager:
         condition: service_healthy
+    volumes:
+      - ./screens:/app/screens
     env_file:
       - .env
     environment:
