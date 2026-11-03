@@ -1,19 +1,32 @@
-
 {% if user %}
-<h3>Навигация</h3>
+  <div class="sidebar-header">
+    <h3>Мои дела</h3>
+  </div>
+
   {% if cases %}
-    {% for case in cases %}
-      <dl class="case-item">
-        <dt>{{ case.debtor.name }}</dt>
-        <dd>
+    <ul class="case-list">
+      {% for case in cases %}
+        <li>
           <a href="/user/cases/{{ case.id }}?page=1&size=10"
-            class="case-link">{{ case.number_case }}</a>
-        </dd>
-      </dl>
-    {% endfor %}
-    
+             class="case-item case-link"
+             title="{{ case.debtor.name }} — дело {{ case.number_case }}">
+            <span class="case-debtor">{{ case.debtor.name }}</span>
+            <span class="case-number">{{ case.number_case }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
   {% else %}
-    <p>Дела не найдены.</p>
+    <div class="p-3 text-center" style="color: var(--ink-soft); font-size: 0.875rem;">
+      Дела не найдены.
+    </div>
   {% endif %}
 
+{% else %}
+  <div class="sidebar-header">
+    <h3>Навигация</h3>
+  </div>
+  <div class="p-3 text-center" style="color: var(--ink-soft); font-size: 0.875rem;">
+    Войдите, чтобы увидеть дела.
+  </div>
 {% endif %}

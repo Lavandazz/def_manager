@@ -2,31 +2,81 @@
 {% block title %}Вход{% endblock %}
 
 {% block login %}
-<div class="container mt-5 d-flex justify-content-center">
-  <div class="card text-center" style="width:400px">
-    <div class="card-body">
-      {% if error %}
-          <p style="color:red">{{ error }}</p>
-      {% endif %}
-      <h4 class="card-title">Вход</h4>
-      <form id="loginForm" method="post" action="/login">
-        <p>Введите Email и пароль</p>
-        <input type="email" name="email" id="email" placeholder="Email"><br>
-        <input type="password" name="password" placeholder="Пароль" required><br>
-        <button type="submit" class="btn btn-primary m-3">Войти</button>
-      </form>
-    </div>
+<div class="d-flex justify-content-center py-4 py-md-5">
+  <div class="login-card w-100" style="max-width: 400px;">
+
+    <h4 class="login-title">Вход в систему</h4>
+    <p class="login-subtitle">Используйте Email и пароль, чтобы продолжить.</p>
+
+    {% if error %}
+      <div class="mb-3 small" style="color: #dc2626;" role="alert">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <form id="loginForm" method="post" action="/login" novalidate>
+
+      <div class="mb-3">
+        <label for="email" class="form-label small fw-500" style="color: var(--ink-soft);">
+          Email
+        </label>
+        <input
+          type="email"
+          name="email"
+          id="email"
+          class="form-control-legal w-100"
+          placeholder="you@example.com"
+          autocomplete="email"
+        >
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="form-label small fw-500" style="color: var(--ink-soft);">
+          Пароль
+        </label>
+        <input
+          type="password"
+          name="password"
+          id="password"
+          class="form-control-legal w-100"
+          placeholder="••••••••"
+          required
+          autocomplete="current-password"
+        >
+      </div>
+
+      <button type="submit" class="btn-legal-primary w-100">
+        Войти
+      </button>
+
+    </form>
   </div>
 </div>
 
 <script>
-  document.getElementById('loginForm').addEventListener('submit', function(event) {
-    const telegram = document.getElementById('telegram_id').value.trim();
-    const email = document.getElementById('email').value.trim();
-    if (telegram === '' && email === '') {
-      alert('Пожалуйста, введите Telegram ID или Email');
-      event.preventDefault();
-    }
-  });
+  (function () {
+    const form = document.getElementById('loginForm');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+
+    form.addEventListener('submit', function (event) {
+      let hasError = false;
+
+      if (!email.value.trim() && !password.value.trim()) {
+        alert('Пожалуйста, заполните Email и пароль.');
+        hasError = true;
+      } else if (!email.value.trim()) {
+        alert('Пожалуйста, введите Email.');
+        hasError = true;
+      } else if (!password.value.trim()) {
+        alert('Пожалуйста, введите пароль.');
+        hasError = true;
+      }
+
+      if (hasError) {
+        event.preventDefault();
+      }
+    });
+  })();
 </script>
 {% endblock %}

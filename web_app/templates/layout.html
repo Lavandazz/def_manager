@@ -5,48 +5,38 @@
 {% block main %}
 
   {% block base_content %}
-    <div class="container-fluid mt-3">
-      <!-- SVG-фильтр для «гуаши». Можно положить один раз в конце body -->
-      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-        <filter id="gouache">
-          <feTurbulence type="fractalNoise" baseFrequency="0.008 0.013"
-                        numOctaves="3" seed="7" result="noise"/>
-          <feDisplacementMap in="SourceGraphic" in2="noise"
-                            scale="70" xChannelSelector="R" yChannelSelector="G"/>
-        </filter>
-      </svg>
+    <div class="page-shell mt-4">
 
-      <div class="hero-banner mt-4 p-5 text-white rounded" id="heroBanner">
-        <h1>Мониторинг арбитражных дел о банкротстве</h1>
-        <p>Простота в использовании. Скорость получения информации.</p>
-      </div>
+      <!-- Hero -->
+      {% block hero %}{% endblock hero %}
+      <div class="row g-4">
 
-      <div class="row m-4">
+        <!-- Sidebar / Navigation -->
+        <aside class="col-12 col-lg-3">
+          <div class="sidebar-legal">
+            {% block navigation %}
+              {% include "components/navigation.html" %}
+            {% endblock %}
+          </div>
+        </aside>
 
-      <div class="col-3 mt-4">
-        <div class="nav-placeholder">
-          {% block navigation %}
-            {% include "components/navigation.html" %}
-          {% endblock %}
-        </div>
-      </div>
+        <!-- Main content -->
+        <div class="col-12 col-lg-9">
+          <main class="content-main mx-auto">
+            {% if message %}
+              <div class="alert alert-success border-0 rounded-3 mb-4" role="alert" style="background: var(--mist); color: var(--ink);">
+                {{ message }}
+              </div>
+            {% endif %}
 
-        <div class="col-9">
-            <main class="container col-8 mt-4">
-                {% if message %}
-                    <div class="alert alert-success" role="alert">
-                        {{ message }}
-                    </div>
-                {% endif %}
-              {% block content %}
-                {% block login %}{% endblock login %}
-              {% endblock content %}
-            </main>
+            {% block content %}
+              {% block login %}{% endblock login %}
+            {% endblock content %}
+          </main>
         </div>
 
       </div>
     </div>
   {% endblock base_content %}
-
 
 {% endblock main %}

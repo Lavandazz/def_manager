@@ -1,0 +1,269 @@
+{% extends "layout.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block main_class %}content-main--wide{% endblock %}
+
+{% block content %}
+<div class="doc-page py-2">
+
+  {# ---------- Hero ---------- #}
+  <div class="page-hero mb-4">
+    <i class="bi bi-journal-bookmark-fill hero-deco" aria-hidden="true"></i>
+
+    <span class="hero-kicker">Документация</span>
+    <h1>Справочный центр</h1>
+    <p class="hero-lead">
+      Всё, что нужно, чтобы уверенно работать с порталом: как вести дела,
+      как заполнять карточки должников, что делать при ошибках.
+      Выберите нужный раздел ниже.
+    </p>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a href="#sections" class="btn-legal-primary">
+        <i class="bi bi-grid-3x3-gap"></i> Все разделы
+      </a>
+      <a href="{{ url_for('help_debtor_faq') }}" class="btn-legal-secondary">
+        <i class="bi bi-patch-question"></i> Частые вопросы
+      </a>
+    </div>
+  </div>
+
+  {# ---------- Быстрые ссылки ---------- #}
+  <div class="row g-3 mb-5">
+    <div class="col-md-4">
+      <a href="{{ url_for('help_about_portal') }}" class="quick-link-card">
+        <span class="icon-badge icon-badge--azure"><i class="bi bi-info-circle"></i></span>
+        <div>
+          <div class="ql-title">О портале</div>
+          <div class="ql-sub">Для кого, что даёт, как начать</div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{{ url_for('help_debtor_edit') }}" class="quick-link-card">
+        <span class="icon-badge icon-badge--green"><i class="bi bi-person-vcard"></i></span>
+        <div>
+          <div class="ql-title">Внесение сведений о должнике</div>
+          <div class="ql-sub">Поля, обязательность, банки и адреса</div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{{ url_for('help_debtor_faq') }}" class="quick-link-card">
+        <span class="icon-badge icon-badge--lavender"><i class="bi bi-patch-question"></i></span>
+        <div>
+          <div class="ql-title">Частые вопросы</div>
+          <div class="ql-sub">Короткие ответы на типовые ситуации</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  {# ---------- Основные разделы ---------- #}
+  <section id="sections" class="mb-5">
+    <h2 class="section-title">
+      <i class="bi bi-grid-3x3-gap"></i> Разделы документации
+    </h2>
+
+    <div class="row g-4">
+
+      <div class="col-lg-4">
+        <div class="doc-card">
+          <span class="icon-badge icon-badge--azure"><i class="bi bi-info-circle"></i></span>
+          <h3>О портале</h3>
+          <p>
+            Что такое портал, для кого он создан, какие задачи решает.
+            Возможности личного кабинета и порядок первого входа.
+          </p>
+          <ul>
+            <li>Для кого и зачем</li>
+            <li>Возможности и данные</li>
+            <li>Вход и регистрация</li>
+          </ul>
+          <a href="{{ url_for('help_about_portal') }}" class="doc-link">
+            Открыть раздел <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="doc-card">
+          <span class="icon-badge icon-badge--green"><i class="bi bi-person-vcard"></i></span>
+          <h3>Внесение сведений о должнике</h3>
+          <p>
+            Полное руководство по карточке должника: обязательные поля
+            для физлиц и юрлиц, работа с адресами, банками и счетами.
+          </p>
+          <ul>
+            <li>Основные данные</li>
+            <li>Место рождения и прописка</li>
+            <li>Счета в банках</li>
+          </ul>
+          <a href="{{ url_for('help_debtor_edit') }}" class="doc-link">
+            Открыть раздел <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="doc-card">
+          <span class="icon-badge icon-badge--lavender"><i class="bi bi-patch-question"></i></span>
+          <h3>Частые вопросы по должнику</h3>
+          <p>
+            Ответы на типовые ситуации: обязательность полей, поведение
+            при смене типа должника, ошибки валидации и потеря данных.
+          </p>
+          <ul>
+            <li>Общие вопросы</li>
+            <li>Адреса и банки</li>
+            <li>Ошибки и сохранение</li>
+          </ul>
+          <a href="{{ url_for('help_debtor_faq') }}" class="doc-link">
+            Открыть раздел <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  {# ---------- Мини-навигация по темам ---------- #}
+  <section class="mb-5">
+    <h2 class="section-title">
+      <i class="bi bi-lightning-charge"></i> Быстрый переход по темам
+    </h2>
+
+    <div class="topic-nav">
+      <div class="row g-4">
+
+        <div class="col-md-6 col-lg-4">
+          <div class="topic-group-title">Начало работы</div>
+          <ul class="topic-list">
+            <li>
+              <a href="{{ url_for('help_about_portal') }}#login">
+                <i class="bi bi-box-arrow-in-right"></i> Вход и регистрация
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('help_about_portal') }}#how-to-start">
+                <i class="bi bi-rocket-takeoff"></i> Как добавить дело
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('help_about_portal') }}#features">
+                <i class="bi bi-stars"></i> Возможности портала
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+          <div class="topic-group-title">Карточка должника</div>
+          <ul class="topic-list">
+            <li>
+              <a href="{{ url_for('help_debtor_edit') }}#main-data">
+                <i class="bi bi-input-cursor-text"></i> Основные данные
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('help_debtor_edit') }}#birth-region">
+                <i class="bi bi-geo-alt"></i> Место рождения
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('help_debtor_edit') }}#residential">
+                <i class="bi bi-house-door"></i> Адрес прописки
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('help_debtor_edit') }}#accounts">
+                <i class="bi bi-bank"></i> Счета в банках
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+          <div class="topic-group-title">Помощь и разбор ошибок</div>
+          <ul class="topic-list">
+            <li>
+              <a href="{{ url_for('help_debtor_faq') }}#errors">
+                <i class="bi bi-exclamation-triangle"></i> Ошибки при сохранении
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('help_debtor_faq') }}#banks">
+                <i class="bi bi-plus-circle"></i> Добавление банка
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('help_debtor_faq') }}#docs">
+                <i class="bi bi-file-earmark-text"></i> Генерация документов
+              </a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  {# ---------- Полезные заметки ---------- #}
+  <section class="mb-5">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="callout callout--info">
+          <i class="bi bi-lightbulb-fill callout-icon"></i>
+          <div>
+            <div class="callout-title">Перед заполнением карточки</div>
+            <div class="callout-body">
+              Подготовьте документы должника: паспорт, ИНН, СНИЛС,
+              реквизиты счетов. Тогда карточка заполнится за один проход.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="callout callout--warn">
+          <i class="bi bi-exclamation-triangle-fill callout-icon"></i>
+          <div>
+            <div class="callout-title">Не забудьте сохранить</div>
+            <div class="callout-body">
+              Новые банки, адреса и регионы создаются вместе с сохранением
+              должника. Закрыли страницу без сохранения — данные не попали
+              в справочник.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ---------- Финальный CTA ---------- #}
+  <div class="cta-band mb-4">
+    <div class="row align-items-center g-3">
+      <div class="col-lg-8">
+        <h3>Не нашли ответ?</h3>
+        <p>
+          Посмотрите частые вопросы — там разобраны типовые ситуации
+          по данным должника, банкам, адресам и генерации документов.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <a href="{{ url_for('help_debtor_faq') }}" class="btn-on-dark">
+          <i class="bi bi-patch-question"></i> Открыть FAQ
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {# ---------- Нижняя строка ---------- #}
+  <div class="back-row mb-2">
+    <a href="#" class="btn-legal-secondary" style="min-height: 36px; padding: 0.45rem 1rem; font-size: 0.875rem;">
+      <i class="bi bi-arrow-up"></i> Наверх
+    </a>
+    <span>Если что-то не описано — обратитесь к администратору портала.</span>
+  </div>
+
+</div>
+{% endblock content %}

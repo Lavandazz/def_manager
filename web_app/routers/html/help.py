@@ -41,7 +41,7 @@ async def help_portal(
     print("пользователя нет")
     return templates.TemplateResponse(
         request,
-        "documentation/portal.html",
+        "documentation/about_portal.html",
         context=context
     )
 

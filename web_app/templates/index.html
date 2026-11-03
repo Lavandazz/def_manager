@@ -1,130 +1,138 @@
-
 {% extends "layout.html" %}
+
+{% block hero %}
+  <section class="hero-legal hero-legal--full mb-4">
+    <span class="hero-kicker">Мониторинг банкротств</span>
+    <h1>Арбитражные дела<br>под контролем</h1>
+    <p>Простота в использовании. Скорость получения информации…</p>
+  </section>
+{% endblock hero %}
 
 {% block content %}
 
 <div class="landing-page">
 
-    <!-- Вступление -->
-    <p class="lead text-muted mb-4">
-        Портал для юристов, которые ведут дела о банкротстве физических и юридических лиц.
-        Здесь можно отслеживать арбитражные дела с сайта
-        <strong>«Картотека арбитражных дел»</strong> — в одном личном кабинете, без ручного мониторинга.
+
+  <!-- Вступление -->
+  <div class="mb-5">
+    <span class="mono-label">О портале</span>
+    <p class="lead mt-2 mb-0" style="color: var(--ink-soft); max-width: 62ch; font-size: 1.0625rem; line-height: 1.65;">
+      Портал для юристов, которые ведут дела о банкротстве физических
+      и юридических лиц. Здесь можно отслеживать арбитражные дела
+      с сайта <strong style="color: var(--ink);">«Картотека арбитражных дел»</strong>
+      — в одном личном кабинете, без ручного мониторинга.
     </p>
+  </div>
 
-    <!-- Для кого / Что даёт -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-6">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-body">
-                    <h2 class="h5 card-title text-primary">Для кого</h2>
-                    <p class="card-text mb-0">
-                        Для юристов и юридических команд, которые сопровождают процедуры банкротства
-                        и регулярно следят за ходом арбитражных дел: от подачи заявления до завершения процедуры.
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-body">
-                    <h2 class="h5 card-title text-primary">Что вы получаете</h2>
-                    <ul class="mb-0 ps-3">
-                        <li>актуальный статус дела;</li>
-                        <li>сведения о судебных заседаниях — дата, время, место;</li>
-                        <li>список документов, поступивших от суда;</li>
-                        <li>все отслеживаемые дела в одном личном кабинете.</li>
-                        <li>генерация Word запросов в государственные службы и банки</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+  <!-- Для кого / Что даёт -->
+  <div class="row g-3 mb-5">
+    <div class="col-md-6">
+      <div class="info-card h-100">
+        <span class="card-kicker">Для кого</span>
+        <h2>Юристы и команды</h2>
+        <p class="mb-0" style="color: var(--ink-soft); font-size: 0.9375rem;">
+          Для юристов и юридических команд, которые сопровождают
+          процедуры банкротства и регулярно следят за ходом арбитражных
+          дел: от подачи заявления до завершения процедуры.
+        </p>
+      </div>
     </div>
-
-    <!-- Как пользоваться -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-light">
-        <h2 class="h5 mb-0">Как пользоваться</h2>
-        </div>
-        <div class="card-body">
-        <ol class="mb-3">
-            <li class="mb-2">
-            <strong>Войдите</strong> в личный кабинет или
-            <a href="/user/register">зарегистрируйтесь</a>, если вы здесь впервые.
-            </li>
-            <li class="mb-2">
-            <strong>Добавьте дело</strong> — укажите номер в формате арбитражного суда
-            (например, <code>А40-12345/2024</code>).
-            </li>
-            <li class="mb-2">
-            <strong>Сохраните</strong> дело. Портал начнёт собирать данные
-            с «Картотеки арбитражных дел».
-            </li>
-            <li class="mb-0">
-            <strong>Откройте личный кабинет</strong> — через некоторое время
-            в списке появится дело с собранной информацией: документы, заседания,
-            текущий статус.
-            </li>
-        </ol>
-    
-        {# --- Сноска на документацию --- #}
-        <div class="border-top pt-3 d-flex flex-wrap align-items-center gap-2">
-            <span class="text-muted small">
-            <i class="bi bi-info-circle me-1"></i>
-            Подробные инструкции — в разделе документации:
-            </span>
-            <a href="{{ url_for('help_index') }}"
-            class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-book me-1"></i> Открыть документацию
-            </a>
-            <a href="{{ url_for('help_debtor_edit') }}"
-            class="btn btn-sm btn-link text-decoration-none p-0">
-            Внесение сведений о должнике →
-            </a>
-        </div>
-        </div>
+    <div class="col-md-6">
+      <div class="info-card h-100">
+        <span class="card-kicker">Что вы получаете</span>
+        <h2>Полный контроль</h2>
+        <ul class="list-benefits">
+          <li>Актуальный статус дела</li>
+          <li>Заседания: дата, время, место</li>
+          <li>Документы от суда — в одном списке</li>
+          <li>Все отслеживаемые дела в одном кабинете</li>
+          <li>Генерация Word-запросов в госслужбы и банки</li>
+        </ul>
+      </div>
     </div>
+  </div>
 
-    <!-- Вход и регистрация -->
-    <div class="alert alert-info border-0 shadow-sm mb-4" role="alert">
-        <h2 class="h6 alert-heading mb-2">Вход и регистрация</h2>
-        <div class="row g-3">
-            <div class="col-md-6">
-                <strong>Новые пользователи</strong><br>
-                Регистрация по электронной почте на странице
-                <a href="/user/register" class="alert-link">«Регистрация»</a>.
-            </div>
-            <div class="col-md-6">
-                <strong>Ранее зарегистрированные пользователи</strong><br>
-                Вход по <strong>Telegram ID</strong>. Пароль нужно задать один раз
-                в разделе <a href="/user/profile/edit" class="alert-link">«Настройки профиля»</a>.
-            </div>
+  <!-- Как пользоваться -->
+  <div class="info-card mb-5">
+    <span class="card-kicker">Как пользоваться</span>
+    <h2 class="mb-4">Четыре шага</h2>
+
+    <ol class="steps-list mb-4">
+      <li>
+        <span class="step-num">01</span>
+        <div>
+          <strong>Войдите</strong> в личный кабинет или
+          <a href="/user/register">зарегистрируйтесь</a>, если вы здесь впервые.
         </div>
-    </div>
+      </li>
+      <li>
+        <span class="step-num">02</span>
+        <div>
+          <strong>Добавьте дело</strong> — укажите номер в формате арбитражного
+          суда (например, <code>А40-12345/2024</code>).
+        </div>
+      </li>
+      <li>
+        <span class="step-num">03</span>
+        <div>
+          <strong>Сохраните</strong> дело — портал начнёт собирать данные
+          с «Картотеки арбитражных дел».
+        </div>
+      </li>
+      <li>
+        <span class="step-num">04</span>
+        <div>
+          <strong>Откройте личный кабинет</strong> — через некоторое время
+          в списке появится дело с собранной информацией: документы,
+          заседания, текущий статус.
+        </div>
+      </li>
+    </ol>
 
-    <!-- Кнопки -->
-    <div class="d-grid gap-2 d-sm-flex">
-        {% if user %}
-            <a href="/user/cases/create" class="btn btn-primary btn-lg px-4">
-                Добавить дело
-            </a>
-            <a href="/user/profile" class="btn btn-outline-secondary btn-lg px-4">
-                Мои дела
-            </a>
-        {% else %}
-            <a href="/login" class="btn btn-primary btn-lg px-4">
-                Войти
-            </a>
-            <a href="/user/register" class="btn btn-outline-primary btn-lg px-4">
-                Зарегистрироваться
-            </a>
-        {% endif %}
+    <div class="docs-row">
+      <span class="mono-label">Подробнее</span>
+      <a href="{{ url_for('help_index') }}">Открыть документацию</a>
+      <span class="dot-sep">·</span>
+      <a href="{{ url_for('help_debtor_edit') }}">Внесение сведений о должнике</a>
     </div>
+  </div>
 
-    <p class="text-muted small mt-4 mb-0">
-        Данные обновляются автоматически. Если дело только что добавлено,
-        подождите — информация появится в личном кабинете после следующей синхронизации.
-    </p>
+  <!-- Вход и регистрация -->
+  <div class="note-panel mb-5">
+    <span class="card-kicker">Вход и регистрация</span>
+    <div class="row g-4 mt-1">
+      <div class="col-md-6">
+        <h3 class="h6 mb-2 fw-semibold">Новые пользователи</h3>
+        <p class="mb-0" style="color: var(--ink-soft); font-size: 0.9375rem;">
+          Регистрация по электронной почте на странице
+          <a href="/user/register">«Регистрация»</a>.
+        </p>
+      </div>
+      <div class="col-md-6">
+        <h3 class="h6 mb-2 fw-semibold">Ранее зарегистрированные</h3>
+        <p class="mb-0" style="color: var(--ink-soft); font-size: 0.9375rem;">
+          Вход по <strong>Telegram ID</strong>. Пароль задаётся один раз
+          в разделе <a href="/user/profile/edit">«Настройки профиля»</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="d-flex flex-wrap gap-2">
+    {% if user %}
+      <a href="/user/cases/create" class="btn-legal-primary">Добавить дело</a>
+      <a href="/user/profile" class="btn-legal-secondary">Мои дела</a>
+    {% else %}
+      <a href="/login" class="btn-legal-primary">Войти</a>
+      <a href="/user/register" class="btn-legal-secondary">Зарегистрироваться</a>
+    {% endif %}
+  </div>
+
+  <p class="mt-4 mb-0" style="font-size: 0.8125rem; color: var(--steel);">
+    Данные обновляются автоматически. Если дело только что добавлено —
+    информация появится в личном кабинете после следующей синхронизации.
+  </p>
 
 </div>
 

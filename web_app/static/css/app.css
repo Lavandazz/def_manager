@@ -1,0 +1,491 @@
+/* ============================================================
+   Дизайн-система: Codex-inspired light theme для юр. помощника
+   ============================================================ */
+
+:root {
+  --ink:            #0E0F12;
+  --ink-soft:       #40434A;
+  --mist:           #F5F7FA;
+  --steel:          #9EA1AA;
+  --white:          #FFFFFF;
+  --lightblue:      #B0C4DE;
+
+  --accent-green:   #10A37F;
+  --accent-azure:   #2B8FFF;
+
+  --bs-body-bg:     var(--white);
+  --bs-body-color:  var(--ink);
+  --bs-primary:     var(--accent-green);
+  --bs-link-color:  var(--accent-azure);
+  --bs-link-hover-color: #1a6fd4;
+  --bs-border-color: #E5E7EB;
+
+  --radius-pill: 999px;
+  --radius-card: 8px;
+
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", "Menlo", monospace;
+}
+
+/* ---------- Базовая типографика ---------- */
+
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: var(--white);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+h1 { font-size: clamp(1.75rem, 3vw, 2rem); line-height: 1.2; }
+h2 { font-size: 1.5rem; line-height: 1.25; }
+h3 { font-size: 1.25rem; line-height: 1.3; }
+
+.text-muted-legal { color: var(--ink-soft); }
+
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  background: var(--mist);
+  color: var(--ink);
+  border: 1px solid var(--bs-border-color);
+}
+
+/* ============================================================
+   Фон страницы: полупрозрачная Фемида в левой половине
+   Fixed → не скроллится, одинаково на всех страницах
+   ============================================================ */
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 70% 0 0;                     /* занимает ровно левые 50vw */
+  z-index: -1;
+  background-image: url("/static/img/femi1.png");
+  background-size: auto 91%;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.80;                        /* полупрозрачная фемида*/
+  pointer-events: none;
+  /* мягко растворяется к середине — стык не выглядит обрубленным */
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 65%, transparent 100%);
+          mask-image: linear-gradient(to right, #000 0%, #000 65%, transparent 100%);
+}
+
+@media (max-width: 767.98px) {
+  body::before {
+    /* на мобильном — приглушённый верхний декор во всю ширину */
+    inset: 0 0 auto 0;
+    height: 60vh;
+    opacity: 0.06;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 80%);
+            mask-image: linear-gradient(to bottom, #000 0%, transparent 80%);
+  }
+}
+
+/* ---------- Hero-блок ---------- */
+
+.hero-legal {
+  position: relative;
+  overflow: hidden;
+  background: var(--mist);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radius-card);
+  padding: 3rem 2.5rem;
+}
+
+/* Два медленно дрейфующих полупрозрачных пятна — «живость» без шума */
+.hero-legal::before,
+.hero-legal::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero-legal::before {
+  width: 70%;
+  height: 120%;
+  top: -30%;
+  left: -10%;
+  background: radial-gradient(circle, rgba(43, 143, 255, 0.28) 0%, transparent 65%);
+  animation: heroGlow1 26s ease-in-out infinite alternate;
+}
+
+.hero-legal::after {
+  width: 65%;
+  height: 110%;
+  bottom: -20%;
+  right: -5%;
+  background: radial-gradient(circle, rgba(155, 130, 245, 0.22) 0%, transparent 65%);
+  animation: heroGlow2 34s ease-in-out infinite alternate;
+}
+
+@keyframes heroGlow1 {
+  0%   { transform: translate(0, 0); }
+  50%  { transform: translate(15%, 10%); }
+  100% { transform: translate(30%, 25%); }
+}
+@keyframes heroGlow2 {
+  0%   { transform: translate(0, 0); }
+  50%  { transform: translate(-15%, -10%); }
+  100% { transform: translate(-25%, -5%); }
+}
+
+.hero-legal > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-legal h1 {
+  max-width: 28ch;
+  margin-bottom: 0.75rem;
+}
+
+.hero-legal p {
+  max-width: 52ch;
+  color: var(--ink-soft);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  margin-bottom: 0;
+}
+
+.hero-legal .hero-kicker {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--accent-green);
+  border-radius: var(--radius-pill);
+  color: var(--accent-green);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-legal::before,
+  .hero-legal::after { animation: none; }
+}
+
+/* ---------- Боковая навигация ----------
+   Полупрозрачная белая подложка — чтобы Фемида просвечивала,
+   но текст оставался читаемым. */
+
+.sidebar-legal {
+  position: sticky;
+  top: 20px;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.72);
+  overflow: hidden;
+}
+
+.sidebar-legal .sidebar-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.sidebar-legal .sidebar-header h3 {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.case-list {
+  margin: 0;
+  padding: 0.5rem;
+  list-style: none;
+}
+
+.case-list li + li {
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.case-item {
+  display: block;
+  padding: 0.75rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.case-item:hover,
+.case-item:focus-visible {
+  background: var(--mist);
+  outline: none;
+}
+
+.case-item:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent-azure);
+}
+
+.case-debtor {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.case-number {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent-azure);
+  letter-spacing: 0.02em;
+}
+
+.case-link { color: inherit; text-decoration: none; }
+
+/* ---------- Карточки-инфо (для index) ---------- */
+
+.info-card {
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radius-card);
+  background: var(--white);
+  padding: 1.75rem;
+}
+
+.info-card .card-kicker {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 0.75rem;
+}
+
+.info-card h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.list-benefits {
+  padding-left: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.list-benefits li {
+  position: relative;
+  padding-left: 1.25rem;
+  margin-bottom: 0.4rem;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+}
+
+.list-benefits li:last-child { margin-bottom: 0; }
+
+.list-benefits li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-green);
+}
+
+/* ---------- Нумерованные шаги ---------- */
+
+.steps-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.steps-list li {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--bs-border-color);
+  font-size: 0.9375rem;
+  color: var(--ink);
+}
+
+.steps-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+.steps-list li:first-child { padding-top: 0; }
+
+.steps-list .step-num {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--steel);
+  min-width: 2rem;
+  padding-top: 0.15rem;
+  letter-spacing: 0.05em;
+}
+
+/* ---------- Docs row ---------- */
+
+.docs-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--bs-border-color);
+  font-size: 0.9375rem;
+}
+
+.docs-row .dot-sep { color: var(--steel); }
+
+.docs-row a {
+  color: var(--accent-azure);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease;
+}
+.docs-row a:hover { border-bottom-color: var(--accent-azure); }
+
+/* ---------- Note panel ---------- */
+
+.note-panel {
+  background: var(--mist);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radius-card);
+  padding: 1.75rem;
+}
+
+/* ---------- Формы и кнопки ---------- */
+
+.form-control-legal {
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radius-pill);
+  padding: 0.65rem 1.1rem;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: var(--ink);
+  background: var(--white);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.form-control-legal::placeholder { color: var(--steel); }
+.form-control-legal:focus {
+  border-color: var(--accent-azure);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(43, 143, 255, 0.15);
+}
+
+.btn-legal-primary,
+.btn-legal-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.65rem 1.5rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-legal-primary {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--white);
+}
+.btn-legal-primary:hover {
+  background: #202123;
+  border-color: #202123;
+  color: var(--white);
+}
+.btn-legal-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(43, 143, 255, 0.35);
+}
+
+.btn-legal-secondary {
+  border: 1px solid var(--bs-border-color);
+  background: var(--white);
+  color: var(--ink);
+}
+.btn-legal-secondary:hover {
+  background: var(--mist);
+  border-color: var(--steel);
+  color: var(--ink);
+}
+.btn-legal-secondary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(43, 143, 255, 0.35);
+}
+
+/* ---------- Login-карточка ---------- */
+
+.login-card {
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radius-card);
+  background: var(--white);
+  padding: 2rem;
+}
+.login-card .login-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.35rem;
+}
+.login-card .login-subtitle {
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  margin-bottom: 1.5rem;
+}
+
+/* ---------- Утилиты ---------- */
+
+.page-shell {
+  max-width: 1320px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+.content-main { max-width: 880px; }
+
+/* ---------- Адаптив ---------- */
+
+@media (max-width: 991.98px) {
+  .sidebar-legal { position: static; height: auto; }
+  .hero-legal { padding: 2rem 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
