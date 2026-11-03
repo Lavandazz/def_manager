@@ -49,3 +49,90 @@
   .case-link:hover::after {
     transform: scaleX(1);        /* линия разворачивается во всю ширину */
   }
+
+/* анимация главного баннера */
+  /* Регистрируем кастомные свойства, чтобы их можно было анимировать */
+@property --spin { syntax: "<angle>";      inherits: false; initial-value: 0deg; }
+@property --bx1  { syntax: "<percentage>"; inherits: false; initial-value: 15%; }
+@property --by1  { syntax: "<percentage>"; inherits: false; initial-value: 25%; }
+@property --bx2  { syntax: "<percentage>"; inherits: false; initial-value: 82%; }
+@property --by2  { syntax: "<percentage>"; inherits: false; initial-value: 70%; }
+@property --bx3  { syntax: "<percentage>"; inherits: false; initial-value: 50%; }
+@property --by3  { syntax: "<percentage>"; inherits: false; initial-value: 88%; }
+
+.hero-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background: #0f2e86;           /* фолбэк, если фильтр не сработает */
+  min-height: 220px;
+}
+
+/* ---------- Фон ---------- */
+.hero-banner::before {
+  content: "";
+  position: absolute;
+  inset: -10%;                    /* запас под вращение */
+  z-index: 0;
+  background:
+    /* 0. мягкое затемнение по центру — чтобы текст читался */
+    radial-gradient(ellipse at center,
+        rgba(15,46,134,.55) 0%, transparent 60%),
+
+    /* 1. три «лужицы», которые медленно плавают */
+    radial-gradient(42% 46% at var(--bx1) var(--by1),
+        rgba(122,152,255,.95), transparent 65%),
+    radial-gradient(46% 50% at var(--bx2) var(--by2),
+        rgba(150,110,245,.90), transparent 68%),
+    radial-gradient(38% 44% at var(--bx3) var(--by3),
+        rgba(58, 95,217,.95), transparent 70%),
+
+    /* 2. конус, вращающийся по периметру */
+    conic-gradient(from var(--spin) at 100% 230%,
+        #4a61f7, #7a98ff, #966ef5,
+        #182e86, #3a5fd9, #4a61f7),
+
+    /* 3. базовая подложка */
+    linear-gradient(135deg, #4a61f7 0%, #0f2e86 100%);
+
+  filter: url(#gouache) blur(26px) saturate(1.15);
+  transform-origin: 50% 50%;
+
+  animation:
+    drift1     42s ease-in-out infinite alternate,
+    drift2     58s ease-in-out infinite alternate,
+    drift3     36s ease-in-out infinite alternate,
+    spinColors 120s linear infinite;
+}
+
+/* Контент поверх всего */
+.hero-banner > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---------- анимация вращения ---------- */
+@keyframes spinColors { to { --spin: 360deg; } }
+
+@keyframes drift1 {
+  0%   { --bx1: 10%; --by1: 22%; }
+  33%  { --bx1: 68%; --by1: 14%; }
+  66%  { --bx1: 82%; --by1: 68%; }
+  100% { --bx1: 28%; --by1: 84%; }
+}
+@keyframes drift2 {
+  0%   { --bx2: 85%; --by2: 75%; }
+  50%  { --bx2: 22%; --by2: 55%; }
+  100% { --bx2: 72%; --by2: 18%; }
+}
+@keyframes drift3 {
+  0%   { --bx3: 50%; --by3: 90%; }
+  50%  { --bx3: 14%; --by3: 14%; }
+  100% { --bx3: 86%; --by3: 46%; }
+}
+
+/* ---------- Доступность ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .hero-banner::before { animation: none; }
+}

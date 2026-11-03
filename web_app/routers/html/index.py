@@ -63,20 +63,19 @@ async def login_page(request: Request):
 @router.post("/login", tags=["html_main"], response_class=HTMLResponse)
 async def login(
     request: Request,
-    telegram_id: str = Form(None),   
-    email: str = Form(None),        
+    email: str = Form(...),        
     password: str = Form(...), 
     user_service: UserService = Depends(get_user_service)
 ):
     # Проверяем пользователя (та же логика, что в API /login)
-    print("=========Папорль потому что я забыла тестовые пароли: ========", password)
-    if not telegram_id and not email:
+ 
+    if not email:
         return templates.TemplateResponse(
             request, "user/login.html",
-            {"error": "Введите Telegram ID или Email"}
+            {"error": "Введите Email"}
         )
 
-    existing_user = await user_service.get_user(email=email, telegram_id=telegram_id)
+    existing_user = await user_service.get_user(email=email)
 
     if not existing_user or not PasswordHasher.verify_password(password, existing_user.hashed_password):
         return templates.TemplateResponse(
