@@ -234,7 +234,6 @@ class MailAddress(Base):
         return f"<MailAddress id={self.id}, mail_index={self.mail_index}, region_id={self.region_id}, address_id={self.address_id}>"
     
 
-
 class ResidentialAddress(Base):
     """Адрес прописки используется для указания адреса прописки должника. 
     Связь с должником

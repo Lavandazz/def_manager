@@ -4,6 +4,7 @@ from click.core import V
 from fastapi import APIRouter, Depends, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 
+from web_app.utils.caches_data import get_cases_from_cache
 from web_app.web_conf import templates
 
 from shared.celery_tasks.task_manager import send_verification_email, start_efrsb_parsing
@@ -37,10 +38,16 @@ async def get_profile(request: Request,
         return templates.TemplateResponse(request, "index.html", context={"message": "Пользователь не авторизован"})
 
     user_profile = await user_service.get_user_profile(user_id=user.id)
+    context = {
+        "request": request,
+        "title": "Профиль",}
     
-    return templates.TemplateResponse(request, "/user/profile.html", {
-        "user": user_profile
-    })
+    if user:
+        cases = await get_cases_from_cache(user_id=user.id) # получение кэша
+        context["cases"] = cases
+  
+    context["user"] = user_profile
+    return templates.TemplateResponse(request, "/user/profile.html", context=context)
 
 @router.get("/profile/edit", response_class=HTMLResponse)
 async def edit_profile_form(request: Request, 

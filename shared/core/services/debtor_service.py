@@ -31,7 +31,7 @@ class DebtorService:
         return await self.repository.add_debtor(debtor)
 
 
-    async def get_debtor(self, user_id, debtor_id):
+    async def get_debtor(self, user_id, debtor_id) -> DebtorDetail:
         """
         Получаем всю информацию по должнику: банки, счета, данные.
         # Для возврата обрабатываем в DebtorDetailSchema

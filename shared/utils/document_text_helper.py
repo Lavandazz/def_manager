@@ -57,18 +57,43 @@ class DocumentHelper:
     
     @staticmethod
     def get_debtor_address_str(debtor: Debtor, birth: bool) -> str:
+        """
+        Создаение строки адреса регистрации и адреса рождения для должника.
+        Используется на странице отображения информации о должнике
+        """
         if birth:
-            return f"""{
-                f"{debtor.birth_region.region_name}," if debtor.birth_region.region_name else ""
-                } г. {debtor.birth_region.city}"""
-        return f"""{
-                f"{debtor.residential_address.region.region_name}," if debtor.residential_address.region.region_name else ""
-                } г.{debtor.residential_address.region.city}, {debtor.residential_address.address.street}, д. {
-                                            debtor.residential_address.address.house} {
-                                                debtor.residential_address.address.building if debtor.residential_address.address.building else ""
-        } {f"кв.{debtor.residential_address.flat}" if debtor.residential_address.flat else ""}"""
+            region = debtor.birth_region
+            if region is None:
+                return ""  # или "не указано"
+            prefix = f"{region.region_name}, " if region.region_name else ""
+            return f"{prefix}г. {region.city}"
 
+        res = debtor.residential_address
+        if res is None:
+            return ""  # или "не указано"
 
+        region = res.region
+        addr = res.address
+
+        prefix = f"{region.region_name}, " if region.region_name else ""
+        building = f" {addr.building}" if addr.building else ""
+        flat = f" кв.{res.flat}" if res.flat else ""
+
+        return f"{prefix}г. {region.city}, {addr.street}, д. {addr.house}{building}{flat}"
+
+    @staticmethod
+    def _debtor_to_form(d) -> dict:
+        """попощь в выоде в форму документа"""
+        return {
+            "debtor_type": d.debtor_type.value if d.debtor_type else "",
+            "name": d.name or "",
+            "inn": str(d.inn) if d.inn else "",
+            "snils": str(d.snils) if d.snils else "",
+            "birthday": d.birthday.isoformat() if d.birthday else "",
+            "birth_region": str(d.birth_region) if d.birth_region else "",
+            "residential_address": str(d.residential_address) if d.residential_address else "",
+        }
+    
     @staticmethod
     def return_date(date_str: str) -> date:
         """

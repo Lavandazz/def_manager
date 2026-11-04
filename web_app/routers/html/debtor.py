@@ -12,6 +12,7 @@ from web_app.utils.dependensy import get_bank_service, get_case_service, get_deb
 from shared.config.db.models import Case, Debtor, DebtorType, User
 from shared.core.services.debtor_service import DebtorService
 from shared.core.services.region_service import RegionService
+from shared.utils.document_text_helper import document_helper
 
 from web_app.utils.bank_helper import to_int_or_none, to_date_or_none, _parse_accounts_from_form
 
@@ -52,16 +53,16 @@ async def get_choice_debtor(
         )
 
 
-def _debtor_to_form(d) -> dict:
-    return {
-        "debtor_type": d.debtor_type.value if d.debtor_type else "",
-        "name": d.name or "",
-        "inn": str(d.inn) if d.inn else "",
-        "snils": str(d.snils) if d.snils else "",
-        "birthday": d.birthday.isoformat() if d.birthday else "",
-        "birth_region": str(d.birth_region) if d.birth_region else "",
-        "residential_address": str(d.residential_address) if d.residential_address else "",
-    }
+# def _debtor_to_form(d) -> dict:
+#     return {
+#         "debtor_type": d.debtor_type.value if d.debtor_type else "",
+#         "name": d.name or "",
+#         "inn": str(d.inn) if d.inn else "",
+#         "snils": str(d.snils) if d.snils else "",
+#         "birthday": d.birthday.isoformat() if d.birthday else "",
+#         "birth_region": str(d.birth_region) if d.birth_region else "",
+#         "residential_address": str(d.residential_address) if d.residential_address else "",
+#     }
 
 @router.get("/{debtor_id}/edit", response_class=HTMLResponse, name="debtor_edit")
 async def debtor_edit(
@@ -105,7 +106,7 @@ async def debtor_edit(
         "residential_addresses": residential_addresses,
         "cached_debtor": cached_debtor,
         "banks": banks,
-        "form": _debtor_to_form(debtor_data.debtor),
+        "form": document_helper._debtor_to_form(debtor_data.debtor),
     }
     return templates.TemplateResponse(
         request,
@@ -201,7 +202,7 @@ async def debtor_edit_post(
                 "residential_addresses": residential_addresses,
                 "cached_debtor": None,  # или достать из кэша как в GET
                 "banks": banks,
-                "form": _debtor_to_form(debtor_data.debtor),
+                "form": document_helper._debtor_to_form(debtor_data.debtor),
                 "errors": account_errors,
             },
         )
@@ -228,7 +229,7 @@ async def debtor_edit_post(
                 "residential_addresses": residential_addresses,
                 "cached_debtor": None,
                 "banks": banks,
-                "form": _debtor_to_form(debtor_data.debtor),
+                "form": document_helper._debtor_to_form(debtor_data.debtor),
                 "errors": [str(exc)],
             },
         )

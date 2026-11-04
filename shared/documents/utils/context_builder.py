@@ -47,7 +47,8 @@ class ContextBuilder:
         date_for = datetime.now().date() + timedelta(days=20)
         decline = document_helper.get_decline_name(self.debtor.name)
         short_name = document_helper.get_short_name(self.debtor.name)
-
+        debtor_birth_address = document_helper.get_debtor_address_str(self.debtor, birth=True)
+        debtor_address = document_helper.get_debtor_address_str(self.debtor, birth=False)
         return {
             "debtor_decline_name": decline[0],
             "debtor_full_name": self.debtor.name,
@@ -60,10 +61,10 @@ class ContextBuilder:
             "case_number": self.case.number_case,
 
             "debtor_birthday": self.debtor.birthday.strftime("%d.%m.%Y") if self.debtor.birthday else "",
-            "debtor_birth_address": document_helper.get_debtor_address_str(self.debtor, birth=True),
+            "debtor_birth_address": debtor_birth_address if debtor_birth_address else "",
             "debtor_snils": document_helper.snils_str(self.debtor.snils) if self.debtor.snils else "",
             "debtor_inn": str(self.debtor.inn) if self.debtor.inn else "",
-            "debtor_address": document_helper.get_debtor_address_str(self.debtor, birth=False),
+            "debtor_address": debtor_address if debtor_address else "",
 
             "request_date": f"01.01.{request_date.year}",
             "date_for": date_for.strftime("%d.%m.%Y"),
