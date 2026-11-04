@@ -1,18 +1,55 @@
 {% extends "layout.html" %}
-
+{% block title %}{{ title }}{% endblock %}
+{% block main_class %}content-main--wide{% endblock %} 
 {% block content %}
-<h1>{{ title }}</h1>
+
+<div class="page-header-bar">
+  <h1>
+    <i class="bi bi-calendar-event" style="color: var(--accent-azure);"></i>
+    {{ title }}
+  </h1>
+  {% if courts %}
+    <span class="badge-soft">{{ courts|length }} {{ 'заседание' if courts|length == 1 else ('заседания' if courts|length < 5 else 'заседаний') }}</span>
+  {% endif %}
+</div>
 
 {% if courts %}
-  <ul class="list-group">
+  <ul class="hearing-list">
     {% for court in courts %}
-      <li class="list-group-item">
-        <strong>Дело №{{ court.case.number_case }}</strong><br>
-        Дата: {{ court.date_court.strftime("%d.%m.%Y") }} | Время: {{ court.time_court }} | Зал: {{ court.hall_court or "не указан" }}
+      <li class="hearing-item">
+        <div class="hearing-date" aria-hidden="true">
+          <span class="h-day">{{ court.date_court.strftime('%d') }}</span>
+          <span class="h-month">{{ court.date_court.strftime('%b')|upper }}</span>
+        </div>
+
+        <div class="hearing-body">
+          <div class="hearing-case">
+            <span class="label">Дело</span>
+            <span class="case-num">№{{ court.case.number_case }}</span>
+          </div>
+          <div class="hearing-meta">
+            <span class="meta-item">
+              <i class="bi bi-clock"></i>
+              {{ court.date_court.strftime('%d.%m.%Y') }} · {{ court.time_court }}
+            </span>
+            <span class="meta-item">
+              <i class="bi bi-geo-alt"></i>
+              {% if court.hall_court %}{{ court.hall_court }}{% else %}<span class="is-empty">не указан</span>{% endif %}
+            </span>
+          </div>
+        </div>
       </li>
     {% endfor %}
   </ul>
 {% else %}
-  <p>У вас нет предстоящих судебных заседаний.</p>
+  <div class="empty-state">
+    <i class="bi bi-calendar-x"></i>
+    <div class="empty-title">Предстоящих заседаний нет</div>
+    <p class="empty-body">
+      Как только для ваших дел появятся новые судебные заседания, они будут
+      показаны здесь.
+    </p>
+  </div>
 {% endif %}
+
 {% endblock %}

@@ -473,7 +473,7 @@ body::before {
 }
 
 .content-main { max-width: 880px; }
-
+.content-main--wide { max-width: 100%; }
 /* ---------- Адаптив ---------- */
 
 @media (max-width: 991.98px) {

@@ -37,6 +37,7 @@ async def get_profile(request: Request,
         return templates.TemplateResponse(request, "index.html", context={"message": "Пользователь не авторизован"})
 
     user_profile = await user_service.get_user_profile(user_id=user.id)
+    
     return templates.TemplateResponse(request, "/user/profile.html", {
         "user": user_profile
     })

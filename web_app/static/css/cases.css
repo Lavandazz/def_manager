@@ -1,0 +1,154 @@
+/* ============================================================
+   Список судебных заседаний
+   ============================================================ */
+
+.hearing-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radius-card);
+  background: var(--white);
+  overflow: hidden;
+}
+
+.hearing-item {
+  display: flex;
+  align-items: stretch;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.hearing-item + .hearing-item {
+  border-top: 1px solid var(--bs-border-color);
+}
+
+@media (max-width: 575.98px) {
+  .hearing-item {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+  }
+}
+
+/* Дата-бейдж слева: крупное число + короткий месяц */
+.hearing-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-card);
+  background: var(--mist);
+  color: var(--ink);
+  text-align: center;
+}
+.hearing-date .h-day {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.hearing-date .h-month {
+  margin-top: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 575.98px) {
+  .hearing-date {
+    flex-direction: row;
+    gap: 0.5rem;
+    min-width: 0;
+    align-self: flex-start;
+    padding: 0.4rem 0.75rem;
+  }
+  .hearing-date .h-day { font-size: 1rem; }
+  .hearing-date .h-month { margin-top: 0; }
+}
+
+/* Основная часть */
+.hearing-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.hearing-case {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.9375rem;
+  color: var(--ink);
+}
+.hearing-case .label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--steel);
+}
+.hearing-case .case-num {
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--accent-azure);
+  letter-spacing: 0.02em;
+}
+
+.hearing-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+.hearing-meta .meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.hearing-meta .meta-item i {
+  color: var(--steel);
+  font-size: 0.9em;
+}
+
+/* Пустое состояние */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  border: 1px dashed var(--bs-border-color);
+  border-radius: var(--radius-card);
+  background: var(--mist);
+  color: var(--ink-soft);
+  text-align: center;
+}
+.empty-state i {
+  font-size: 2rem;
+  color: var(--steel);
+  margin-bottom: 0.75rem;
+}
+.empty-state .empty-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+}
+.empty-state .empty-body {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  max-width: 36ch;
+  margin: 0;
+}
