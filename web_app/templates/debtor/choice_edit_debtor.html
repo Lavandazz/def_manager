@@ -1,19 +1,84 @@
 {% extends "layout.html" %}
+{% block title %}{{ title or 'Выбор должника' }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    {% if user %}
-      <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">Выберите должника из списка</a>
-            <ul class="dropdown-menu">
-              {% for case_f in cases_physical %}
-                <li>
-                  <a class="dropdown-item" href="/user/debtor/{{ case_f.debtor_id }}/edit">
-                    {{ case_f.debtor.name }} | {{ case_f.number_case }} 
-                  </a>
-                </li>
-              {% endfor %}
-            </ul>
-      </li>
-    {% endif %}
-{% endblock content %}
+
+<div class="page-header-bar">
+  <h1>
+    <i class="bi bi-person-vcard" style="color: var(--accent-azure);"></i>
+    Редактирование данных должника
+  </h1>
+  <span class="badge-soft">Личный кабинет</span>
+</div>
+
+{% if user %}
+
+  {% if cases_physical %}
+    <div class="info-card">
+      <div class="card-section-head">
+        <h2><i class="bi bi-list-ul"></i> Выберите должника</h2>
+        <span class="badge-soft">{{ cases_physical|length }}</span>
+      </div>
+
+      <p class="mb-3" style="color: var(--ink-soft); font-size: 0.9375rem;">
+        В списке — все должники из ваших дел. Выберите нужного, чтобы
+        открыть карточку и отредактировать данные.
+      </p>
+
+      <form method="get" id="debtorPickerForm">
+        <label for="debtorPicker" class="form-label-legal">
+          Должник и номер дела
+        </label>
+        <div class="picker-row">
+          <select class="form-select-legal" id="debtorPicker" name="debtor_id" required>
+            <option value="" disabled selected>— Выберите из списка —</option>
+            {% for case_f in cases_physical %}
+              <option value="{{ case_f.debtor_id }}">
+                {{ case_f.debtor.name }} · {{ case_f.number_case }}
+              </option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn-legal-primary">
+            Открыть <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+        <div class="form-help">
+          Можно ввести первые буквы фамилии — браузер подсветит подходящий вариант.
+        </div>
+      </form>
+    </div>
+
+    <script>
+      (function () {
+        const form   = document.getElementById('debtorPickerForm');
+        const select = document.getElementById('debtorPicker');
+
+        form.addEventListener('submit', function (e) {
+          const id = select.value;
+          if (!id) { e.preventDefault(); return; }
+          e.preventDefault();
+          window.location.href = '/user/debtor/' + encodeURIComponent(id) + '/edit';
+        });
+      })();
+    </script>
+
+  {% else %}
+    <div class="empty-state">
+      <i class="bi bi-person-x"></i>
+      <div class="empty-title">Должники не найдены</div>
+      <p class="empty-body">
+        У вас пока нет дел с должниками. Добавьте дело — и здесь появится
+        список для редактирования данных.
+      </p>
+    </div>
+  {% endif %}
+
+{% else %}
+  <div class="empty-state">
+    <i class="bi bi-box-arrow-in-right"></i>
+    <div class="empty-title">Требуется вход</div>
+    <a href="/login" class="btn-legal-primary" style="margin-top: 1rem;">Войти</a>
+  </div>
+{% endif %}
+
+{% endblock %}

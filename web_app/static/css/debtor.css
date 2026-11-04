@@ -1,0 +1,146 @@
+/* ============================================================
+   Успешный алерт (парный к .form-error)
+   ============================================================ */
+
+.form-success {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.875rem 1.1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(16, 163, 127, 0.30);
+  border-left: 3px solid var(--accent-green);
+  border-radius: var(--radius-card);
+  background: rgba(16, 163, 127, 0.06);
+  color: var(--ink);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+.form-success i.bi-check-circle-fill {
+  color: var(--accent-green);
+  margin-right: 0.35rem;
+}
+
+/* «Тестовый режим» — жёлтый чип */
+.status-chip--test {
+  color: #d97706;
+  border-color: rgba(217, 119, 6, 0.30);
+  background: rgba(217, 119, 6, 0.08);
+}
+
+/* ============================================================
+   Таблица в нашей палитре (для счетов/банков)
+   ============================================================ */
+
+.table-legal {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  margin: 0;
+}
+.table-legal thead th {
+  text-align: left;
+  padding: 0.65rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--bs-border-color);
+  background: var(--mist);
+  white-space: nowrap;
+}
+.table-legal tbody td {
+  padding: 0.85rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  color: var(--ink);
+  vertical-align: top;
+  line-height: 1.55;
+}
+.table-legal tbody tr:last-child td { border-bottom: 0; }
+.table-legal tbody tr:hover { background: var(--mist); }
+
+.table-legal .cell-mono {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.table-legal .cell-address {
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  max-width: 28rem;
+  word-break: break-word;
+}
+
+@media (max-width: 575.98px) {
+  .table-legal thead th { padding: 0.5rem 0.65rem; }
+  .table-legal tbody td  { padding: 0.65rem; }
+}
+
+/* ============================================================
+   Панель действий под формой
+   ============================================================ */
+
+.doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+/* ============================================================
+   Стилизованный native <select>, выбор долника для редактирования
+   ============================================================ */
+
+.form-select-legal {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem 2.5rem 0.65rem 1.1rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radius-pill);
+  background-color: var(--white);
+  /* Кастомная стрелка, чтобы не зависеть от вида браузера */
+  /* background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%2340434A' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E"); */
+  background-repeat: no-repeat;
+  background-position: right 1.1rem center;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.form-select-legal:focus {
+  border-color: var(--accent-azure);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(43, 143, 255, 0.15);
+}
+.form-select-legal:disabled {
+  background-color: var(--mist);
+  color: var(--steel);
+  cursor: not-allowed;
+}
+
+/* Ряд «select + кнопка» */
+.picker-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+.picker-row .form-select-legal { flex: 1 1 260px; min-width: 0; }
+.picker-row .btn-legal-primary { flex: 0 0 auto; }
+
+@media (max-width: 575.98px) {
+  .picker-row .btn-legal-primary { width: 100%; }
+}

@@ -1,272 +1,218 @@
 {% extends "layout.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block main_class %}content-main--wide{% endblock %}
+
+{% macro field(value) -%}
+  {%- if value is none or value == '' -%}
+    <span class="is-empty">Не указано</span>
+  {%- else -%}
+    {{ value }}
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro date_field(value) -%}
+  {%- if value -%}
+    {{ value.strftime('%d.%m.%Y') }}
+  {%- else -%}
+    <span class="is-empty">Не указано</span>
+  {%- endif -%}
+{%- endmacro %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-9">
 
-      <div class="d-flex align-items-center mb-4">
-        <h1 class="h3 mb-0">Данные для генерации документа</h1>
-        <span class="badge text-bg-secondary ms-3">тестовый режим</span>
+{# ─── Шапка ───────────────────────────────────────────────── #}
+<div class="page-header-bar">
+  <h1>
+    <i class="bi bi-file-earmark-text" style="color: var(--accent-azure);"></i>
+    Данные для генерации документа
+  </h1>
+  <span class="status-chip status-chip--test">Тестовый режим</span>
+</div>
+
+{% if error %}
+  <div class="form-error" role="alert">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div>{{ error }}</div>
+  </div>
+{% endif %}
+
+{% if success %}
+  <div class="form-success" role="alert">
+    <span>
+      <i class="bi bi-check-circle-fill"></i>
+      Документ сгенерирован: <strong>{{ success }}</strong>
+    </span>
+    <a href="/documents/download/{{ success }}" class="btn-legal-secondary"
+       style="min-height: 36px; padding: 0.45rem 1rem; font-size: 0.875rem;">
+      <i class="bi bi-download"></i> Скачать
+    </a>
+  </div>
+{% endif %}
+
+{# ─── Должник ─────────────────────────────────────────────── #}
+<div class="info-card mb-4">
+  <div class="card-section-head">
+    <h2><i class="bi bi-person-vcard"></i> Данные должника</h2>
+  </div>
+  <div class="data-grid">
+    <div class="data-item">
+      <div class="data-label">ФИО</div>
+      <div class="data-value">{{ field(debtor.name) }}</div>
+    </div>
+    <div class="data-item">
+      <div class="data-label">Дата рождения</div>
+      <div class="data-value">{{ date_field(debtor.birthday) }}</div>
+    </div>
+    <div class="data-item">
+      <div class="data-label">СНИЛС</div>
+      <div class="data-value">{{ field(debtor.snils) }}</div>
+    </div>
+    <div class="data-item">
+      <div class="data-label">ИНН</div>
+      <div class="data-value">{{ field(debtor.inn) }}</div>
+    </div>
+    <div class="data-item" style="grid-column: 1 / -1;">
+      <div class="data-label">Адрес рождения</div>
+      <div class="data-value">
+        {% if birth_address %}{{ birth_address }}
+        {% else %}<span class="is-empty">Не указано</span>{% endif %}
       </div>
-
-      {% if error %}
-        <div class="alert alert-danger" role="alert">{{ error }}</div>
-      {% endif %}
-
-      {% if success %}
-        <div class="alert alert-success d-flex justify-content-between align-items-center" role="alert">
-          <span>Документ сгенерирован: <strong>{{ success }}</strong></span>
-          <a class="btn btn-sm btn-outline-success" href="/documents/download/{{ success }}">
-            Скачать
-          </a>
-        </div>
-      {% endif %}
-
-      {# ---------- Должник ---------- #}
-      <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white">
-          <h2 class="h6 mb-0">Данные должника</h2>
-        </div>
-        <div class="card-body">
-
-          <dl class="row mb-0">
-            <dt class="col-sm-4">ФИО</dt>
-            <dd class="col-sm-8">{{ debtor.name or '—' }}</dd>
-
-            <dt class="col-sm-4">Дата рождения</dt>
-            <dd class="col-sm-8">
-              {% if debtor.birthday %}
-                {{ debtor.birthday.strftime('%d.%m.%Y') }}
-              {% else %}—{% endif %}
-            </dd>
-
-            <dt class="col-sm-4">СНИЛС</dt>
-            <dd class="col-sm-8">{{ debtor.snils or '—' }}</dd>
-
-            <dt class="col-sm-4">ИНН</dt>
-            <dd class="col-sm-8">{{ debtor.inn or '—' }}</dd>
-
-            <dt class="col-sm-4">Адрес рождения</dt>
-            <dd class="col-sm-8">
-              {% if birth_address %}
-                {{ birth_address }}
-                {# {% if birth_address.region_name %}{{ birth_address.region_name }}, {% endif %} #}
-                {# {% if birth_address.city %} г. {{ birth_address.city }} {% endif %} #}
-              {% else %}—{% endif %}
-            </dd>
-
-            <dt class="col-sm-4">Адрес проживания</dt>
-            <dd class="col-sm-8">
-              {% if reg_address %}
-                {{ reg_address }}
-                {# --- Регион --- #}
-                {# {% if reg_address.region and reg_address.region.region_name %} #}
-                  {# {{ reg_address.region.region_name }} #}
-                {# {% else %} #}
-                  {# <span class="text-muted" title="Не указан регион">— регион —</span> #}
-                {# {% endif %}, #}
-
-                {# {% if reg_address.region and reg_address.region.city %} #}
-                  {# г. {{ reg_address.region.city }} #}
-                {# {% else %} #}
-                  {# <span class="text-muted" title="Не указан город">— город —</span> #}
-                {# {% endif %}, #}
-
-                {# --- Адрес: улица / дом / строение --- #}
-                {# {% if reg_address.address and reg_address.address.street %} #}
-                  {# ул. {{ reg_address.address.street }} #}
-                {# {% else %} #}
-                  {# <span class="text-muted" title="Не указана улица">— улица —</span> #}
-                {# {% endif %}, #}
-
-                {# {% if reg_address.address and reg_address.address.house %} #}
-                  {# д. {{ reg_address.address.house }} #}
-                {# {% else %} #}
-                  {# <span class="text-muted" title="Не указан дом">— дом —</span> #}
-                {# {% endif %} #}
-
-                {# {% if reg_address.address and reg_address.address.building %} #}
-                  {# , стр. {{ reg_address.address.building }} #}
-                {# {% endif %} #}
-
-                {# --- Квартира --- #}
-                {# {% if reg_address.flat %} #}
-                  {# , кв. {{ reg_address.flat }} #}
-                {# {% else %} #}
-                  {# <span class="text-muted" title="Не указана квартира">, кв. —</span> #}
-                {# {% endif %} #}
-              {% else %}
-                <span class="text-muted">Адрес проживания не заполнен</span>
-              {% endif %}
-            </dd>
-          </dl>
-
-        </div>
+    </div>
+    <div class="data-item" style="grid-column: 1 / -1;">
+      <div class="data-label">Адрес проживания</div>
+      <div class="data-value">
+        {% if reg_address %}{{ reg_address }}
+        {% else %}<span class="is-empty">Адрес проживания не заполнен</span>{% endif %}
       </div>
-
-      {# ---------- Дело ---------- #}
-      <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white">
-          <h2 class="h6 mb-0">Данные дела</h2>
-        </div>
-        <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-sm-4">Номер дела</dt>
-            <dd class="col-sm-8">{{ case.number_case or '—' }}</dd>
-
-            <dt class="col-sm-4">Дата дела</dt>
-            <dd class="col-sm-8">
-              {% if case.date_case %}
-                {{ case.date_case.strftime('%d.%m.%Y') }}
-              {% else %}—{% endif %}
-            </dd>
-          </dl>
-        </div>
-      </div>
-
-      {# ---------- Банки и счета должника ---------- #}
-      <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-          <h2 class="h6 mb-0">Банки и счета должника</h2>
-          <span class="badge text-bg-light">{{ debtor.accounts|length }}</span>
-        </div>
-        <div class="card-body">
-          {% if debtor.accounts %}
-            <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th scope="col">№ счёта</th>
-                    <th scope="col">Банк</th>
-                    <th scope="col">Почтовый адрес банка</th>
-                  </tr>
-                </thead>
-                <tbody>{% for acc in debtor.accounts %}
-                <tr>
-                  <td><code>{{ acc.number }}</code></td>
-
-                  {# --- Название банка --- #}
-                  <td>
-                    {% if acc.bank and acc.bank.name %}
-                      {{ acc.bank.name }}
-                    {% else %}
-                      <span class="text-muted" title="Не указан банк">— банк —</span>
-                    {% endif %}
-                  </td>
-
-                  {# --- Почтовый адрес банка --- #}
-                  <td>
-                    {% if acc.bank and acc.bank.mail_address %}
-                      {% set ma = acc.bank.mail_address %}
-
-                      {# Индекс #}
-                      {% if ma.mail_index %}
-                        {{ ma.mail_index }}
-                      {% else %}
-                        <span class="text-muted" title="Не указан почтовый индекс">— индекс —</span>
-                      {% endif %},
-
-                      {# Регион #}
-                      {% if ma.region and ma.region.region_name %}
-                        {{ ma.region.region_name }}
-                      {% else %}
-                        <span class="text-muted" title="Не указан регион">— регион —</span>
-                      {% endif %},
-
-                      {# Город #}
-                      {% if ma.region and ma.region.city %}
-                        г. {{ ma.region.city }}
-                      {% else %}
-                        <span class="text-muted" title="Не указан город">— город —</span>
-                      {% endif %},
-
-                      {# Улица #}
-                      {% if ma.address and ma.address.street %}
-                        ул. {{ ma.address.street }}
-                      {% else %}
-                        <span class="text-muted" title="Не указана улица">— улица —</span>
-                      {% endif %},
-
-                      {# Дом #}
-                      {% if ma.address and ma.address.house %}
-                        д. {{ ma.address.house }}
-                      {% else %}
-                        <span class="text-muted" title="Не указан дом">— дом —</span>
-                      {% endif %}
-
-                      {# Строение — опционально, без прочерка #}
-                      {% if ma.address and ma.address.building %}
-                        , стр. {{ ma.address.building }}
-                      {% endif %}
-
-                    {% else %}
-                      <span class="text-muted" title="Не указан почтовый адрес банка">Адрес банка не заполнен</span>
-                    {% endif %}
-                  </td>
-                  </tr>
-                {% else %}
-                  {# Сюда попадём, если debtor.accounts пуст #}
-                  <tr>
-                    <td colspan="3" class="text-center text-muted">Счета не найдены</td>
-                  </tr>
-                {% endfor %}
-              </table>
-            </div>
-          {% else %}
-            <p class="text-muted mb-0">Счета не найдены.</p>
-          {% endif %}
-        </div>
-      </div>
-
-      {# ---------- Параметры запроса (только для отображения) ---------- #}
-      <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white">
-          <h2 class="h6 mb-0">Параметры запроса</h2>
-        </div>
-        <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-sm-4">Дата запроса</dt>
-            <dd class="col-sm-8">
-              {% if request_date %}
-                {{ request_date.strftime('%d.%m.%Y') if request_date.strftime is defined else request_date }}
-              {% else %}—{% endif %}
-            </dd>
-
-            <dt class="col-sm-4">Дата, до которой запрашиваются сведения</dt>
-            <dd class="col-sm-8">
-              {% if date_for %}
-                {{ date_for.strftime('%d.%m.%Y') if date_for.strftime is defined else date_for }}
-              {% else %}—{% endif %}
-            </dd>
-
-            <dt class="col-sm-4">Шаблон</dt>
-            <dd class="col-sm-8">
-              {% if template == 'bank' %}
-                Запрос в банк (bank_mo.docx)
-              {% elif template == 'requests' %}
-                Запрос в ФНС / суд (requests_mo.docx)
-              {% else %}
-                {{ template or '—' }}
-              {% endif %}
-            </dd>
-          </dl>
-        </div>
-      </div>
-
-      <div class="d-flex gap-2">
-        {# Кнопка запуска генерации — POST-запрос в тот же роут #}
-        <form method="post" action="{{ url_for('generate_documents', case_id=case.id) }}" class="d-inline">
-          <input type="hidden" name="template" value="{{ template or 'requests' }}">
-          {% if bank_name %}
-            <input type="hidden" name="bank_name" value="{{ bank_name }}">
-          {% endif %}
-          <button type="submit" class="btn btn-primary">Сгенерировать документ</button>
-        </form>
-        <a href="/" class="btn btn-outline-secondary">Назад</a>
-      </div>
-
     </div>
   </div>
 </div>
+
+{# ─── Дело ────────────────────────────────────────────────── #}
+<div class="info-card mb-4">
+  <div class="card-section-head">
+    <h2><i class="bi bi-folder"></i> Данные дела</h2>
+  </div>
+  <div class="data-grid">
+    <div class="data-item">
+      <div class="data-label">Номер дела</div>
+      <div class="data-value">
+        {% if case.number_case %}<span class="cell-mono">{{ case.number_case }}</span>
+        {% else %}<span class="is-empty">Не указано</span>{% endif %}
+      </div>
+    </div>
+    <div class="data-item">
+      <div class="data-label">Дата дела</div>
+      <div class="data-value">{{ date_field(case.date_case) }}</div>
+    </div>
+  </div>
+</div>
+
+{# ─── Банки и счета ───────────────────────────────────────── #}
+<div class="info-card mb-4">
+  <div class="card-section-head">
+    <h2><i class="bi bi-bank"></i> Банки и счета должника</h2>
+    <span class="badge-soft">{{ debtor.accounts|length }}</span>
+  </div>
+
+  {% if debtor.accounts %}
+    <div class="table-responsive">
+      <table class="table-legal">
+        <thead>
+          <tr>
+            <th scope="col">№ счёта</th>
+            <th scope="col">Банк</th>
+            <th scope="col">Почтовый адрес банка</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for acc in debtor.accounts %}
+            <tr>
+              <td><span class="cell-mono">{{ acc.number }}</span></td>
+              <td>
+                {% if acc.bank and acc.bank.name %}{{ acc.bank.name }}
+                {% else %}<span class="is-empty">Не указан</span>{% endif %}
+              </td>
+              <td class="cell-address">
+                {% if acc.bank and acc.bank.mail_address %}
+                  {% set ma = acc.bank.mail_address %}
+                  {% if ma.mail_index %}{{ ma.mail_index }}{% else %}<span class="is-empty">— индекс —</span>{% endif %},
+                  {% if ma.region and ma.region.region_name %}{{ ma.region.region_name }}{% else %}<span class="is-empty">— регион —</span>{% endif %},
+                  {% if ma.region and ma.region.city %}г. {{ ma.region.city }}{% else %}<span class="is-empty">— город —</span>{% endif %},
+                  {% if ma.address and ma.address.street %}ул. {{ ma.address.street }}{% else %}<span class="is-empty">— улица —</span>{% endif %},
+                  {% if ma.address and ma.address.house %}д. {{ ma.address.house }}{% else %}<span class="is-empty">— дом —</span>{% endif %}
+                  {% if ma.address and ma.address.building %}, стр. {{ ma.address.building }}{% endif %}
+                {% else %}
+                  <span class="is-empty">Адрес банка не заполнен</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state" style="padding: 2rem 1.5rem;">
+      <i class="bi bi-bank"></i>
+      <div class="empty-title">Счета не найдены</div>
+      <p class="empty-body">
+        Добавьте счета должника, чтобы сформировать запрос в банк.
+      </p>
+    </div>
+  {% endif %}
+</div>
+
+{# ─── Параметры запроса ───────────────────────────────────── #}
+<div class="info-card mb-4">
+  <div class="card-section-head">
+    <h2><i class="bi bi-sliders"></i> Параметры запроса</h2>
+  </div>
+  <div class="data-grid">
+    <div class="data-item">
+      <div class="data-label">Дата запроса</div>
+      <div class="data-value">
+        {% if request_date %}
+          {{ request_date.strftime('%d.%m.%Y') if request_date.strftime is defined else request_date }}
+        {% else %}<span class="is-empty">Не указано</span>{% endif %}
+      </div>
+    </div>
+    <div class="data-item">
+      <div class="data-label">Дата, до которой запрашиваются сведения</div>
+      <div class="data-value">
+        {% if date_for %}
+          {{ date_for.strftime('%d.%m.%Y') if date_for.strftime is defined else date_for }}
+        {% else %}<span class="is-empty">Не указано</span>{% endif %}
+      </div>
+    </div>
+    <div class="data-item" style="grid-column: 1 / -1;">
+      <div class="data-label">Шаблон</div>
+      <div class="data-value">
+        {% if template == 'bank' %}
+          Запрос в банк <span class="cell-mono">bank_mo.docx</span>
+        {% elif template == 'requests' %}
+          Запрос в ФНС / суд <span class="cell-mono">requests_mo.docx</span>
+        {% else %}
+          {{ field(template) }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ─── Действия ────────────────────────────────────────────── #}
+<div class="doc-actions">
+  <form method="post" action="{{ url_for('generate_documents', case_id=case.id) }}" class="d-inline">
+    <input type="hidden" name="template" value="{{ template or 'requests' }}">
+    {% if bank_name %}
+      <input type="hidden" name="bank_name" value="{{ bank_name }}">
+    {% endif %}
+    <button type="submit" class="btn-legal-primary">
+      <i class="bi bi-file-earmark-arrow-down"></i> Сгенерировать документ
+    </button>
+  </form>
+  <a href="/" class="btn-legal-secondary">
+    <i class="bi bi-arrow-left"></i> Назад
+  </a>
+</div>
+
 {% endblock content %}
