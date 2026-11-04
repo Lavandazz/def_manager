@@ -1,49 +1,75 @@
 {% extends "layout.html" %}
-
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-{% if message %}
-    <div class="alert alert-success" role="alert">
-        {{ message }}
-    </div>
-{% endif %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h3 class="card-title mb-0">Добавление нового дела</h3>
-            </div>
-            <div class="card-body">
-                <form method="post" action="/user/cases">
-                    <div class="mb-3">
-                        <label for="number_case" class="form-label">Номер дела *</label>
-                        <input type="text" class="form-control" id="number_case" name="number_case" 
-                               placeholder="Например: А40-12345/2024" required>
-                        <div class="form-text">Обязательное поле. Укажите номер дела в формате, принятом в системе.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="debtor_type" class="form-label">Тип должника *</label>
-                        <select class="form-select" id="debtor_type" name="debtor_type" required>
-                            <option value="" disabled selected>Выберите тип</option>
-                            <option value="LEGAL">Юридическое лицо</option>
-                            <option value="PHYSICAL">Физическое лицо</option>
-                        </select>
-                        <div class="form-text">Укажите, кем является должник.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="debtor_name" class="form-label">Должник</label>
-                        <input type="text" class="form-control" id="debtor_name" name="debtor_name" 
-                               placeholder="ФИО или наименование должника">
-                        <div class="form-text">Указать должника по делу.</div>
-                    </div>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary">Создать дело</button>
-                        <a href="/" class="btn btn-secondary">Отмена</a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+
+<div class="page-header-bar">
+  <h1>
+    <i class="bi bi-folder-plus" style="color: var(--accent-azure);"></i>
+    Добавление нового дела
+  </h1>
+  <span class="badge-soft">Личный кабинет</span>
 </div>
+
+{% if message %}
+  <div class="form-success" role="alert">
+    <span>
+      <i class="bi bi-check-circle-fill"></i>
+      {{ message }}
+    </span>
+  </div>
+{% endif %}
+
+<div class="form-card">
+
+  <form method="post" action="/user/cases">
+
+    <div class="mb-4">
+      <label for="number_case" class="form-label-legal">
+        Номер дела <span class="form-required">*</span>
+      </label>
+      <input
+        type="text"
+        class="form-control-legal w-100"
+        id="number_case"
+        name="number_case"
+        placeholder="Например: А40-12345/2024"
+        required
+      >
+      <div class="form-help">Обязательное поле. Укажите номер в формате системы</div>
+    </div>
+
+    <div class="mb-4">
+      <label for="debtor_type" class="form-label-legal">
+        Тип должника <span class="form-required">*</span>
+      </label>
+      <select class="form-select-legal" id="debtor_type" name="debtor_type" required>
+        <option value="" disabled selected>Выберите тип</option>
+        <option value="LEGAL">Юридическое лицо</option>
+        <option value="PHYSICAL">Физическое лицо</option>
+      </select>
+      <div class="form-help">Укажите, кем является должник</div>
+    </div>
+
+    <div class="mb-4">
+      <label for="debtor_name" class="form-label-legal">Должник</label>
+      <input
+        type="text"
+        class="form-control-legal w-100"
+        id="debtor_name"
+        name="debtor_name"
+        placeholder="ФИО или наименование должника"
+      >
+      <div class="form-help">Указать должника по делу</div>
+    </div>
+
+    <div class="form-actions">
+      <a href="/" class="btn-legal-secondary">Отмена</a>
+      <button type="submit" class="btn-legal-primary">Создать дело</button>
+    </div>
+
+  </form>
+
+</div>
+
 {% endblock %}
