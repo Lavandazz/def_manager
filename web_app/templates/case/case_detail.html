@@ -1,26 +1,77 @@
 {% extends "layout.html" %}
+{% block title %}Дело {{ case.number_case }}{% endblock %}
+{% block main_class %}content-main--wide{% endblock %}
 
 {% block content %}
-  <h2>Дело: {{ case.number_case }}</h2>
-  <p><strong>Должник:</strong> {{ case.debtor.name }}</p>
-  {% if case.link %}
-    <p>
-      <strong>Ссылка на КадАрбитр:</strong>
-      <a href="{{ case.link }}" target="_blank" rel="noopener noreferrer">
-        Перейти к делу
-      </a>
-    </p>
+
+{# ─── Шапка дела ──────────────────────────────────────────── #}
+<div class="page-header-bar">
+  <h1>
+    <i class="bi bi-folder" style="color: var(--accent-azure);"></i>
+    Дело <span class="cell-mono">№{{ case.number_case }}</span>
+  </h1>
+  {% if case.status == 0 %}
+    <span class="status-chip status-chip--active">В работе</span>
+  {% else %}
+    <span class="status-chip status-chip--muted">Не активно</span>
   {% endif %}
-  <p>
-    <strong class="tooltip-trigger" data-bs-toggle="tooltip" data-bs-placement="top" title="Статус показывает актуально ли дело">Статус:</strong> {{ "В работе" if case.status == 0 else "Не активно" }}
-  </p>
-  {# кнопка парсинга для отладки #}
-  <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-    <a href="/parsing/{{ case.number_case }}" class="btn btn-outline-danger">Start</a>
+</div>
+
+{# ─── Данные дела ─────────────────────────────────────────── #}
+<div class="info-card mb-4">
+  <div class="card-section-head">
+    <h2><i class="bi bi-info-circle"></i> Основное</h2>
   </div>
-  
+  <div class="data-grid">
+    <div class="data-item">
+      <div class="data-label">Номер дела</div>
+      <div class="data-value"><span class="cell-mono">{{ case.number_case }}</span></div>
+    </div>
+    <div class="data-item">
+      <div class="data-label">Должник</div>
+      <div class="data-value">
+        {% if case.debtor and case.debtor.name %}{{ case.debtor.name }}
+        {% else %}<span class="is-empty">Не указано</span>{% endif %}
+      </div>
+    </div>
+    <div class="data-item">
+      <div class="data-label">
+        Статус
+        <span class="tooltip-trigger" data-bs-toggle="tooltip" data-bs-placement="top"
+              title="Показывает, актуально ли дело"
+              style="cursor: help; color: var(--steel); margin-left: 0.25rem;">
+          <i class="bi bi-info-circle" style="font-size: 0.9em;"></i>
+        </span>
+      </div>
+      <div class="data-value">{{ "В работе" if case.status == 0 else "Не активно" }}</div>
+    </div>
+    {% if case.link %}
+      <div class="data-item">
+        <div class="data-label">КадАрбитр</div>
+        <div class="data-value">
+          <a href="{{ case.link }}" target="_blank" rel="noopener noreferrer">
+            Перейти к делу <i class="bi bi-box-arrow-up-right" style="font-size: 0.85em;"></i>
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  {# Кнопка запуска парсинга — отладочная, поэтому вторичная #}
+  <div class="doc-actions" style="border-top: none; padding-top: 1rem; justify-content: flex-end;">
+    <a href="/parsing/{{ case.number_case }}"
+       class="btn-legal-secondary"
+       style="min-height: 34px; padding: 0.35rem 0.9rem; font-size: 0.8125rem;">
+      <i class="bi bi-play-fill"></i> Start парсинг
+    </a>
+  </div>
+</div>
+<div class="info-card mb-4">
   <div class="accordion" id="accordionDocs">
-    <p><strong>Наименование полученного документа:</strong></p>
+    <div class="card-section-head">
+      <h2><i class="bi bi-file-earmark-text"></i> Полученные документы</h2>
+      <span class="badge-soft">{{ total_docs }}</span>
+    </div>
     {% for document in documents %}   
       <div class="accordion-item">
         <h2 class="accordion-header" id="heading{{ loop.index }}">
@@ -77,38 +128,56 @@
   <p class="text-muted text-center">Показано {{ documents|length }} из {{ total_docs }} документов</p>
 
 
-  <div class="alert alert-success mt-3">
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-    <div>
-      <strong>Генерация запросов в госорганы</strong>
-      <p class="mb-0 text-muted small">Запрос в ФНС / суд, запросы в банки</p>
-    </div>
-    <div class="d-flex gap-2 flex-wrap">
-      <!-- форма с параметрами -->
-      <a href="/user/cases/generate_documents/{{ case.id }}" class="btn btn-success">
-        Настроить и сгенерировать
-      </a>
-      <!-- быстрое скачивание без формы (POST через form) -->
-      <form method="post" action="/user/cases/generate_documents/{{ case.id }}" class="d-inline">
-        <input type="hidden" name="template" value="requests">
-        <input type="hidden" name="region_court" value="Московской области">
-        <button type="submit" class="btn btn-outline-success">
-          Скачать запрос (.docx)
-        </button>
-      </form>
-    </div>
+{# ─── Генерация запросов ──────────────────────────────────── #}
+<div class="info-card mb-4">
+  <div class="card-section-head">
+    <h2><i class="bi bi-file-earmark-arrow-down"></i> Генерация запросов в госорганы</h2>
+  </div>
+  <p class="mb-3" style="color: var(--ink-soft); font-size: 0.9375rem;">
+    Запрос в ФНС / суд, запросы в банки. Настройте параметры или
+    скачайте готовый шаблон.
+  </p>
+  <div class="doc-actions" style="border-top: none; padding-top: 0;">
+    <a href="/user/cases/generate_documents/{{ case.id }}" class="btn-legal-primary">
+      <i class="bi bi-sliders"></i> Настроить и сгенерировать
+    </a>
+    <form method="post" action="/user/cases/generate_documents/{{ case.id }}" class="d-inline">
+      <input type="hidden" name="template" value="requests">
+      <input type="hidden" name="region_court" value="Московской области">
+      <button type="submit" class="btn-legal-secondary">
+        <i class="bi bi-download"></i> Скачать запрос (.docx)
+      </button>
+    </form>
   </div>
 </div>
 
-  <div class="alert alert-secondary mt-3 d-grid gap-2 d-md-flex justify-content-md-end">
-      <span> <!-- Оборачиваем весь текст в один контейнер -->
-          <strong>Будьте внимательны при удалении дела.</strong> 
-          Восстановить дело можно только обратившись к администратору!
-      </span>
-      <form method="post" action="/user/cases/{{ case.id }}/delete" onsubmit="return confirm('Вы уверены, что хотите удалить дело №{{ case.number_case }}?');" style="display:inline;">
-        <!-- если нужна защита CSRF, добавьте токен -->
-        <button type="submit" class="btn btn-danger">Удалить дело</button>
+{# ─── Удаление ────────────────────────────────────────────── #}
+<div class="callout callout--danger mb-4">
+  <i class="bi bi-exclamation-triangle-fill callout-icon"></i>
+  <div class="callout-body">
+    <div class="callout-title">Будьте внимательны при удалении</div>
+    <p class="mb-3" style="font-size: 0.875rem; color: var(--ink-soft);">
+      Восстановить дело можно только обратившись к администратору.
+    </p>
+    <form method="post"
+          action="/user/cases/{{ case.id }}/delete"
+          onsubmit="return confirm('Вы уверены, что хотите удалить дело №{{ case.number_case }}?');">
+      <button type="submit" class="btn-legal-danger">
+        <i class="bi bi-trash"></i> Удалить дело
+      </button>
     </form>
   </div>
+</div>
 
+{# ─── Tooltips ────────────────────────────────────────────── #}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.bootstrap) {
+      document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+        new bootstrap.Tooltip(el);
+      });
+    }
+  });
+</script>
+</div>
   {% endblock %}

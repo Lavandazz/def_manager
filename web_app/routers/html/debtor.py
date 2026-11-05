@@ -53,17 +53,6 @@ async def get_choice_debtor(
         )
 
 
-# def _debtor_to_form(d) -> dict:
-#     return {
-#         "debtor_type": d.debtor_type.value if d.debtor_type else "",
-#         "name": d.name or "",
-#         "inn": str(d.inn) if d.inn else "",
-#         "snils": str(d.snils) if d.snils else "",
-#         "birthday": d.birthday.isoformat() if d.birthday else "",
-#         "birth_region": str(d.birth_region) if d.birth_region else "",
-#         "residential_address": str(d.residential_address) if d.residential_address else "",
-#     }
-
 @router.get("/{debtor_id}/edit", response_class=HTMLResponse, name="debtor_edit")
 async def debtor_edit(
     request: Request,

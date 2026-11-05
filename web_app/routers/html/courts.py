@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 
 from web_app.web_conf import templates
 from shared.core.services.court_session_service import CourtSessionService
+from web_app.utils.caches_data import get_cases_from_cache
 from web_app.utils.dependensy import get_court_service, get_optional_user
 from shared.config.db.models import User
 
@@ -22,12 +23,17 @@ async def get_courts(
                                           context={"title": "Главная страница",
                                                    "message": "Для отображения календаря войдите или зарегистрируйтесь"})
 
-    courts = await court_service.get_courts(user_id=user.id)
-
     context = {
         "request": request,
         "title": "Календарь судебных заседаний",
         "user": user,
-        "courts": courts
     }
+
+    courts = await court_service.get_courts(user_id=user.id)
+    cached_data = await get_cases_from_cache(user_id=user.id) # получаем cases из кэша
+    
+    if cached_data:
+        context["cases"] = cached_data
+    context["courts"] = courts
+
     return templates.TemplateResponse(request, "case/court_detail.html", context)

@@ -21,7 +21,7 @@ router = APIRouter()
 
 
 # проверка номера дела
-PATTERN_CASE = re.compile(r'^[A-ZА-Я]\d{2}-\d{5}/\d{4}$', re.IGNORECASE)
+PATTERN_CASE = re.compile(r'^[A-ZА-Я]\d{2}-\d{5,6}/\d{4}$', re.IGNORECASE)
 
 
 @router.get("/create", tags=["html_case"], response_class=HTMLResponse)
@@ -32,11 +32,18 @@ async def add_case_form(
     """
     Отображение страницы для введения номера дела 
     """
-    if user:
-        return templates.TemplateResponse(request, 
-                                          "case/add_case.html", 
-                                          {"title": "Создание дела", "user": user})
-    return templates.TemplateResponse(request, "index.html", context={"title": "Главная страница"})
+    if not user:
+        return templates.TemplateResponse(request, "index.html", context={"title": "Главная страница"})
+    context = {
+        "title": "Создание дела",
+        "user": user
+    }
+    cached_data = await get_cases_from_cache(user_id=user.id) # получаем cases из кэша
+    if cached_data:
+        context["cases"] = cached_data
+    return templates.TemplateResponse(request, 
+                                        "case/add_case.html", 
+                                        context=context)
 
 
 @router.post("", tags=["html_case"], response_class=HTMLResponse)
@@ -104,6 +111,10 @@ async def case_detail(
     case_service: CaseService = Depends(get_case_service),
     user: User = Depends(get_optional_user),
 ):
+    """
+    Отображение дела с полученными из судов документами.
+    Возможность перехода в генерацию запросов и редактирование данных должника
+    """
     # fastapi_logger.warning(f"Request from {request.client.host}, UA: {request.headers.get('user-agent')}")
     if not user:
         return templates.TemplateResponse(request, "index.html", 
@@ -114,7 +125,7 @@ async def case_detail(
     # Получаем документы с пагинацией
     documents, total_docs = await case_service.get_case_documents_paginated(case_id, page, size)
     total_pages = (total_docs + size - 1) // size if total_docs > 0 else 1
-
+    
     cached_data = await get_cases_from_cache(user_id=user.id) # получаем cases из кэша
 
     context = {

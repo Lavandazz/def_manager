@@ -1,0 +1,111 @@
+/* ---------- Navbar ---------- */
+
+.navbar-legal {
+  border-bottom: 1px solid var(--bs-border-color);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  padding-block: 0.35rem;
+  z-index: var(--bs-zindex-fixed, 1030);
+}
+
+.navbar-legal .navbar-brand {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-right: 1rem;
+}
+
+.navbar-legal .navbar-brand:hover,
+.navbar-legal .navbar-brand:focus {
+  color: var(--accent-azure);
+}
+
+.navbar-legal .nav-link {
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  padding: 0.55rem 0.75rem;
+}
+
+.navbar-legal .nav-link:hover,
+.navbar-legal .nav-link:focus {
+  color: var(--ink);
+}
+
+.navbar-legal .nav-link.disabled,
+.navbar-legal .nav-user-label {
+  color: var(--steel);
+  opacity: 1;
+}
+
+.navbar-legal .navbar-toggler {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 6px;
+  padding: 0.4rem 0.55rem;
+  box-shadow: none;
+}
+
+.navbar-legal .navbar-toggler:focus {
+  box-shadow: 0 0 0 3px rgba(43, 143, 255, 0.2);
+}
+
+.navbar-legal .navbar-toggler-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%230E0F12' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.navbar-legal .dropdown-menu {
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 24px rgba(14, 15, 18, 0.08);
+  padding: 0.35rem;
+}
+
+.navbar-legal .dropdown-item {
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: var(--ink);
+  padding: 0.5rem 0.75rem;
+}
+
+.navbar-legal .dropdown-item:hover,
+.navbar-legal .dropdown-item:focus {
+  background: var(--mist);
+  color: var(--ink);
+}
+
+/* ---------- Адаптив ---------- */
+
+@media (max-width: 991.98px) {
+  .sidebar-legal { position: static; height: auto; }
+  .hero-legal { padding: 2rem 1.5rem; }
+
+  .navbar-legal .navbar-collapse {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0 0.75rem;
+    border-top: 1px solid var(--bs-border-color);
+  }
+
+  .navbar-legal .nav-link {
+    padding: 0.7rem 0.25rem;
+  }
+
+  .navbar-legal .dropdown-menu {
+    border: 0;
+    box-shadow: none;
+    background: var(--mist);
+    margin: 0.15rem 0 0.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

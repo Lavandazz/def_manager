@@ -2,112 +2,113 @@
 {% block title %}Редактирование профиля{% endblock %}
 
 {% block content %}
+<div class="landing-page">
 
-{# ─── Шапка страницы ──────────────────────────────────────── #}
-<div class="page-header-bar">
-  <h1>
-    <i class="bi bi-pencil-square" style="color: var(--accent-azure);"></i>
-    Редактирование профиля
-  </h1>
-  <span class="badge-soft">Личный кабинет</span>
-</div>
-
-{# ─── Карточка формы ──────────────────────────────────────── #}
-<div class="form-card">
-
-  {% if error %}
-    <div class="form-error" role="alert">
-      <i class="bi bi-exclamation-triangle-fill"></i>
-      <div>{{ error }}</div>
-    </div>
-  {% endif %}
-
-  <form method="post" action="/user/profile/edit" novalidate>
-
-    <div class="mb-4">
-      <label for="username" class="form-label-legal">Имя пользователя</label>
-      <input
-        type="text"
-        class="form-control-legal"
-        id="username"
-        name="username"
-        value="{{ user.username|default('') }}"
-        placeholder="Имя"
-        autocomplete="username"
-      >
-      <div class="form-help">Имя пользователя</div>
-    </div>
-
-    <div class="mb-4">
-      <label for="email" class="form-label-legal">
-        Email <span class="form-required">*</span>
-      </label>
-      <input
-        type="email"
-        class="form-control-legal"
-        id="email"
-        name="email"
-        value="{{ user.email|default('') }}"
-        placeholder="example@mail.ru"
-        required
-        autocomplete="email"
-      >
-      <div class="form-help">Укажите актуальный email</div>
-    </div>
-
-    <div class="mb-4">
-      <label for="telegram_id" class="form-label-legal">
-        Telegram ID <span style="color: var(--steel); font-weight: 400;">(необязательно)</span>
-      </label>
-      <input
-        type="number"
-        class="form-control-legal"
-        id="telegram_id"
-        name="telegram_id"
-        value="{{ user.telegram_id|default('') }}"
-        placeholder="123456789"
-        inputmode="numeric"
-      >
-      <div class="form-help">Ваш числовой идентификатор в Telegram</div>
-    </div>
-
-    <div class="mb-4">
-      <label for="password" class="form-label-legal">
-        Пароль <span class="form-required">*</span>
-      </label>
-      <input
-        type="password"
-        class="form-control-legal"
-        id="password"
-        name="password"
-        required
-        autocomplete="current-password"
-        placeholder="••••••••"
-      >
-      <div class="form-help">Введите текущий пароль для подтверждения изменений</div>
-    </div>
-
-    <div class="form-actions">
-      <a href="/user/profile" class="btn-legal-secondary">Отмена</a>
-      <button type="submit" class="btn-legal-primary">Сохранить изменения</button>
-    </div>
-
-  </form>
-
-  {# ─── Управление паролем ──────────────────────────────────── #}
-  <div class="form-section">
-    <div class="form-section-title">Управление паролем</div>
-    <a href="/user/profile/password"
-       class="btn-legal-secondary"
-       style="min-height: 38px; padding: 0.5rem 1.25rem; font-size: 0.875rem;">
-      {% if needs_password_setup %}
-        <i class="bi bi-key"></i> Установить пароль
-      {% else %}
-        <i class="bi bi-key"></i> Изменить пароль
-      {% endif %}
-    </a>
+  {# ─── Шапка страницы ──────────────────────────────────────── #}
+  <div class="page-header-bar">
+    <h1>
+      <i class="bi bi-pencil-square" style="color: var(--accent-azure);"></i>
+      Редактирование профиля
+    </h1>
+    <span class="badge-soft">Личный кабинет</span>
   </div>
 
-</div>
+  {# ─── Карточка формы — ширина как у profile ──────────────── #}
+  <div class="info-card">
 
+    {% if error %}
+      <div class="form-error" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>{{ error }}</div>
+      </div>
+    {% endif %}
+
+    <form method="post" action="/user/profile/edit" novalidate>
+
+      <div class="mb-4">
+        <label for="username" class="form-label-legal">Имя пользователя</label>
+        <input
+          type="text"
+          class="form-control-legal"
+          id="username"
+          name="username"
+          value="{{ user.username|default('') }}"
+          placeholder="Имя"
+          autocomplete="username"
+        >
+        <div class="form-help">Имя пользователя</div>
+      </div>
+
+      <div class="mb-4">
+        <label for="email" class="form-label-legal">
+          Email <span class="form-required">*</span>
+        </label>
+        <input
+          type="email"
+          class="form-control-legal"
+          id="email"
+          name="email"
+          value="{{ user.email|default('') }}"
+          placeholder="example@mail.ru"
+          required
+          autocomplete="email"
+        >
+        <div class="form-help">Укажите актуальный email</div>
+      </div>
+
+      <div class="mb-4">
+        <label for="telegram_id" class="form-label-legal">
+          Telegram ID <span style="color: var(--steel); font-weight: 400;">(необязательно)</span>
+        </label>
+        <input
+          type="number"
+          class="form-control-legal"
+          id="telegram_id"
+          name="telegram_id"
+          value="{{ user.telegram_id|default('') }}"
+          placeholder="123456789"
+          inputmode="numeric"
+        >
+        <div class="form-help">Ваш числовой идентификатор в Telegram</div>
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="form-label-legal">
+          Пароль <span class="form-required">*</span>
+        </label>
+        <input
+          type="password"
+          class="form-control-legal"
+          id="password"
+          name="password"
+          required
+          autocomplete="current-password"
+          placeholder="••••••••"
+        >
+        <div class="form-help">Введите текущий пароль для подтверждения изменений</div>
+      </div>
+
+      <div class="form-actions">
+        <a href="/user/profile" class="btn-legal-secondary">Отмена</a>
+        <button type="submit" class="btn-legal-primary">Сохранить изменения</button>
+      </div>
+
+    </form>
+
+    {# ─── Управление паролем ──────────────────────────────────── #}
+    <div class="form-section">
+      <div class="form-section-title">Управление паролем</div>
+      <a href="/user/profile/password"
+         class="btn-legal-secondary"
+         style="min-height: 38px; padding: 0.5rem 1.25rem; font-size: 0.875rem;">
+        {% if needs_password_setup %}
+          <i class="bi bi-key"></i> Установить пароль
+        {% else %}
+          <i class="bi bi-key"></i> Изменить пароль
+        {% endif %}
+      </a>
+    </div>
+
+  </div>
+</div>
 {% endblock %}

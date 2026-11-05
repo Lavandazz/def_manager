@@ -1,6 +1,5 @@
 {% extends "layout.html" %}
 {% block title %}{{ title }}{% endblock %}
-{% block main_class %}content-main--wide{% endblock %}
 
 {% macro field(value) -%}
   {%- if value is none or value == '' -%}
@@ -209,6 +208,9 @@
     <button type="submit" class="btn-legal-primary">
       <i class="bi bi-file-earmark-arrow-down"></i> Сгенерировать документ
     </button>
+    <a href="/user/debtor/{{ case.debtor_id }}/edit" class="btn-legal-primary">
+      <i class="bi bi-sliders"></i> Редактировать данные
+    </a>
   </form>
   <a href="/" class="btn-legal-secondary">
     <i class="bi bi-arrow-left"></i> Назад

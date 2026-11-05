@@ -11,6 +11,7 @@
       {% block hero %}{% endblock hero %}
       <div class="row g-4">
 
+        {% if user %}
         <!-- Sidebar / Navigation -->
         <aside class="col-12 col-lg-3">
           <div class="sidebar-legal">
@@ -19,9 +20,10 @@
             {% endblock %}
           </div>
         </aside>
+        {% endif %}
 
         <!-- Main content -->
-        <div class="col-12 col-lg-9">
+        <div class="col-12 {% if user %}col-lg-9{% endif %}">
           <main class="content-main mx-auto {% block main_class %}{% endblock main_class %}">
             {% if message %}
               <div class="alert alert-success border-0 rounded-3 mb-4" role="alert" style="background: var(--mist); color: var(--ink);">

@@ -3,7 +3,6 @@ import json
 from shared.config.redis_config import redis_service
 
 
-
 async def get_cases_from_cache(user_id) -> list | None:
     cache_key = f"cases:{user_id}_"
     cached_data = await redis_service.get_value(key=cache_key)
