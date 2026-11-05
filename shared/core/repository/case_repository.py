@@ -212,7 +212,7 @@ class CaseAlchemyRepository(AbstractCaseRepository):
 
 
 
-    async def delete_case(self, case_id):
+    async def delete_case(self, user_id, case_id):
         """Мягкое удаление дела. Проставляем статус 1"""
         stmt = update(Case).where(Case.id == case_id, Case.status == 0).values(status=1)
         result = await self.session.execute(stmt)

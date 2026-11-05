@@ -1,5 +1,6 @@
 
-from datetime import date, datetime
+from datetime import date
+from shared.utils.exceptions import AccessForbidden
 
 
 class CaseService:
@@ -51,5 +52,12 @@ class CaseService:
         return case
 
 
-    async def delete_case(self, case_id: int):
-        return await self.repository.delete_case(case_id)
+    async def delete_case(self, user_id: int, case_id: int):
+        """
+        Мягкое удаление номера дела,
+        Если дело не принадлежит пользователю, возвращаем None
+        """
+        case = await self.get_case(case_id=case_id)
+        if user_id != case.id_user:
+            raise AccessForbidden
+        return await self.repository.delete_case(user_id, case_id)

@@ -9,13 +9,13 @@ from web_app.utils.caches_data import get_cases_from_cache
 from shared.core.services.case_service import CaseService
 from web_app.utils.dependensy import get_case_service, get_debtor_service, get_document_service, get_optional_user
 from shared.celery_tasks.task_manager import parsing_task
-from shared.config.db.models import Account, Case, Debtor, User
+from shared.config.db.models import Account, Case, Debtor, User, DebtorType
 from shared.core.services.debtor_service import DebtorService
 from shared.documents.services.doc_service import OUTPUT_DIR, DocumentService
 from shared.documents.utils.context_builder import ContextBuilder
 from shared.utils.document_text_helper import document_helper
 from shared.config.logger_config import fastapi_logger
-
+from shared.utils.exceptions import AccessForbidden
 
 router = APIRouter()
 
@@ -127,7 +127,9 @@ async def case_detail(
     total_pages = (total_docs + size - 1) // size if total_docs > 0 else 1
     
     cached_data = await get_cases_from_cache(user_id=user.id) # получаем cases из кэша
-
+    # Получаем тип должника, если юр.лицо, то кнопку генерации доков не отображаем
+    debtor_type = "ph" if case.debtor.debtor_type == DebtorType.PHYSICAL else None
+ 
     context = {
         "request": request,
         "user": user,
@@ -138,6 +140,7 @@ async def case_detail(
         "size": size,
         "total_pages": total_pages,
         "total_docs": total_docs,
+        "debtor_type": debtor_type
     }
     if cached_data:
         context["cases"] = cached_data
@@ -152,30 +155,46 @@ async def delete_case(
     case_service: CaseService = Depends(get_case_service),
     user: User = Depends(get_optional_user),
 ):
+    """
+    Роут для мягкого удаления дела.
+    Если дело не принадледит пользователю, будет сгенерированно сообщение об этом
+    """
     if not user:
-            return templates.TemplateResponse(request, "index.html", 
-                                            context={"title": "Главная страница",
-                                                    "message": "Необходимо авторизоваться"})
+        return templates.TemplateResponse(
+            request, "index.html",
+            {"title": "Главная страница", "message": "Необходимо авторизоваться"},
+            status_code=401,
+        )
+    status_code = 200
+    message: str | None = None
     cached_data = await get_cases_from_cache(user_id=user.id) # получаем cases из кэша
-    delete_case = await case_service.delete_case(case_id=case_id)
-    
+    try:
+        delete = await case_service.delete_case(user_id=user.id, case_id=case_id)
+        if delete:
+            message = "Дело удалено." \
+                "Если Вы удалили дело по ошибке, обратитесь к администратору портала или напишите ваше обращено на электронную почту:" \
+                "nepomnu89@ya.ru " \
+                "или в telegram:" \
+                "@itLavandazz"
+        else:
+            status_code = 409
+            message = "Дело уже удалено или не найдено"
+
+    except AccessForbidden:
+        message = "Ошибка доступа"
+        status_code = 403
+
     context = {
             "request": request,
             "user": user,
         }
+    
     if cached_data:
         context["cases"] = cached_data
-    if delete_case:
-            message = "Дело удалено." \
-            "Если Вы удалили дело по ошибке, обратитесь к администратору портала или напишите ваше обращено на электронную почту:" \
-            "nepomnu89@ya.ru " \
-            "или в telegram:" \
-            "@itLavandazz"
 
-            context["message"] = message
-    
+    context["message"] = message
             
-    return templates.TemplateResponse(request, "index.html", context, status_code=200)
+    return templates.TemplateResponse(request, "index.html", context=context, status_code=status_code)
 
 
 @router.get("/generate_documents/{case_id}", tags=["html_docs"], response_class=HTMLResponse)

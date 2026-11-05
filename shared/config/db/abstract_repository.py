@@ -31,7 +31,7 @@ class AbstractCaseRepository(ABC):
         pass
 
     @abstractmethod
-    async def delete_case(self, case_id: int) -> bool:
+    async def delete_case(self, user_id: int, case_id: int) -> bool:
         pass
 
 

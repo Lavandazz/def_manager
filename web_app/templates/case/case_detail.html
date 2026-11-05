@@ -129,28 +129,32 @@
 
 
 {# ─── Генерация запросов ──────────────────────────────────── #}
-<div class="info-card mb-4">
-  <div class="card-section-head">
-    <h2><i class="bi bi-file-earmark-arrow-down"></i> Генерация запросов в госорганы</h2>
-  </div>
-  <p class="mb-3" style="color: var(--ink-soft); font-size: 0.9375rem;">
-    Запрос в ФНС / суд, запросы в банки. Настройте параметры или
-    скачайте готовый шаблон.
-  </p>
-  <div class="doc-actions" style="border-top: none; padding-top: 0;">
-    <a href="/user/cases/generate_documents/{{ case.id }}" class="btn-legal-primary">
-      <i class="bi bi-sliders"></i> Настроить и сгенерировать
-    </a>
-    <form method="post" action="/user/cases/generate_documents/{{ case.id }}" class="d-inline">
-      <input type="hidden" name="template" value="requests">
-      <input type="hidden" name="region_court" value="Московской области">
-      <button type="submit" class="btn-legal-secondary">
-        <i class="bi bi-download"></i> Скачать запрос (.docx)
-      </button>
-    </form>
-  </div>
-</div>
+  {% if debtor_type %}
+    <div class="info-card mb-4">
+      <div class="card-section-head">
+        <h2><i class="bi bi-file-earmark-arrow-down"></i> Генерация запросов в госорганы</h2>
+      </div>
+      <p class="mb-3" style="color: var(--ink-soft); font-size: 0.9375rem;">
+        Запрос в ФНС / суд, запросы в банки. Настройте параметры или
+        скачайте готовый шаблон.
+      </p>
+    
+      <div class="doc-actions" style="border-top: none; padding-top: 0;">
+        <a href="/user/cases/generate_documents/{{ case.id }}" class="btn-legal-primary">
+          <i class="bi bi-sliders"></i> Настроить и сгенерировать
+        </a>
+        <form method="post" action="/user/cases/generate_documents/{{ case.id }}" class="d-inline">
+          <input type="hidden" name="template" value="requests">
+          <input type="hidden" name="region_court" value="Московской области">
+          <button type="submit" class="btn-legal-secondary">
+            <i class="bi bi-download"></i> Скачать запрос (.docx)
+          </button>
+        </form>
+      </div>
 
+    </div>
+  {% endif%}
+  
 {# ─── Удаление ────────────────────────────────────────────── #}
 <div class="callout callout--danger mb-4">
   <i class="bi bi-exclamation-triangle-fill callout-icon"></i>
