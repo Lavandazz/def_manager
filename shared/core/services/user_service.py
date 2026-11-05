@@ -1,5 +1,6 @@
 
 from shared.utils.exceptions import UserNotFoundError
+from shared.config.settings_env import settings
 from web_app.utils.auth.password_hasher import PasswordHasher
 from shared.config.db.models import User
 from shared.config.schemas.user_schemas import UserEfrsbSchema, UserPasswordSchema, UserRegistration, UserSroUpdateSchema,  UserUpdateSchema
@@ -20,8 +21,33 @@ class UserService:
                 hashed_password=user_data.password,
                 telegram_id=user_data.telegram_id
             )
-        return await self.repository.create_user(new_user)
+        user = await self.repository.create_user(new_user)
+        await self.assign_role(user, "user")
+        return user
 
+    async def init_defaults(self) -> None:
+        """ инициализация: роли + админ."""
+        await self.repository.create_default_roles()
+
+        admin = await self.repository.get_user(email=settings.ADMIN_EMAIL)
+        if admin is not None:
+            return
+
+        admin = await self.repository.create_user(User(
+            username="admin",
+            email=settings.ADMIN_EMAIL,
+            hashed_password=PasswordHasher.hash_password(settings.ADMIN_PASSWORD),
+        ))
+        await self.assign_role(admin, "admin")
+
+    
+    async def assign_role(self, user: User, role_name: str) -> None:
+        role = await self.repository.get_role_by_name(role_name)
+        if role is None:
+            # на случай, если init_defaults ещё не вызывался
+            await self.repository.create_default_roles()
+            role = await self.repository.get_role_by_name(role_name)
+        await self.repository.assign_role(user.id, role.id)
 
     async def get_user(self, telegram_id=None, email=None) -> User | None:
         """

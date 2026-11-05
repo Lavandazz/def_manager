@@ -4,17 +4,26 @@ fastapi dev
 uvicorn app.app:app --reload
 """
 
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from sqladmin import Admin
 
+from shared.config.db.database import UnitOfWork
 from shared.config.settings_folders import WEB_APP
+from shared.config.settings_env import settings
 from shared.utils.exceptions import UserNotFoundError
+from shared.config.db.db_config import async_sessionmaker
+
+from web_app.admin.auth import AdminAuth
+from web_app.admin.dependensy import get_user_service
+from web_app.admin.views import VIEWS
 from web_app.routers.api.api import router as api_router
 from web_app.routers.api.user.api_user import router as api_user_router
 from web_app.routers.api.user.api_cases import router as api_cases_router
-
 
 from web_app.routers.html.exceptions import user_not_found_handler
 from web_app.routers.html.user import router as user_router
@@ -26,8 +35,19 @@ from web_app.routers.html.help import router as help_router
 from web_app.routers.html.parser_rout import router as parser_router
 
 
-app = FastAPI(debug=True)
+async def init_db():
+    """Создаёт роли и администратора, если их нет."""
+    uow = UnitOfWork(async_sessionmaker)
+    async with uow:
+        service = get_user_service(uow.session)
+        await service.init_defaults()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()      # инициализация ролей
+    yield
+
+app = FastAPI(debug=True, lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=f"{WEB_APP}/static"), name="static")
 
 app.add_middleware(
@@ -43,6 +63,10 @@ app.add_middleware(
 )
 
 app.add_exception_handler(UserNotFoundError, user_not_found_handler)
+
+admin = Admin(app, session_maker=async_sessionmaker, authentication_backend=AdminAuth(secret_key=settings.SECRET_KEY, session_maker=async_sessionmaker))
+for view in VIEWS:
+    admin.add_view(view)
 
 app.include_router(api_router, prefix="/api")
 app.include_router(api_user_router, prefix="/api/user")

@@ -26,6 +26,10 @@ class Settings(BaseSettings):
 
     DEFAULT_PASSWORD: str
 
+    # SCLadmin
+    ADMIN_EMAIL: str
+    ADMIN_PASSWORD: str
+
     def get_async_db_url(self):
         """Асинхронное подключение используется во всем приложении"""
         return (f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"

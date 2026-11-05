@@ -6,6 +6,8 @@ WORKDIR /app
 
 COPY flower/requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+    
 COPY shared/ /app/shared/
 CMD ["celery", "-A", "shared.config.tasks_config", "flower", "--port=5555"]

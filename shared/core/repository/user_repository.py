@@ -2,7 +2,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import joinedload, selectinload
 
 from shared.config.db.abstract_repository import AbstractUserRepository
-from shared.config.db.models import MailAddress, User
+from shared.config.db.models import MailAddress, Role, User, UserRole
 from shared.config.logger_config import db_logger
 
 
@@ -13,10 +13,40 @@ class UserAlchemyRepository(AbstractUserRepository):
     def __init__(self, session):
         self.session = session
 
+    async def create_default_roles(self) -> None:
+        """Создание прав пользователя"""
+        for role_name in ("admin", "user"):
+            if await self.get_role_by_name(role_name) is None:
+                self.session.add(Role(role=role_name))
+        await self.session.flush()
+
+    async def get_role_by_name(self, role_name: str) -> Role | None:
+        """Получение роли"""
+        result = await self.session.execute(select(Role).where(Role.role == role_name))
+        return result.scalar_one_or_none()
+
+    async def get_user_role(self, user_id: int) -> UserRole | None:
+        result = await self.session.execute(
+            select(UserRole).where(UserRole.user_id == user_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def assign_role(self, user_id: int, role_id: int) -> UserRole:
+        """Идемпотентно: если у пользователя уже есть роль — возвращаем её."""
+        existing = await self.get_user_role(user_id)
+        if existing is not None:
+            return existing
+        user_role = UserRole(user_id=user_id, role_id=role_id)
+        self.session.add(user_role)
+        await self.session.flush()
+        return user_role
+
     async def create_user(self, user: User):
         try:
             self.session.add(user)
-            await self.session.commit()
+            # await self.session.commit()
+            await self.session.flush() # чтобы до коммита успеть привязать роль к пользователю
+            # flush отправляет INSERT в БД (и выдаёт id), но не фиксирует
             db_logger.info(f"Сохранен новый пользователь {user.username}")
             await self.session.refresh(user)   #  id появится после refresh
             return user # возвращаем объект user, чтобы использовать его данные в ответе
