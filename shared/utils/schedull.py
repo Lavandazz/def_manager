@@ -6,7 +6,7 @@ from shared.core.repository.case_repository import CaseAlchemyRepository
 from shared.core.services.case_service import CaseService
 
 
-async def det_number_cases(service: CaseService):
+async def get_number_cases():
     """ Получение списка дел по расписанию"""
     async for unit_of_work in get_db():
         repo = CaseAlchemyRepository(unit_of_work.session)

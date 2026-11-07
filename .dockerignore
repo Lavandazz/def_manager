@@ -45,3 +45,6 @@ Notes.md
 
 # Сгенерированные документы
 documents/ready_documents/
+
+# Временное отключение api страниц
+web_app/routers/api

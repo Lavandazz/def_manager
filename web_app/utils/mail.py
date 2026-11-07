@@ -38,3 +38,15 @@ async def send_verification_email_async(to_email: str, code: str) -> None:
 
     fm = FastMail(mail_conf)
     await fm.send_message(message)
+
+
+async def send_mail_to_admin(to_email: str, subject: str, body_html: str) -> None:
+    """Отправка письма администратору. body_html — готовый HTML."""
+    message = MessageSchema(
+        subject=subject,
+        recipients=[to_email],
+        body=body_html,
+        subtype=MessageType.html,
+    )
+    fm = FastMail(mail_conf)
+    await fm.send_message(message)

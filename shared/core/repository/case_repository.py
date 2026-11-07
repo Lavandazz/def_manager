@@ -149,12 +149,12 @@ class CaseAlchemyRepository(AbstractCaseRepository):
         return result.scalar_one()
 
     
-    async def get_cases(self) -> list[Case]:
+    async def get_cases(self) -> list[str]:
         """
-        Получение всех актуальных номеров дел.
+        Получение списка актуальных номеров дел для периодической задачи-парсинга дел.
         Case.status == 0 - дело не удалено и считается актуальным
         """
-        stmt = select(Case).where(Case.status == 0)
+        stmt = select(Case.number_case).where(Case.status == 0)
         result = await self.session.execute(stmt)
         return result.scalars().all()
 

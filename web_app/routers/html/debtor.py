@@ -104,7 +104,7 @@ async def debtor_edit(
     )
 
 
-@router.post("/debtors/{debtor_id}/edit", name="debtor_edit_post")
+@router.post("/{debtor_id}/edit", name="debtor_edit_post")
 async def debtor_edit_post(
     request: Request,
     debtor_id: int,

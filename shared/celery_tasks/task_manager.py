@@ -4,10 +4,12 @@ celery -A celery_tasks.task_manager worker -Q parsing --concurrency=1 --hostname
 celery -A celery_tasks.task_manager worker -Q messages --concurrency=2 -n=worker-messages@%h
 """
 import asyncio
+import time
 
 from shared.config.tasks_config import celery_app
 from shared.config.logger_config import task_logger
 from shared.utils.exceptions import AccessForbidden
+
 
 
 @celery_app.task(bind=True, max_retries=2, default_retry_delay=60, queue="parsing") # bind=True - флаг для доступа к атрибутам задачи, таким как self.retry
@@ -66,3 +68,63 @@ def start_efrsb_parsing(self, user_id: int, person_name: str):
     except Exception as exc:
         task_logger.error(f"Ошибка при выполнении задачи парсинга для дела {person_name}: {exc}")
         self.retry(exc=exc)
+
+
+@celery_app.task(bind=True, max_retries=3, default_retry_delay=60, queue="messages")
+def send_admin_email(self, subject: str, body_html: str):
+    """Celery-таска: отправка письма администратору."""
+    from web_app.utils.mail import send_mail_to_admin
+    from shared.config.settings_env import settings
+
+    email = settings.ADMIN_EMAIL
+    task_logger.debug(f"Отправляю письмо админу на {email}: {subject}")
+    try:
+        asyncio.run(send_mail_to_admin(email, subject, body_html))
+        task_logger.info(f"Письмо админу отправлено на {email}")
+    except Exception as exc:
+        task_logger.error(f"Ошибка отправки письма админу на {email}: {exc}")
+        raise self.retry(exc=exc)
+    
+
+@celery_app.task(queue="parsing")
+def start_parsing_all_cases():
+    """Запуск парсинга всех актуальных дел из БД. Оркестратор, который ставит задачи в очередь."""
+    from shared.utils.schedull import get_number_cases
+    task_logger.exception("Запуск таски для общего парсинга")
+    # 1. Получаем список номеров
+    try:
+        case_numbers = asyncio.run(get_number_cases())
+    except Exception as exc:
+        task_logger.exception("Не удалось получить список дел из БД")
+        # уведомляем — но не через asyncio.run, а через .delay()
+        send_admin_email.delay(
+            subject="[Парсинг] Ошибка получения списка дел",
+            body_html=f"<p>Не смог получить список дел:</p><pre>{exc}</pre>",
+        )
+        raise
+
+    # 2. Пустой список
+    if not case_numbers:
+        task_logger.info("Планировщик: нет актуальных дел для парсинга")
+        send_admin_email.delay(
+            subject="[Парсинг] Нет дел для парсинга",
+            body_html="<p>Планировщик запустился, но список актуальных дел пуст.</p>",
+        )
+        return "Нет актуальных дел для парсинга."
+
+    cases = len(case_numbers)
+    task_logger.info(f"Планировщик: получено {cases} дел для парсинга")
+
+    # 3. Уведомляем админа со списком
+    items = "".join(f"<li>{n}</li>" for n in case_numbers)
+    send_admin_email.delay(
+        subject=f"[Парсинг] Запущено {cases} дел",
+        body_html=f"<p>Запущен парсинг {cases} дел:</p><ul>{items}</ul>",
+    )
+
+    # 4. Ставим задачи в очередь
+    for case_number in case_numbers:
+        parsing_task.delay(case_number)
+        time.sleep(7.3)  # Добавляем небольшую задержку между задачами
+
+    return f"Запланировано {cases} задач парсинга."

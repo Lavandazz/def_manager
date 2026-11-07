@@ -76,10 +76,15 @@ async def update_profile(
     user_service: UserService = Depends(get_user_service)
 ):
     if not user:
-        return templates.TemplateResponse("index.html", {"request": request, "message": "Не авторизован"}, status_code=401)
+        return templates.TemplateResponse(
+            request, "index.html",
+            {"message": "Не авторизован"},
+            status_code=401,
+        )
     
     if not PasswordHasher.verify_password(password, user.hashed_password):
         return templates.TemplateResponse(request, "user/profile_edit.html", {
+            "user": user,
             "username": username,
             "email": email,
             "telegram_id": telegram_id,

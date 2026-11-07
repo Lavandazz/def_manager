@@ -13,5 +13,4 @@ class MailSettings(BaseSettings):
     EMAIL_PASSWORD: str
 
 
-settings = Settings() # type: ignore
 mail_settings = MailSettings() # type: ignore

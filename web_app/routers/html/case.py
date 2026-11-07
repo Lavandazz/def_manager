@@ -63,7 +63,11 @@ async def add_case(
     ### Переделать форму через пайдантик с валидацией номера дела
 
     if not user:
-        return templates.TemplateResponse("index.html", {"request": request, "error": "Не авторизован"}, status_code=401)
+        return templates.TemplateResponse(
+            request, "index.html",
+            {"error": "Не авторизован"},
+            status_code=401,
+        )
     
     if not PATTERN_CASE.match(number_case.strip()) or not number_case or not isinstance(number_case, str):
         context = {

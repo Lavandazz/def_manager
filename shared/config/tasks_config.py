@@ -55,6 +55,7 @@ celery_app.autodiscover_tasks(['shared.celery_tasks'], related_name='task_manage
 # Слева название задачи от корня проекта, справа сама очередь
 celery_app.conf.task_routes = {
     'shared.celery_tasks.task_manager.send_verification_email': {'queue': 'messages'},
+    'shared.celery_tasks.task_manager.send_admin_email': {'queue': 'messages'},
     'shared.celery_tasks.task_manager.start_efrsb_parsing':     {'queue': 'parsing_efrsb'},
     'shared.celery_tasks.task_manager.parsing_task':            {'queue': 'parsing'},
     }
@@ -62,12 +63,10 @@ celery_app.conf.task_routes = {
 
 beat_schedule: dict[str, Any] = {}
 
-if CASES:
-    beat_schedule['parsing-every-second-day'] = {
-        'task': 'celery_tasks.task_manager.start_parsing',
-        'schedule': crontab(hour=7, minute=30, day_of_week=[1, 4]),
-        'args': CASES,
-        'options': {'queue': 'parsing'},
-    }
+beat_schedule['parsing-all-cases-twice-a-week'] = {
+    'task': 'shared.celery_tasks.task_manager.start_parsing_all_cases', # Путь к задаче
+    'schedule': crontab(day_of_week='wed,sun', hour=2, minute=0), # среда и воскресенье в 02:00
+    'options': {'queue': 'parsing'}, # Указываем очередь для самой задачи-оркестратора
+}
 # Передаем словарь для шедулера парсинга по расписанию в beat_schedule
 celery_app.conf.beat_schedule = beat_schedule

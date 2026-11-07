@@ -23,7 +23,7 @@ class AbstractCaseRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_cases(self) -> list[Case]:
+    async def get_cases(self) -> list[str]:
         pass
 
     @abstractmethod

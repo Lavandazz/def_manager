@@ -21,9 +21,9 @@ from shared.config.db.db_config import async_sessionmaker
 from web_app.admin.auth import AdminAuth
 from web_app.admin.dependensy import get_user_service
 from web_app.admin.views import VIEWS
-from web_app.routers.api.api import router as api_router
-from web_app.routers.api.user.api_user import router as api_user_router
-from web_app.routers.api.user.api_cases import router as api_cases_router
+# from web_app.routers.api.api import router as api_router
+# from web_app.routers.api.user.api_user import router as api_user_router
+# from web_app.routers.api.user.api_cases import router as api_cases_router
 
 from web_app.routers.html.exceptions import user_not_found_handler
 from web_app.routers.html.user import router as user_router
@@ -68,9 +68,9 @@ admin = Admin(app, session_maker=async_sessionmaker, authentication_backend=Admi
 for view in VIEWS:
     admin.add_view(view)
 
-app.include_router(api_router, prefix="/api")
-app.include_router(api_user_router, prefix="/api/user")
-app.include_router(api_cases_router, prefix="/api/cases")
+# app.include_router(api_router, prefix="/api")
+# app.include_router(api_user_router, prefix="/api/user")
+# app.include_router(api_cases_router, prefix="/api/cases")
 app.include_router(main_router)
 app.include_router(help_router, prefix="/help")
 app.include_router(user_router, prefix="/user")

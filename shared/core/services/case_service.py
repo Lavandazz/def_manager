@@ -26,7 +26,7 @@ class CaseService:
         case = await self.repository.find_case_by_number(number)
         return case
     
-    async def get_cases(self, *args,):
+    async def get_cases(self, *args,) -> list[str]:
         return await self.repository.get_cases()
         
     async def get_user_cases(self, user_id: int):
