@@ -9,9 +9,9 @@ from pathlib import Path
 from docxtpl import DocxTemplate
 
 
-BASE_DIR = Path.cwd() / "documents"
-TEMPLATES_DIR = BASE_DIR / "templates"
-OUTPUT_DIR = BASE_DIR / "ready_documents"
+BASE_DIR = Path.cwd() / "shared"
+TEMPLATES_DIR = BASE_DIR / "documents" / "templates"
+OUTPUT_DIR = BASE_DIR / "documents" / "ready_documents"
 
 
 class DocumentGenerator:
@@ -26,7 +26,6 @@ class DocumentGenerator:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         docx.save(output_path)
         return output_path
-
 
     async def generate(
         self,

@@ -3,14 +3,17 @@ import asyncio
 from click.core import V
 from fastapi import APIRouter, Depends, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
+from pydantic import ValidationError
 
 from web_app.utils.caches_data import get_cases_from_cache
+from web_app.utils.bank_helper import to_date_or_none, to_int_or_none
 from web_app.web_conf import templates
 
 from shared.celery_tasks.task_manager import send_verification_email, start_efrsb_parsing
+from shared.core.services.address_service import MailAddressService
 from shared.core.services.redis_service import RedisService
 from shared.core.services.user_service import UserService
-from web_app.utils.dependensy import get_optional_user, get_redis_service, get_user_service
+from web_app.utils.dependensy import get_mail_service, get_optional_user, get_redis_service, get_user_service
 from web_app.utils.auth.password_hasher import PasswordHasher
 from shared.config.db.models import User
 from shared.config.schemas.user_schemas import UserRegistration, UserUpdateSchema
@@ -23,6 +26,17 @@ router = APIRouter()
 
 
 MIN_PASSWORD_LENGTH = 8
+
+
+def _clean_str(value: str | None, max_len: int = 255) -> str | None:
+    """Обрезка и ограничение длины текстового поля формы."""
+    if value is None:
+        return None
+    cleaned = value.strip()
+    if not cleaned:
+        return None
+    return cleaned[:max_len]
+
 
 @router.get("/profile", tags=["profile"], response_class=HTMLResponse)
 async def get_profile(request: Request,
@@ -61,19 +75,34 @@ async def edit_profile_form(request: Request,
         # Сначала нужно установить пароль на отдельной странице
         return RedirectResponse(url="/user/profile/password", status_code=303)
 
+    user_profile = await user_service.get_user_profile(user_id=user.id)
     return templates.TemplateResponse(request, "user/profile_edit.html", {
-        "user": user})
+        "user": user_profile,
+        "needs_password_setup": False,
+    })
         
 
 @router.post("/profile/edit", response_class=HTMLResponse)
 async def update_profile(
     request: Request,
-    username: str = Form(...),
-    email: str = Form(...),
-    telegram_id: int = Form(None),
-    password: str = Form(...),
+    username: str = Form(""),
+    email: str = Form(""),
+    telegram_id: str = Form(""),
+    inn: str = Form(""),
+    snils: str = Form(""),
+    reg_num: str = Form(""),
+    reg_date: str = Form(""),
+    date_begin: str = Form(""),
+    mail_index: str = Form(""),
+    region_name: str = Form(""),
+    city: str = Form(""),
+    street: str = Form(""),
+    house: str = Form(""),
+    building: str = Form(""),
+    password: str = Form(""),
     user: User = Depends(get_optional_user),
-    user_service: UserService = Depends(get_user_service)
+    user_service: UserService = Depends(get_user_service),
+    mail_service: MailAddressService = Depends(get_mail_service),
 ):
     if not user:
         return templates.TemplateResponse(
@@ -81,31 +110,118 @@ async def update_profile(
             {"message": "Не авторизован"},
             status_code=401,
         )
-    
-    if not PasswordHasher.verify_password(password, user.hashed_password):
-        return templates.TemplateResponse(request, "user/profile_edit.html", {
-            "user": user,
-            "username": username,
-            "email": email,
-            "telegram_id": telegram_id,
-            "error": "Неверный пароль"
-        }, status_code=400)
-    
-    profile_logger.warning("Данные профиля для обновления %s, %s, %s", username, email, telegram_id)
-    # Собираем только переданные поля
-    update_dict = {}
-    if email and user.email != email:
-        update_dict["email"] = email
-        profile_logger.warning("Добавляю в словарь email %s", update_dict)
-    if telegram_id:
-        
-        update_dict["telegram_id"] = telegram_id if telegram_id != 0 else None
-        profile_logger.warning("Добавляю в словарь telegram_id %s", update_dict)
 
-    profile_logger.warning("Передаем словарь!!!! %s", update_dict)
-    await user_service.update_user(user, UserUpdateSchema(**update_dict))
+    user_profile = await user_service.get_user_profile(user_id=user.id)
+
+    # Значения формы для повторного показа при ошибке (Jinja экранирует вывод)
+    form_values = {
+        "username": username,
+        "email": email,
+        "telegram_id": telegram_id,
+        "inn": inn,
+        "snils": snils,
+        "reg_num": reg_num,
+        "reg_date": reg_date,
+        "date_begin": date_begin,
+        "mail_index": mail_index,
+        "region_name": region_name,
+        "city": city,
+        "street": street,
+        "house": house,
+        "building": building,
+    }
+
+    def _error_response(message: str, status_code: int = 400):
+        return templates.TemplateResponse(
+            request,
+            "user/profile_edit.html",
+            {
+                "user": user_profile,
+                "form": form_values,
+                "needs_password_setup": False,
+                "error": message,
+            },
+            status_code=status_code,
+        )
+
+    # Без пароля в БД ничего не пишем
+    if not (password or "").strip():
+        return _error_response("Введите пароль для подтверждения изменений")
+
+    if not PasswordHasher.verify_password(password, user.hashed_password):
+        return _error_response("Неверный пароль")
+
+    cleaned_username = _clean_str(username, 150)
+    cleaned_email = _clean_str(email, 254)
+    cleaned_inn = _clean_str(inn, 12)
+    cleaned_snils = _clean_str(snils, 14)
+    cleaned_reg_num = _clean_str(reg_num, 50)
+
+    try:
+        parsed_reg_date = to_date_or_none(reg_date)
+        parsed_date_begin = to_date_or_none(date_begin)
+        parsed_telegram = to_int_or_none(telegram_id)
+        cleaned_mail_index = to_int_or_none(mail_index)
+    except ValueError:
+        return _error_response("Проверьте корректность числовых полей и дат")
+
+    cleaned_region = _clean_str(region_name, 150)
+    cleaned_city = _clean_str(city, 150)
+    cleaned_street = _clean_str(street, 200)
+    cleaned_house = _clean_str(house, 50)
+    cleaned_building = _clean_str(building, 50)
+
+    address_parts = [
+        cleaned_mail_index,
+        cleaned_region,
+        cleaned_city,
+        cleaned_street,
+        cleaned_house,
+        cleaned_building,
+    ]
+    address_started = any(part is not None for part in address_parts)
+
+    mail_address_id = None
+    if address_started:
+        if cleaned_mail_index is None or not cleaned_city or not cleaned_street or not cleaned_house:
+            return _error_response(
+                "Для почтового адреса укажите индекс, город, улицу и дом"
+            )
+        mail = await mail_service.create_mail_address(
+            mail_index=cleaned_mail_index,
+            city=cleaned_city,
+            street=cleaned_street,
+            house=cleaned_house,
+            building=cleaned_building,
+            region_name=cleaned_region,
+        )
+        mail_address_id = mail.id
+
+    update_dict: dict = {}
+    if cleaned_username is not None:
+        update_dict["username"] = cleaned_username
+    if cleaned_email is not None:
+        update_dict["email"] = cleaned_email
+    if telegram_id.strip() != "":
+        update_dict["telegram_id"] = parsed_telegram
+    update_dict["inn"] = cleaned_inn
+    update_dict["snils"] = cleaned_snils
+    update_dict["reg_num"] = cleaned_reg_num
+    update_dict["reg_date"] = parsed_reg_date
+    update_dict["date_begin"] = parsed_date_begin
+    if mail_address_id is not None:
+        update_dict["mail_address_id"] = mail_address_id
+
+    try:
+        profile_data = UserUpdateSchema(**update_dict)
+    except ValidationError:
+        return _error_response("Проверьте корректность заполненных полей")
+    except ValueError:
+        return _error_response("Проверьте корректность заполненных полей")
+
+    await user_service.update_profile(user, profile_data)
     profile_logger.info("Данные профиля обновлены для user_id=%s", user.id)
-    
+
     return RedirectResponse(url="/user/profile", status_code=303)
 
 

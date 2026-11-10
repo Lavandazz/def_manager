@@ -32,3 +32,6 @@ run_flower.py
 
 # Сгенерированные документы
 documents/ready_documents/
+
+# Файлы macos
+.DS_Store

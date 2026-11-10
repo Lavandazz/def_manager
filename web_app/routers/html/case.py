@@ -4,10 +4,11 @@ import re
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from jinja2 import UndefinedError
+from shared.core.services.user_service import UserService
 from web_app.web_conf import templates
 from web_app.utils.caches_data import get_cases_from_cache
 from shared.core.services.case_service import CaseService
-from web_app.utils.dependensy import get_case_service, get_debtor_service, get_document_service, get_optional_user
+from web_app.utils.dependensy import get_case_service, get_debtor_service, get_document_service, get_optional_user, get_user_service
 from shared.celery_tasks.task_manager import parsing_task
 from shared.config.db.models import Account, Case, Debtor, User, DebtorType
 from shared.core.services.debtor_service import DebtorService
@@ -231,7 +232,7 @@ async def get_generate_documents(
 
     # Достаём должника и связанные данные с помощью метода text_helper
     # context = text_helper.make_context(case)
-    ctx = ContextBuilder(case)
+    ctx = ContextBuilder(case=case, username=user.username)
     context: dict = ctx.base_context()
     context["user"]=user
     context["template"]= "requests"
@@ -265,6 +266,7 @@ async def generate_documents(
     user: User = Depends(get_optional_user),
     case_service: CaseService = Depends(get_case_service),
     doc_service: DocumentService = Depends(get_document_service),
+    user_service: UserService = Depends(get_user_service)
 ):
     print("генерация документа")
     if not user:
@@ -283,12 +285,19 @@ async def generate_documents(
             context={"message": "Дело не найдено"},
             status_code=404,
         )
-    
-    context_builder = ContextBuilder(case)
+    user_data = await user_service.get_user_profile(user_id=user.id)
+    print("получил user_data", user_data, user_data.__dict__)
+    context_builder = ContextBuilder(case=case, username=user.username) # type: ignore из-за  user_data: User | None, выше проверка на пользователя была
     context: dict = context_builder.build_requests_context()
     context_bank = context_builder.build_bank_contexts()
     context["user"]=user
     context["template"]= "requests"
+    context["hello_manager_name"]= user.username
+    context["manager_address"] = ""
+    context["manager_sro"] = ""
+    context["sro_address "] = ""
+    context["mail_sro"] = ""
+    context["manager_inn"] = user.inn
     short_name = document_helper.get_short_name(context.get("debtor_full_name")) # создаем наименование файла
     try:
         try:

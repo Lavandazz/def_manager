@@ -12,9 +12,15 @@ class UserUpdateSchema(BaseModel):
     """
     Валидация только для редактирования, где все поля опциональны.
     """
-    username: str | None = None 
-    telegram_id: int | None = None   
+    username: str | None = None
+    telegram_id: int | None = None
     email: EmailStr | None = None
+    inn: str | None = None
+    snils: str | None = None
+    reg_num: str | None = None
+    reg_date: date | None = None
+    date_begin: date | None = None
+    mail_address_id: int | None = None
 
 class UserEfrsbSchema(BaseModel):
     """Класс используется для приема данных от парсера при обновлении данных пользователя"""

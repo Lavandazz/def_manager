@@ -20,6 +20,7 @@ from web_app.utils.dependensy import (
     get_court_service,
     get_debtor_service,
     get_document_service,
+    get_mail_service,
     get_optional_user,
     get_redis_service,
     get_region_service,
@@ -160,6 +161,13 @@ def mock_residential_service():
 
 
 @pytest.fixture
+def mock_mail_service():
+    service = AsyncMock()
+    service.create_mail_address.return_value = AsyncMock(id=1)
+    return service
+
+
+@pytest.fixture
 def mock_document_service():
     return AsyncMock()
 
@@ -295,6 +303,7 @@ def html_client_full(
     mock_bank_service,
     mock_region_service,
     mock_residential_service,
+    mock_mail_service,
     mock_document_service,
     mock_redis_service,
     patch_cases_cache,
@@ -308,6 +317,7 @@ def html_client_full(
     html_app.dependency_overrides[get_bank_service] = lambda: mock_bank_service
     html_app.dependency_overrides[get_region_service] = lambda: mock_region_service
     html_app.dependency_overrides[get_residential_address_service] = lambda: mock_residential_service
+    html_app.dependency_overrides[get_mail_service] = lambda: mock_mail_service
     html_app.dependency_overrides[get_document_service] = lambda: mock_document_service
     html_app.dependency_overrides[get_redis_service] = lambda: mock_redis_service
     with TestClient(html_app) as test_client:

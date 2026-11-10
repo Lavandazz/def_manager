@@ -1,5 +1,7 @@
 from datetime import date
-from marmel_grammar import MarmelGrammar
+
+from pytrovich import Case, Gender, NamePart, PetrovichDeclinationMaker, PetrovichGenderDetector
+
 from shared.config.db.models import Bank, Debtor
 
 
@@ -9,24 +11,37 @@ class DocumentHelper:
     Создает экземпляр для работы с падежами, выявления рода имен
     """
     def __init__(self):
-        self.grammar = MarmelGrammar()
+        self.maker = PetrovichDeclinationMaker()
+        self.detector = PetrovichGenderDetector()
 
-    def get_gender(self, name) -> str:
-        """Определение пола человека для склонения слов"""
-        return self.grammar.detect_gender(name)
-
-    def get_decline_name(self, full_name) -> str:
+    def _get_gender(self, name: str) -> Gender:
         """
-        Склонение полного ФИО с помощью библиотеки marmel_grammar
+        Определение пола человека по имени для склонения слов
+        :param: name - имя выделеное из фио
+        :return: Gender.FEMALE | Gender.MALE
+        """
+        print("это поиск гендера для", name)
+        gender = self.detector.detect(firstname=name) 
+        return gender
+
+    def _get_gent_name(self, gender: Gender, full_name: list) -> str:
+        """Слонение в родительный ФИО"""
+        last_name = self.maker.make(NamePart.LASTNAME, gender, Case.GENITIVE, full_name[0])
+        firstname = self.maker.make(NamePart.FIRSTNAME, gender, Case.GENITIVE, full_name[1])
+        middlename = self.maker.make(NamePart.MIDDLENAME, gender, Case.GENITIVE, full_name[2])
+        return f"{last_name} {firstname} {middlename}"
+
+    def get_decline_name(self, full_name) -> tuple[str, str, str]:
+        """
+        Склонение полного ФИО
         Например, Иванова Ивана Ивановича
         """
-        full_name_split = full_name.split()
-        gen = self.get_gender(full_name_split[1]) # определение пола человека
-        name = [self.grammar.decline(i.capitalize(), "gen", gender=gen) for i in full_name_split]
-        if gen == "male":
-            return " ".join(name), "уроженец", "несостоятельным"
+        gen: Gender = self._get_gender(full_name.split()[1]) # определение пола человека
+        genitive_name: str = self._get_gent_name(gender=gen, full_name=full_name.split()) # склонение в родительный
+        if gen == Gender.MALE:
+            return genitive_name, "уроженец", "признан несостоятельным"
         else:
-            return " ".join(name), "уроженка", "несостоятельной"
+            return genitive_name, "уроженка", "признана несостоятельной"
         
     @staticmethod
     def get_short_name(full_name) -> str:

@@ -1,9 +1,39 @@
 {% extends "layout.html" %}
 {% block title %}Редактирование профиля{% endblock %}
 
+{# Значение поля: сначала submitted form, иначе текущие данные user #}
+{% macro fv(name, fallback='') -%}
+  {%- if form is defined and form and form[name] is defined and form[name] not in [none, ''] -%}
+    {{ form[name] }}
+  {%- elif fallback not in [none, ''] -%}
+    {{ fallback }}
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro date_input(value) -%}
+  {%- if value -%}
+    {{ value.strftime('%Y-%m-%d') }}
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro field(value) -%}
+  {%- if value is none or value == '' -%}
+    <span class="is-empty">Не указано</span>
+  {%- else -%}
+    {{ value }}
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro date_field(value) -%}
+  {%- if value -%}
+    {{ value.strftime('%d.%m.%Y') }}
+  {%- else -%}
+    <span class="is-empty">Не указано</span>
+  {%- endif -%}
+{%- endmacro %}
+
 {% block content %}
 <div class="landing-page">
-
   {# ─── Шапка страницы ──────────────────────────────────────── #}
   <div class="page-header-bar">
     <h1>
@@ -13,102 +43,375 @@
     <span class="badge-soft">Личный кабинет</span>
   </div>
 
-  {# ─── Карточка формы — ширина как у profile ──────────────── #}
-  <div class="info-card">
-
-    {% if error %}
-      <div class="form-error" role="alert">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <div>{{ error }}</div>
+  {# ─── Шапка профиля ───────────────────────────────────────── #}
+  <div class="profile-head">
+    <div class="flex-grow-1 min-w-0">
+      <div class="profile-name">{{ user.username or 'Пользователь' }}</div>
+      <div class="profile-email">{{ user.email or 'Email не указан' }}</div>
+      <div class="d-flex flex-wrap gap-2">
+        {% if user.telegram_id %}
+          <span class="status-chip status-chip--telegram">
+            <i class="bi bi-telegram"></i>{{ user.telegram_id }}
+          </span>
+        {% endif %}
+        {% if user.sro %}
+          <span class="status-chip status-chip--sro">{{ user.sro.name }}</span>
+        {% else %}
+          <span class="status-chip status-chip--muted">Не в СРО</span>
+        {% endif %}
       </div>
-    {% endif %}
+    </div>
+  </div>
 
-    <form method="post" action="/user/profile/edit" novalidate>
+  {% if error %}
+    <div class="form-error mb-4" role="alert">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <div>{{ error }}</div>
+    </div>
+  {% endif %}
 
-      <div class="mb-4">
-        <label for="username" class="form-label-legal">Имя пользователя</label>
-        <input
-          type="text"
-          class="form-control-legal"
-          id="username"
-          name="username"
-          value="{{ user.username|default('') }}"
-          placeholder="Имя"
-          autocomplete="username"
-        >
-        <div class="form-help">Имя пользователя</div>
+  <form method="post" action="/user/profile/edit" novalidate autocomplete="off">
+
+    {# ─── Основная информация ─────────────────────────────────── #}
+    <div class="info-card mb-4">
+      <div class="card-section-head">
+        <h2><i class="bi bi-person"></i> Основная информация</h2>
+      </div>
+      <div class="data-grid">
+        <div class="data-item">
+          <label for="username" class="data-label form-label-legal">Имя пользователя</label>
+          <input
+            type="text"
+            class="form-control-legal"
+            id="username"
+            name="username"
+            value="{{ fv('username', user.username) }}"
+            maxlength="150"
+            autocomplete="username"
+          >
+        </div>
+        <div class="data-item">
+          <label for="email" class="data-label form-label-legal">
+            Email <span class="form-required">*</span>
+          </label>
+          <input
+            type="email"
+            class="form-control-legal"
+            id="email"
+            name="email"
+            value="{{ fv('email', user.email) }}"
+            maxlength="254"
+            required
+            autocomplete="email"
+          >
+        </div>
+        <div class="data-item">
+          <label for="telegram_id" class="data-label form-label-legal">Telegram ID</label>
+          <input
+            type="text"
+            class="form-control-legal"
+            id="telegram_id"
+            name="telegram_id"
+            value="{{ fv('telegram_id', user.telegram_id) }}"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="20"
+            autocomplete="off"
+          >
+        </div>
+      </div>
+    </div>
+
+    {# ─── Данные арбитражного управляющего ─────────────────────── #}
+    <div class="info-card mb-4">
+      <div class="card-section-head">
+        <h2><i class="bi bi-briefcase"></i> Данные арбитражного управляющего</h2>
+      </div>
+      <div class="data-grid">
+        <div class="data-item">
+          <label for="inn" class="data-label form-label-legal">ИНН</label>
+          <input
+            type="text"
+            class="form-control-legal"
+            id="inn"
+            name="inn"
+            value="{{ fv('inn', user.inn) }}"
+            maxlength="12"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autocomplete="off"
+          >
+        </div>
+        <div class="data-item">
+          <label for="snils" class="data-label form-label-legal">СНИЛС</label>
+          <input
+            type="text"
+            class="form-control-legal"
+            id="snils"
+            name="snils"
+            value="{{ fv('snils', user.snils) }}"
+            maxlength="14"
+            autocomplete="off"
+          >
+        </div>
+        <div class="data-item">
+          <label for="reg_num" class="data-label form-label-legal">Регистрационный номер в Росреестре</label>
+          <input
+            type="text"
+            class="form-control-legal"
+            id="reg_num"
+            name="reg_num"
+            value="{{ fv('reg_num', user.reg_num) }}"
+            maxlength="50"
+            autocomplete="off"
+          >
+        </div>
+        <div class="data-item">
+          <label for="reg_date" class="data-label form-label-legal">Дата регистрации</label>
+          <input
+            type="date"
+            class="form-control-legal"
+            id="reg_date"
+            name="reg_date"
+            value="{% if form is defined and form and form.reg_date %}{{ form.reg_date }}{% else %}{{ date_input(user.reg_date) }}{% endif %}"
+          >
+        </div>
+        <div class="data-item">
+          <label for="date_begin" class="data-label form-label-legal">Дата вступления в СРО</label>
+          <input
+            type="date"
+            class="form-control-legal"
+            id="date_begin"
+            name="date_begin"
+            value="{% if form is defined and form and form.date_begin %}{{ form.date_begin }}{% else %}{{ date_input(user.date_begin) }}{% endif %}"
+          >
+        </div>
+      </div>
+    </div>
+
+    {# ─── СРО (только просмотр) ─────────────────────────────────── #}
+    <div class="info-card mb-4">
+      <div class="card-section-head">
+        <h2><i class="bi bi-bank"></i> СРО</h2>
+        {% if user.sro and user.sro.url %}
+          <a href="{{ user.sro.url }}" target="_blank" rel="noopener" class="head-link">
+            Сайт <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        {% endif %}
       </div>
 
-      <div class="mb-4">
-        <label for="email" class="form-label-legal">
-          Email <span class="form-required">*</span>
-        </label>
-        <input
-          type="email"
-          class="form-control-legal"
-          id="email"
-          name="email"
-          value="{{ user.email|default('') }}"
-          placeholder="example@mail.ru"
-          required
-          autocomplete="email"
-        >
-        <div class="form-help">Укажите актуальный email</div>
+      {% if user.sro %}
+        <div class="data-grid">
+          <div class="data-item" style="grid-column: 1 / -1;">
+            <div class="data-label">Наименование</div>
+            <div class="data-value">{{ field(user.sro.name) }}</div>
+          </div>
+          <div class="data-item">
+            <div class="data-label">Регистрационный номер</div>
+            <div class="data-value">{{ field(user.sro.reg_num) }}</div>
+          </div>
+          <div class="data-item">
+            <div class="data-label">Дата регистрации</div>
+            <div class="data-value">{{ date_field(user.sro.reg_date) }}</div>
+          </div>
+          <div class="data-item">
+            <div class="data-label">ИНН</div>
+            <div class="data-value">{{ field(user.sro.inn) }}</div>
+          </div>
+          <div class="data-item">
+            <div class="data-label">ОГРН</div>
+            <div class="data-value">{{ field(user.sro.ogrn) }}</div>
+          </div>
+          <div class="data-item" style="grid-column: 1 / -1;">
+            <div class="data-label">Юридический адрес</div>
+            <div class="data-value">{{ field(user.sro.ur_address_sro) }}</div>
+          </div>
+          <div class="data-item">
+            <div class="data-label">Телефон</div>
+            <div class="data-value">{{ field(user.sro.phone) }}</div>
+          </div>
+          <div class="data-item">
+            <div class="data-label">Email</div>
+            <div class="data-value">
+              {% if user.sro.email %}
+                <a href="mailto:{{ user.sro.email }}">{{ user.sro.email }}</a>
+              {% else %}
+                <span class="is-empty">Не указано</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <p class="form-help mb-0 mt-3">Данные СРО заполняются из ЕФРСБ и недоступны для изменения.</p>
+      {% else %}
+        <p class="is-empty mb-0" style="font-size: 0.9375rem;">
+          Пользователь не состоит в СРО.
+        </p>
+      {% endif %}
+    </div>
+
+    {# ─── Почтовый адрес ──────────────────────────────────────── #}
+    <div class="info-card mb-4">
+      <div class="card-section-head">
+        <h2><i class="bi bi-envelope"></i> Почтовый адрес</h2>
       </div>
 
-      <div class="mb-4">
-        <label for="telegram_id" class="form-label-legal">
-          Telegram ID <span style="color: var(--steel); font-weight: 400;">(необязательно)</span>
-        </label>
-        <input
-          type="number"
-          class="form-control-legal"
-          id="telegram_id"
-          name="telegram_id"
-          value="{{ user.telegram_id|default('') }}"
-          placeholder="123456789"
-          inputmode="numeric"
-        >
-        <div class="form-help">Ваш числовой идентификатор в Telegram</div>
-      </div>
+      {% if user.mail_address %}
+        <div class="data-grid mb-3">
+          <div class="data-item">
+            <div class="data-label">Текущий индекс</div>
+            <div class="data-value">{{ field(user.mail_address.mail_index) }}</div>
+          </div>
+          <div class="data-item">
+            <div class="data-label">Текущий регион / город</div>
+            <div class="data-value">
+              {% if user.mail_address.region %}
+                {{ user.mail_address.region.region_name or '' }}{% if user.mail_address.region.region_name and user.mail_address.region.city %}, {% endif %}{{ user.mail_address.region.city or '' }}
+              {% else %}
+                <span class="is-empty">Не указано</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="data-item" style="grid-column: 1 / -1;">
+            <div class="data-label">Текущий адрес</div>
+            <div class="data-value">
+              {% if user.mail_address.address %}
+                {{ user.mail_address.address.street }}, д. {{ user.mail_address.address.house }}{% if user.mail_address.address.building %}, {{ user.mail_address.address.building }}{% endif %}
+              {% else %}
+                <span class="is-empty">Не указано</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <p class="is-empty mb-3" style="font-size: 0.9375rem;">Почтовый адрес не указан.</p>
+      {% endif %}
 
-      <div class="mb-4">
-        <label for="password" class="form-label-legal">
-          Пароль <span class="form-required">*</span>
-        </label>
-        <input
-          type="password"
-          class="form-control-legal"
-          id="password"
-          name="password"
-          required
-          autocomplete="current-password"
-          placeholder="••••••••"
-        >
-        <div class="form-help">Введите текущий пароль для подтверждения изменений</div>
+      {# Поля пустые по умолчанию: новый адрес создаётся только если пользователь их заполнил #}
+      <div class="data-grid">
+        <div class="data-item">
+          <label for="mail_index" class="data-label form-label-legal">Индекс</label>
+          <input
+            type="text"
+            class="form-control-legal"
+            id="mail_index"
+            name="mail_index"
+            value="{{ fv('mail_index') }}"
+            maxlength="10"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autocomplete="postal-code"
+          >
+        </div>
+        <div class="data-item">
+          <label for="region_name" class="data-label form-label-legal">Регион</label>
+          <input
+            type="text"
+            class="form-control-legal"
+            id="region_name"
+            name="region_name"
+            value="{{ fv('region_name') }}"
+            maxlength="150"
+            autocomplete="address-level1"
+          >
+        </div>
+        <div class="data-item">
+          <label for="city" class="data-label form-label-legal">Город</label>
+          <input
+            type="text"
+            class="form-control-legal"
+            id="city"
+            name="city"
+            value="{{ fv('city') }}"
+            maxlength="150"
+            autocomplete="address-level2"
+          >
+        </div>
+        <div class="data-item" style="grid-column: 1 / -1;">
+          <label for="street" class="data-label form-label-legal">Улица</label>
+          <input
+            type="text"
+            class="form-control-legal"
+            id="street"
+            name="street"
+            value="{{ fv('street') }}"
+            maxlength="200"
+            autocomplete="street-address"
+          >
+        </div>
+        <div class="data-item">
+          <label for="house" class="data-label form-label-legal">Дом</label>
+          <input
+            type="text"
+            class="form-control-legal"
+            id="house"
+            name="house"
+            value="{{ fv('house') }}"
+            maxlength="50"
+            autocomplete="off"
+          >
+        </div>
+        <div class="data-item">
+          <label for="building" class="data-label form-label-legal">Строение / корпус</label>
+          <input
+            type="text"
+            class="form-control-legal"
+            id="building"
+            name="building"
+            value="{{ fv('building') }}"
+            maxlength="50"
+            autocomplete="off"
+          >
+        </div>
+      </div>
+      <p class="form-help mb-0 mt-3">
+        Заполните поля, чтобы создать новый почтовый адрес и привязать его к профилю. Пустые поля адрес не меняют.
+      </p>
+    </div>
+
+    {# ─── Подтверждение паролем ──────────────────────────────── #}
+    <div class="info-card mb-4">
+      <div class="card-section-head">
+        <h2><i class="bi bi-shield-lock"></i> Подтверждение изменений</h2>
+      </div>
+      <div class="data-grid data-grid--one">
+        <div class="data-item">
+          <label for="password" class="data-label form-label-legal">
+            Пароль <span class="form-required">*</span>
+          </label>
+          <input
+            type="password"
+            class="form-control-legal"
+            id="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            placeholder="••••••••"
+          >
+          <div class="form-help">Без верного пароля изменения не сохраняются</div>
+        </div>
       </div>
 
       <div class="form-actions">
         <a href="/user/profile" class="btn-legal-secondary">Отмена</a>
         <button type="submit" class="btn-legal-primary">Сохранить изменения</button>
       </div>
-
-    </form>
-
-    {# ─── Управление паролем ──────────────────────────────────── #}
-    <div class="form-section">
-      <div class="form-section-title">Управление паролем</div>
-      <a href="/user/profile/password"
-         class="btn-legal-secondary"
-         style="min-height: 38px; padding: 0.5rem 1.25rem; font-size: 0.875rem;">
-        {% if needs_password_setup %}
-          <i class="bi bi-key"></i> Установить пароль
-        {% else %}
-          <i class="bi bi-key"></i> Изменить пароль
-        {% endif %}
-      </a>
     </div>
+  </form>
 
+  {# ─── Управление паролем ──────────────────────────────────── #}
+  <div class="info-card mb-4">
+    <div class="card-section-head">
+      <h2><i class="bi bi-key"></i> Управление паролем</h2>
+    </div>
+    <a href="/user/profile/password"
+       class="btn-legal-secondary"
+       style="min-height: 38px; padding: 0.5rem 1.25rem; font-size: 0.875rem;">
+      {% if needs_password_setup %}
+        <i class="bi bi-key"></i> Установить пароль
+      {% else %}
+        <i class="bi bi-key"></i> Изменить пароль
+      {% endif %}
+    </a>
   </div>
 </div>
 {% endblock %}

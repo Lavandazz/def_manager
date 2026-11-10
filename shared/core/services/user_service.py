@@ -115,13 +115,20 @@ class UserService:
         await self.set_password(user, new_password)
         return True
 
-    async def update_user(self, user: User, user_data: UserUpdateSchema|UserEfrsbSchema):
+    async def update_user(self, user: User, user_data: UserUpdateSchema | UserEfrsbSchema | UserSroUpdateSchema):
         """
-        Изменение данных ползователей
+        Изменение данных пользователей
         """
         db_logger.debug(f"Обновление данных пользователя user_data: {user_data}")
         return await self.repository.update_user(user, user_data)
 
+    async def update_profile(self, user: User, profile_data: UserUpdateSchema) -> User | None:
+        """
+        Обновление профиля: скалярные поля АУ и mail_address_id.
+        Вызывать только после успешной проверки пароля в роуте.
+        """
+        db_logger.debug(f"Обновление профиля user_id={user.id}, data={profile_data}")
+        return await self.repository.update_user(user, profile_data)
 
     async def attach_user_to_sro(self, user_id: int, sro_id: int) -> bool:
         """Связь пользователя и СРО """

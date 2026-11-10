@@ -48,3 +48,6 @@ documents/ready_documents/
 
 # Временное отключение api страниц
 web_app/routers/api
+
+# Файлы macos
+.DS_Store

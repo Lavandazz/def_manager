@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from shared.utils.exceptions import VerificationCodeAlreadySent
 from web_app.utils.auth.password_hasher import PasswordHasher
@@ -34,13 +34,16 @@ class TestEditProfileForm:
         assert response.status_code == 200
         assert "Пользователь не авторизован" in response.text
 
-    def test_edit_form_success(self, html_client_full, mock_user):
+    def test_edit_form_success(self, html_client_full, mock_user_service, mock_user):
         mock_user.hashed_password = PasswordHasher.hash_password("secret123")
+        mock_user_service.get_user_profile.return_value = mock_user
 
         response = html_client_full.get("/user/profile/edit")
 
         assert response.status_code == 200
         assert "Редактирование профиля" in response.text
+        assert "Данные арбитражного управляющего" in response.text
+        mock_user_service.get_user_profile.assert_awaited_once_with(user_id=mock_user.id)
 
     def test_edit_form_redirects_when_password_needed(self, html_client_full, mock_user):
         with patch(
@@ -68,8 +71,26 @@ class TestUpdateProfile:
         assert response.status_code == 401
         assert "Не авторизован" in response.text
 
-    def test_update_wrong_password(self, html_client_full, mock_user):
+    def test_update_empty_password(self, html_client_full, mock_user_service, mock_user):
         mock_user.hashed_password = PasswordHasher.hash_password("correct")
+        mock_user_service.get_user_profile.return_value = mock_user
+
+        response = html_client_full.post(
+            "/user/profile/edit",
+            data={
+                "username": mock_user.username,
+                "email": "new@example.com",
+                "password": "",
+            },
+        )
+
+        assert response.status_code == 400
+        assert "Введите пароль для подтверждения изменений" in response.text
+        mock_user_service.update_profile.assert_not_awaited()
+
+    def test_update_wrong_password(self, html_client_full, mock_user_service, mock_user):
+        mock_user.hashed_password = PasswordHasher.hash_password("correct")
+        mock_user_service.get_user_profile.return_value = mock_user
 
         response = html_client_full.post(
             "/user/profile/edit",
@@ -83,11 +104,13 @@ class TestUpdateProfile:
 
         assert response.status_code == 400
         assert "Неверный пароль" in response.text
+        mock_user_service.update_profile.assert_not_awaited()
 
     def test_update_success(self, html_client_full, mock_user_service, mock_user):
         password = "secret123"
         mock_user.hashed_password = PasswordHasher.hash_password(password)
-        mock_user_service.update_user.return_value = mock_user
+        mock_user_service.get_user_profile.return_value = mock_user
+        mock_user_service.update_profile.return_value = mock_user
 
         response = html_client_full.post(
             "/user/profile/edit",
@@ -95,6 +118,11 @@ class TestUpdateProfile:
                 "username": mock_user.username,
                 "email": "new@example.com",
                 "telegram_id": "999",
+                "inn": "123456789012",
+                "snils": "123-456-789 00",
+                "reg_num": "REG-1",
+                "reg_date": "2020-01-15",
+                "date_begin": "2021-02-01",
                 "password": password,
             },
             follow_redirects=False,
@@ -102,7 +130,46 @@ class TestUpdateProfile:
 
         assert response.status_code == 303
         assert response.headers["location"] == "/user/profile"
-        mock_user_service.update_user.assert_awaited_once()
+        mock_user_service.update_profile.assert_awaited_once()
+        saved = mock_user_service.update_profile.await_args.args[1]
+        assert saved.email == "new@example.com"
+        assert saved.username == mock_user.username
+        assert saved.telegram_id == 999
+        assert saved.inn == "123456789012"
+        assert saved.snils == "123-456-789 00"
+        assert saved.reg_num == "REG-1"
+        assert saved.reg_date.isoformat() == "2020-01-15"
+        assert saved.date_begin.isoformat() == "2021-02-01"
+
+    def test_update_with_mail_address(
+        self, html_client_full, mock_user_service, mock_mail_service, mock_user
+    ):
+        password = "secret123"
+        mock_user.hashed_password = PasswordHasher.hash_password(password)
+        mock_user_service.get_user_profile.return_value = mock_user
+        mock_user_service.update_profile.return_value = mock_user
+        mock_mail_service.create_mail_address.return_value = AsyncMock(id=42)
+
+        response = html_client_full.post(
+            "/user/profile/edit",
+            data={
+                "username": mock_user.username,
+                "email": mock_user.email,
+                "mail_index": "123456",
+                "region_name": "Московская",
+                "city": "Москва",
+                "street": "Тверская",
+                "house": "1",
+                "building": "2",
+                "password": password,
+            },
+            follow_redirects=False,
+        )
+
+        assert response.status_code == 303
+        mock_mail_service.create_mail_address.assert_awaited_once()
+        saved = mock_user_service.update_profile.await_args.args[1]
+        assert saved.mail_address_id == 42
 
 
 class TestPasswordForm:

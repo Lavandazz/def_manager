@@ -4,12 +4,14 @@
 from datetime import datetime, date, timedelta
 from itertools import groupby
 
-from shared.config.db.models import Account, Case, Debtor
+from shared.config.db.models import Account, Case, Debtor, User
 from shared.utils.document_text_helper import document_helper
 
 class ContextBuilder:
-    def __init__(self, case: Case):
+    """Создание контекста для страницы отображения данных о должнике"""
+    def __init__(self, case: Case, username):
         self.case = case
+        self.username = username
         self.debtor: Debtor = case.debtor # type: ignore
 
     def base_context(self) -> dict:
@@ -32,6 +34,7 @@ class ContextBuilder:
         return {
                 "title": f"Данные для генерации — {self.case.number_case}",
                 "case": self.case,
+                "hello_manager_name": self.username,
                 "debtor": self.debtor,
                 "reg_address": reg_address,
                 "birth_address": birth_address,
@@ -49,13 +52,13 @@ class ContextBuilder:
         short_name = document_helper.get_short_name(self.debtor.name)
         debtor_birth_address = document_helper.get_debtor_address_str(self.debtor, birth=True)
         debtor_address = document_helper.get_debtor_address_str(self.debtor, birth=False)
+        
         return {
-            "debtor_decline_name": decline[0],
             "debtor_full_name": self.debtor.name,
             "debtor_name": short_name,
-
-            "native": decline[1],
-            "insolvent": decline[2],
+            "decline_debtor_name": decline[0], # Иванова Ивана Ивановича
+            "native": decline[1], # "уроженец/ка"
+            "insolvent": decline[2], # "несостоятельной/ным"
 
             "case_date": case_date.strftime("%d.%m.%Y"),
             "case_number": self.case.number_case,

@@ -205,7 +205,47 @@ class ParserKad:
                                             "error": str(e),
                                             "system": "parser",
                                         })
-                    
+
+    async def parse_respondent(self) -> dict | None:
+        """td — это Locator на <td class="respondent">"""
+        # сам "видимый" текст ФИО
+        row = self.page.locator("td.respondent")
+        fio = row.locator(".js-rollover").first.inner_text().strip().splitlines()[0].strip()
+
+        # скрытый блок с деталями
+        details = row.locator(".js-rolloverHtml")
+        if details.count() == 0:
+            return {"fio": fio}
+
+        inner = details.first.inner_text()
+        parser_logger.debug("получил inner text", inner)
+        # Разбиваем по строкам — так проще всего
+        lines = [ln.strip() for ln in inner.splitlines() if ln.strip()]
+
+        data = {"fio": None, "address": None, "inn": None, "birth_date": None, "birth_place": None}
+
+        for line in lines:
+            if line.lower().startswith("инн:"):
+                data["inn"] = line.split(":", 1)[1].strip()
+            elif line.lower().startswith("дата рождения:"):
+                data["birth_date"] = line.split(":", 1)[1].strip()
+            elif line.lower().startswith("место рождения:"):
+                data["birth_place"] = line.split(":", 1)[1].strip()
+            elif line.lower().startswith("россия") or "Г." in line.upper():
+                # адрес обычно идёт сразу после <strong>ФИО</strong>
+                if data["address"] is None:
+                    data["address"] = line
+            else:
+                # первая такая строка — это <strong> с ФИО
+                if data["fio"] is None:
+                    data["fio"] = line
+
+        # на всякий случай — ФИО из <strong>
+        strong = details.locator("strong").first
+        if strong.count() > 0:
+            data["fio"] = strong.inner_text().strip()
+
+        return data
 
     async def click_link_case(self):
         """
