@@ -1,17 +1,7 @@
 from datetime import date
-
 from pytrovich import Case, Gender, NamePart, PetrovichDeclinationMaker, PetrovichGenderDetector
-
 from shared.config.db.models import Bank, Debtor, Sro, User
 
-
-# def _get_mail_address(obj):
-#     address = f"""{
-#         obj.mail_address.mail_index
-#         },{f"{obj.mail_address.region.region_name}," if obj.mail_address.region.region_name else ""} г.{obj.mail_address.region.city}, {obj.mail_address.address.street}, д. {obj.mail_address.address.house} 
-#     {obj.mail_address.address.building if obj.mail_address.address.building else ""}
-#     """
-#     return address
 
 class DocumentHelper:
     """
@@ -28,7 +18,6 @@ class DocumentHelper:
         :param: name - имя выделеное из фио
         :return: Gender.FEMALE | Gender.MALE
         """
-        print("это поиск гендера для", name)
         gender = self.detector.detect(firstname=name) 
         return gender
 
@@ -50,7 +39,7 @@ class DocumentHelper:
             return genitive_name, "уроженец", "признан несостоятельным"
         else:
             return genitive_name, "уроженка", "признана несостоятельной"
-        
+
     @staticmethod
     def get_short_name(full_name) -> str:
         """ Возрват строки вида Иванов И.И. """
@@ -63,7 +52,12 @@ class DocumentHelper:
         """ Возврат строки ФИО для шаблонов запросов по имуществу должника """
         name = full_name.split()
         return f"{name[0][0]}{name[1][0].capitalize()}{name[2][0].capitalize()}"
-    
+
+    def get_short_decline_name(self, full_name) -> str:
+        print(f"склоняю {full_name}")
+        decl_name = self.get_decline_name(full_name=full_name)[0]
+        return DocumentHelper.get_short_name(decl_name)
+
     @staticmethod
     def snils_str(snils: int) -> str:
         str_snils = str(snils)
@@ -122,8 +116,6 @@ class DocumentHelper:
             "birth_region": str(d.birth_region) if d.birth_region else "",
             "residential_address": str(d.residential_address) if d.residential_address else "",
         }
-
- 
 
     @staticmethod
     def return_date(date_str: str) -> date:

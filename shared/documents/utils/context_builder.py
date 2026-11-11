@@ -55,6 +55,7 @@ class ContextBuilder:
         request_date = date(case_date.year - 3, 1, 1)
         date_for = datetime.now().date() + timedelta(days=20)
         decline = document_helper.get_decline_name(self.debtor.name)
+        
         short_name = document_helper.get_short_name(self.debtor.name)
         debtor_birth_address = document_helper.get_debtor_address_str(self.debtor, birth=True)
         debtor_address = document_helper.get_debtor_address_str(self.debtor, birth=False)
@@ -62,7 +63,7 @@ class ContextBuilder:
         return {
             "user": self.user,
             "debtor_full_name": self.debtor.name,
-            "debtor_name": short_name,
+            "debtor_name": short_name, # Иванов И.И.
             "decline_debtor_name": decline[0], # Иванова Ивана Ивановича
             "native": decline[1], # "уроженец/ка"
             "insolvent": decline[2], # "несостоятельной/ным"
@@ -116,6 +117,7 @@ class ContextBuilder:
             bank = accs[0].bank
             ctx = {
                 **base,
+                "short_debtor_name": document_helper.get_short_decline_name(base["debtor_full_name"]),
                 "debtor_bank": bank.name,
                 "bank_address": document_helper.get_mail_address(bank),
                 "debtor_accounts": ", ".join(a.number for a in accs),
