@@ -232,7 +232,7 @@ async def get_generate_documents(
 
     # Достаём должника и связанные данные с помощью метода text_helper
     # context = text_helper.make_context(case)
-    ctx = ContextBuilder(case=case, username=user.username)
+    ctx = ContextBuilder(case=case, user=user)
     context: dict = ctx.base_context()
     context["user"]=user
     context["template"]= "requests"
@@ -261,14 +261,14 @@ async def generate_documents(
     request: Request,
     case_id: int,
     # form: GenerateFormData = Form(),
-    # template: str = Form(...),          # "requests" | "bank"
+    template: str = Form(...),          # "requests" | "bank"
     region_court: str = Form("Московской области"),
     user: User = Depends(get_optional_user),
     case_service: CaseService = Depends(get_case_service),
     doc_service: DocumentService = Depends(get_document_service),
     user_service: UserService = Depends(get_user_service)
 ):
-    print("генерация документа")
+    from shared.utils.document_text_helper import document_helper
     if not user:
         return templates.TemplateResponse(
             request, "index.html",
@@ -285,48 +285,39 @@ async def generate_documents(
             context={"message": "Дело не найдено"},
             status_code=404,
         )
-    user_data = await user_service.get_user_profile(user_id=user.id)
-    print("получил user_data", user_data, user_data.__dict__)
-    context_builder = ContextBuilder(case=case, username=user.username) # type: ignore из-за  user_data: User | None, выше проверка на пользователя была
+    user_data: User = await user_service.get_user_profile(user_id=user.id) # явно загружаем данные пользователя через joinedload
+    # print("адрес222", document_helper.get_mail_address(obj=user_data.sro))
+    context_builder = ContextBuilder(case=case, user=user_data) # type: ignore из-за  user_data: User | None, выше проверка на пользователя была
     context: dict = context_builder.build_requests_context()
     context_bank = context_builder.build_bank_contexts()
-    context["user"]=user
     context["template"]= "requests"
-    context["hello_manager_name"]= user.username
-    context["manager_address"] = ""
-    context["manager_sro"] = ""
-    context["sro_address "] = ""
-    context["mail_sro"] = ""
-    context["manager_inn"] = user.inn
     short_name = document_helper.get_short_name(context.get("debtor_full_name")) # создаем наименование файла
+    
+    template = (template or "requests").lower()
+
     try:
-        try:
-            # Генерируется запрос в госорганы
-            paths_requests = await doc_service.generate_request_doc(
-                    context=context,
-                    short_name=short_name,
-                )
-        except Exception as e:
-                print("ошибка запросов в госорганы", e)
-        try:
-            # Генерируется запрос в банки
-            paths_banks = await doc_service.generate_banks_docs(
-                contexts=context_bank, 
-                short_name=short_name)
-
-        except Exception as e:
-            print("ошибка запросов в банк", e)
-
+        if template == "requests":
+            await doc_service.generate_request_doc(context=context, short_name=short_name)
+        elif template == "bank":
+            await doc_service.generate_banks_docs(contexts=context_bank, short_name=short_name)
+        elif template == "both":
+            await doc_service.generate_request_doc(context=context, short_name=short_name)
+            await doc_service.generate_banks_docs(contexts=context_bank, short_name=short_name)
+        else:
+            raise ValueError(f"Неизвестный тип шаблона: {template}")
+        
     except Exception as e:
         print("ошибка запросы сгенерирвоаны", e)
         return templates.TemplateResponse(
             request, "documents/generate_form.html",
             {"user": user,
             "title": f"Генерация документов — {case.number_case}",
+            "template": template,   
             "case_id": case_id,
             "case": case,
             "case_number": case.number_case,            
-            "debtor": case.debtor, "message": f"Ошибка генерации: {e}"},
+            "debtor": case.debtor, 
+            "message": f"Ошибка генерации: {e}"},
             status_code=500,
         )
 
@@ -340,6 +331,7 @@ async def generate_documents(
             "case": case,
             "case_number": case.number_case,            
             "debtor": case.debtor,
+            "message": f"Документы успешно сгенерированы. Можете скачать по кнопке ниже.",
         }
     )
 

@@ -47,23 +47,27 @@ class DocumentService:
 
     async def generate_request_doc(self, context: dict, short_name: str) -> Path:
         """Возвращаем ссылку на документ"""
-        return await self.requests_template.generate(
-            context=context,
-            output_filename=f"{short_name}.docx",
-            subdir="requests",
-        )
+        try:
+            return await self.requests_template.generate(
+                context=context,
+                output_filename=f"{short_name}.docx",
+                subdir="requests",
+            )
+        except Exception as e:
+            print("ошибка банка", e)
 
     async def _generate_bank_doc(self, context: dict, short_name: str, bank_name: str) -> Path:
         """Возвращаем ссылку на документ"""
+        print("генерирование доков в банки", context)
         return await self.bank_template.generate(
             context=context,
             output_filename=f"{short_name}_{bank_name}.docx",
             subdir="banks",
         )
 
-
     async def generate_banks_docs(self, contexts: list[dict], short_name: str,) -> list[Path]:
         """Запустить несколько генераций параллельно."""
+        print("генерирование доков в банки", contexts)
         tasks = [
             self._generate_bank_doc(
                 context=ctx,

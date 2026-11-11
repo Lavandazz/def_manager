@@ -201,17 +201,24 @@
 {# ─── Действия ────────────────────────────────────────────── #}
 <div class="doc-actions">
   <form method="post" action="{{ url_for('generate_documents', case_id=case.id) }}" class="d-inline">
-    <input type="hidden" name="template" value="{{ template or 'requests' }}">
-    {% if bank_name %}
-      <input type="hidden" name="bank_name" value="{{ bank_name }}">
-    {% endif %}
+    <input type="hidden" name="template" value="requests">
     <button type="submit" class="btn-legal-primary">
-      <i class="bi bi-file-earmark-arrow-down"></i> Сгенерировать документ
+      <i class="bi bi-file-earmark-arrow-down"></i> Запросы в госорганы
     </button>
+  </form>
+
+  <form method="post" action="{{ url_for('generate_documents', case_id=case.id) }}" class="d-inline">
+    <input type="hidden" name="template" value="bank">
+    {% if bank_name %}<input type="hidden" name="bank_name" value="{{ bank_name }}">{% endif %}
+    <button type="submit" class="btn-legal-primary">
+      <i class="bi bi-bank"></i> Запросы в банки
+    </button>
+  </form>
+
     <a href="/user/debtor/{{ case.debtor_id }}/edit" class="btn-legal-primary">
       <i class="bi bi-sliders"></i> Редактировать данные
     </a>
-  </form>
+
   <a href="/" class="btn-legal-secondary">
     <i class="bi bi-arrow-left"></i> Назад
   </a>

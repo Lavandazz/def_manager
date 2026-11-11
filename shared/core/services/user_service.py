@@ -65,7 +65,7 @@ class UserService:
         else:
             return None
 
-    async def get_user_profile(self, user_id) -> User | None:
+    async def get_user_profile(self, user_id) -> User:
         """
         Получаем юзера по id для получения данных + связные данные СРО, адреса  из БД при отображении профиля
         :return: объект User, если найден, иначе исключение
@@ -73,6 +73,7 @@ class UserService:
         user = await self.repository.get_user_with_profile(user_id=user_id)
         if user is None:
             raise UserNotFoundError(user_id)
+        
         return user
 
 

@@ -8,10 +8,16 @@ from shared.config.db.models import Account, Case, Debtor, User
 from shared.utils.document_text_helper import document_helper
 
 class ContextBuilder:
-    """Создание контекста для страницы отображения данных о должнике"""
-    def __init__(self, case: Case, username):
+    """
+    Создание контекста для страницы отображения данных о должнике и запросов в госорганы. и банки
+    Требует, чтобы:
+      - case.debtor и case.debtor.accounts загружены через selectinload
+      - user.sro и user.mail_address (+.region, .address) загружены
+    Иначе возможны ленивые загрузки / MissingGreenlet.
+    """
+    def __init__(self, case: Case, user: User):
         self.case = case
-        self.username = username
+        self.user = user
         self.debtor: Debtor = case.debtor # type: ignore
 
     def base_context(self) -> dict:
@@ -34,7 +40,7 @@ class ContextBuilder:
         return {
                 "title": f"Данные для генерации — {self.case.number_case}",
                 "case": self.case,
-                "hello_manager_name": self.username,
+                "hello_manager_name": self.user.username,
                 "debtor": self.debtor,
                 "reg_address": reg_address,
                 "birth_address": birth_address,
@@ -54,6 +60,7 @@ class ContextBuilder:
         debtor_address = document_helper.get_debtor_address_str(self.debtor, birth=False)
         
         return {
+            "user": self.user,
             "debtor_full_name": self.debtor.name,
             "debtor_name": short_name,
             "decline_debtor_name": decline[0], # Иванова Ивана Ивановича
@@ -72,12 +79,21 @@ class ContextBuilder:
             "request_date": f"01.01.{request_date.year}",
             "date_for": date_for.strftime("%d.%m.%Y"),
             "region_court": region_court,
+
+            "hello_manager_name": self.user.username,
+            "manager_address": document_helper.get_mail_address(obj=self.user),
+            "manager_sro": self.user.sro.name,
+            "sro_address": document_helper.get_mail_address(obj=self.user.sro),
+            "mail_sro": "",
+            "manager_inn": self.user.inn,
+            "manager_snils": self.user.snils,
         }
 
     def build_requests_context(self, region_court: str = "Московской области") -> dict:
         """Коонтекст для запросов в госорганы"""
         ctx = self._base_debtor_context(region_court)
         ctx.update({
+            
             "fio": document_helper.get_initials(self.debtor.name),
             "year": datetime.now().year,
             "creation_date": datetime.now().strftime("%d.%m.%Y"),
@@ -101,7 +117,7 @@ class ContextBuilder:
             ctx = {
                 **base,
                 "debtor_bank": bank.name,
-                "bank_address": document_helper.get_bank_address_str(bank),
+                "bank_address": document_helper.get_mail_address(bank),
                 "debtor_accounts": ", ".join(a.number for a in accs),
                 "_short_name": short_name,   # служебное — для имени файла
                 "_bank_name": bank.name,

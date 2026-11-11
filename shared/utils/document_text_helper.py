@@ -2,8 +2,16 @@ from datetime import date
 
 from pytrovich import Case, Gender, NamePart, PetrovichDeclinationMaker, PetrovichGenderDetector
 
-from shared.config.db.models import Bank, Debtor
+from shared.config.db.models import Bank, Debtor, Sro, User
 
+
+# def _get_mail_address(obj):
+#     address = f"""{
+#         obj.mail_address.mail_index
+#         },{f"{obj.mail_address.region.region_name}," if obj.mail_address.region.region_name else ""} г.{obj.mail_address.region.city}, {obj.mail_address.address.street}, д. {obj.mail_address.address.house} 
+#     {obj.mail_address.address.building if obj.mail_address.address.building else ""}
+#     """
+#     return address
 
 class DocumentHelper:
     """
@@ -62,13 +70,19 @@ class DocumentHelper:
         return f"{str_snils[:3]}-{str_snils[3:6]}-{str_snils[6:9]} {str_snils[9:]}"
 
     @staticmethod
-    def get_bank_address_str(bank: Bank) -> str:
-        bank_address = f"""{
-            bank.mail_address.mail_index
-            },{f"{bank.mail_address.region.region_name}," if bank.mail_address.region.region_name else ""} г.{bank.mail_address.region.city}, {bank.mail_address.address.street}, д. {bank.mail_address.address.house} 
-        {bank.mail_address.address.building if bank.mail_address.address.building else ""}
+    def get_mail_address(obj: User | Bank | Sro) -> str:
         """
-        return bank_address
+        Формирование строки с почтовым адресом для пользователя, банка или СРО.
+        """
+        if isinstance(obj, Sro):
+            return obj.ur_address_sro # type: ignore СРО возвращается атрибутом класса, полученная строка из ЕФРСБ
+        
+        address = f"""{
+            obj.mail_address.mail_index
+            },{f"{obj.mail_address.region.region_name}," if obj.mail_address.region.region_name else ""} г.{obj.mail_address.region.city}, {obj.mail_address.address.street}, д. {obj.mail_address.address.house} 
+        {obj.mail_address.address.building if obj.mail_address.address.building else ""}
+        """
+        return address
     
     @staticmethod
     def get_debtor_address_str(debtor: Debtor, birth: bool) -> str:
@@ -108,7 +122,9 @@ class DocumentHelper:
             "birth_region": str(d.birth_region) if d.birth_region else "",
             "residential_address": str(d.residential_address) if d.residential_address else "",
         }
-    
+
+ 
+
     @staticmethod
     def return_date(date_str: str) -> date:
         """
