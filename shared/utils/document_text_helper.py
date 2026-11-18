@@ -54,7 +54,10 @@ class DocumentHelper:
         return f"{name[0][0]}{name[1][0].capitalize()}{name[2][0].capitalize()}"
 
     def get_short_decline_name(self, full_name) -> str:
-        print(f"склоняю {full_name}")
+        """
+        Возвращает Фамилию с инициалами в родительном падеже.
+        Необходимо для формы запроса в банк
+        """
         decl_name = self.get_decline_name(full_name=full_name)[0]
         return DocumentHelper.get_short_name(decl_name)
 

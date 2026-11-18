@@ -30,6 +30,12 @@ class DebtorService:
     async def add_debtor(self, debtor):
         return await self.repository.add_debtor(debtor)
 
+    async def get_short_debtor(self, user_id, debtor_id) -> Debtor | None:
+        """Получение только информации о должнике, без связанных таблиц"""
+        debtor = await self.repository.get_short_debtor(user_id, debtor_id)
+        if debtor is None:
+            return None
+        return debtor
 
     async def get_debtor(self, user_id, debtor_id) -> DebtorDetail:
         """

@@ -45,31 +45,34 @@ class DocumentService:
         self.bank_template = DocumentGenerator(TEMPLATES_DIR / "bank_mo.docx")
         self.requests_template = DocumentGenerator(TEMPLATES_DIR / "requests_mo.docx")
 
-    async def generate_request_doc(self, context: dict, short_name: str) -> Path:
+    async def generate_request_doc(self, user_id: int, context: dict, short_name: str) -> Path:
         """Возвращаем ссылку на документ"""
         try:
+            subdir = f"user_{user_id}/{short_name}"
+            print("subdir = ", subdir)
             return await self.requests_template.generate(
                 context=context,
                 output_filename=f"{short_name}.docx",
-                subdir="requests",
+                subdir=f"{subdir}/requests",
             )
         except Exception as e:
             print("ошибка банка", e)
 
-    async def _generate_bank_doc(self, context: dict, short_name: str, bank_name: str) -> Path:
+    async def _generate_bank_doc(self, user_id: int, context: dict, short_name: str, bank_name: str) -> Path:
         """Возвращаем ссылку на документ"""
         print("генерирование доков в банки", context)
+        subdir = f"user_{user_id}/{short_name}"
         return await self.bank_template.generate(
             context=context,
             output_filename=f"{short_name}_{bank_name}.docx",
-            subdir="banks",
+            subdir=f"{subdir}/banks",
         )
 
-    async def generate_banks_docs(self, contexts: list[dict], short_name: str,) -> list[Path]:
+    async def generate_banks_docs(self, user_id, contexts: list[dict], short_name: str,) -> list[Path]:
         """Запустить несколько генераций параллельно."""
         print("генерирование доков в банки", contexts)
         tasks = [
-            self._generate_bank_doc(
+            self._generate_bank_doc(user_id,
                 context=ctx,
                 short_name=short_name,
                 bank_name=ctx["debtor_bank"]
@@ -77,4 +80,11 @@ class DocumentService:
             for ctx in contexts
         ]
         return await asyncio.gather(*tasks)
+
+    async def get_documents_path(self, user_id: int, debtor_short_name: str) -> Path:
+        """Получение пути для выгрузки документов"""
+        dir = (OUTPUT_DIR / f"user_{user_id}" / debtor_short_name).resolve()
+
+        print("dir = ", dir)
+        return dir
     

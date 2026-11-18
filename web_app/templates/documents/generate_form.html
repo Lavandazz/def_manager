@@ -218,6 +218,14 @@
     <a href="/user/debtor/{{ case.debtor_id }}/edit" class="btn-legal-primary">
       <i class="bi bi-sliders"></i> Редактировать данные
     </a>
+    
+    <form method="post" action="/user/cases/download/{{ case.id }}" class="d-inline">
+      <input type="hidden" name="template" value="requests">
+      <input type="hidden" name="region_court" value="Московской области">
+      <button type="submit" class="btn-legal-secondary">
+        <i class="bi bi-download"></i> Скачать запрос (.docx)
+      </button>
+    </form>
 
   <a href="/" class="btn-legal-secondary">
     <i class="bi bi-arrow-left"></i> Назад

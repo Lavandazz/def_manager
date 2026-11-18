@@ -143,13 +143,13 @@
         <a href="/user/cases/generate_documents/{{ case.id }}" class="btn-legal-primary">
           <i class="bi bi-sliders"></i> Настроить и сгенерировать
         </a>
-        <form method="post" action="/user/cases/generate_documents/{{ case.id }}" class="d-inline">
-          <input type="hidden" name="template" value="requests">
-          <input type="hidden" name="region_court" value="Московской области">
-          <button type="submit" class="btn-legal-secondary">
-            <i class="bi bi-download"></i> Скачать запрос (.docx)
-          </button>
-        </form>
+        {# <form method="post" action="/user/cases/generate_documents/{{ case.id }}" class="d-inline"> #}
+          {# <input type="hidden" name="template" value="requests"> #}
+          {# <input type="hidden" name="region_court" value="Московской области"> #}
+          {# <button type="submit" class="btn-legal-secondary"> #}
+            {# <i class="bi bi-download"></i> Скачать запрос (.docx) #}
+          {# </button> #}
+        {# </form> #}
       </div>
 
     </div>

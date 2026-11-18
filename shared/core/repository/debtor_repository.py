@@ -24,6 +24,13 @@ class DebtorAlchemyRepository(AbstractDebtorRepository):
             db_logger.error(f"Ошибка сохранения должника {e}")
             await self.session.rollback()
 
+    async def get_short_debtor(self, user_id, debtor_id) -> Debtor:
+        """Получение должника без лишних связей и документов"""
+        stmt = (select(Debtor)
+        .join(Debtor.cases)
+        .where(Debtor.id == debtor_id, Case.id_user == user_id)).distinct()
+        return await self.session.execute(stmt).scalars().unique().first()
+
     async def get_debtor(self, user_id, debtor_id) -> Debtor | None:
         """Получаем должника, отфильтрованного по айди и пользователю"""
         stmt = (
@@ -50,8 +57,6 @@ class DebtorAlchemyRepository(AbstractDebtorRepository):
         )
         return list((await self.session.execute(stmt)).scalars().unique().all())
 
-
-
     async def update_debtor(self, debtor: Debtor) -> Debtor | None:
         """
         Обновление данных о должнике
@@ -65,8 +70,7 @@ class DebtorAlchemyRepository(AbstractDebtorRepository):
             db_logger.error(f"Ошибка обновления должника {e}")
             await self.session.rollback()
             return None
-
-
+        
     async def delete_debtor(self, user_id: int, debtor_id: int) -> bool:
         """
         Удалить должника по id.

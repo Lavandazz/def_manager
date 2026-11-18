@@ -86,7 +86,7 @@ async def add_case(
         )
     new_debtor = Debtor(name=debtor_name, debtor_type=debtor_type)
     debtor = await debtor_service.add_debtor(new_debtor)
-    fastapi_logger.debug(f"Добавлено новый должник {debtor}")
+    fastapi_logger.info(f"Добавлено новый должник {debtor}")
     
     new_case = Case(
     number_case=number_case,
@@ -98,8 +98,7 @@ async def add_case(
     # Создается таска для парсинга дела
 
     task = parsing_task.delay(case_number=number_case)
-    
-    print("Дело успешно добавлено","Запускаю парсинг по делу ", number_case, task)
+    fastapi_logger.info(f"Дело - {number_case} успешно добавлено, таска парсинга дела - {task} ")
 
     context = {"message":"Дело успешно добавлено",
                "user": user}
@@ -211,6 +210,8 @@ async def get_generate_documents(
 ):
     """
     Роут отображает данные пользователю, которые попадут в генерацию документов.
+    В отображенной странице имеются кнопки для запросов в госорганы/банки, 
+    редактирование данные должника и скачивание готовых файлов
     """
     if not user:
         return templates.TemplateResponse(
@@ -268,6 +269,10 @@ async def generate_documents(
     doc_service: DocumentService = Depends(get_document_service),
     user_service: UserService = Depends(get_user_service)
 ):
+    """
+    POST роут для генерации документов.
+    При нажатии на кнопку Запросы в госорганы/запросы в банки, отправляется POST на генерацию word документов.
+    """
     from shared.utils.document_text_helper import document_helper
     if not user:
         return templates.TemplateResponse(
@@ -286,7 +291,6 @@ async def generate_documents(
             status_code=404,
         )
     user_data: User = await user_service.get_user_profile(user_id=user.id) # явно загружаем данные пользователя через joinedload
-    # print("адрес222", document_helper.get_mail_address(obj=user_data.sro))
     context_builder = ContextBuilder(case=case, user=user_data) # type: ignore из-за  user_data: User | None, выше проверка на пользователя была
     context: dict = context_builder.build_requests_context()
     context_bank = context_builder.build_bank_contexts()
@@ -297,17 +301,17 @@ async def generate_documents(
 
     try:
         if template == "requests":
-            await doc_service.generate_request_doc(context=context, short_name=short_name)
+            await doc_service.generate_request_doc(user_id=user.id, context=context, short_name=short_name)
         elif template == "bank":
-            await doc_service.generate_banks_docs(contexts=context_bank, short_name=short_name)
+            await doc_service.generate_banks_docs(user_id=user.id, contexts=context_bank, short_name=short_name)
         elif template == "both":
-            await doc_service.generate_request_doc(context=context, short_name=short_name)
-            await doc_service.generate_banks_docs(contexts=context_bank, short_name=short_name)
+            await doc_service.generate_request_doc(user_id=user.id, context=context, short_name=short_name)
+            await doc_service.generate_banks_docs(user_id=user.id, contexts=context_bank, short_name=short_name)
         else:
             raise ValueError(f"Неизвестный тип шаблона: {template}")
         
     except Exception as e:
-        print("ошибка запросы сгенерирвоаны", e)
+        fastapi_logger.error(f"Ошибка генерации запросов {template}: {e}")
         return templates.TemplateResponse(
             request, "documents/generate_form.html",
             {"user": user,
@@ -335,22 +339,29 @@ async def generate_documents(
         }
     )
 
-@router.get("/download/{subdir}/{filename}", tags=["html_docs"])
+@router.get("/download/{case_id}/{filename}")
 async def download_document(
     subdir: str,
-    filename: str,
+    # filename: str,
+    debtor_id: int,
     user: User = Depends(get_optional_user),
+    debtor_service: DebtorService = Depends(get_debtor_service),
+    doc_service: DocumentService = Depends(get_document_service),
 ):
     if not user:
         return HTMLResponse("Необходимо авторизоваться", status_code=401)
-    # защита от path traversal
-    if ".." in subdir or ".." in filename or "/" in filename:
-        return HTMLResponse("Некорректный путь", status_code=400)
-    file_path = (OUTPUT_DIR / subdir / filename).resolve()
-    if not file_path.is_relative_to(OUTPUT_DIR.resolve()) or not file_path.exists():
-        return HTMLResponse("Файл не найден", status_code=404)
-    return FileResponse(
-        file_path,
-        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        filename=filename,
-    )
+    
+    debtor = await debtor_service.get_short_debtor(user_id=user.id, debtor_id=debtor_id)
+    if debtor:
+        short_name = document_helper.get_short_name(debtor.name) # создаем наименование файла
+        print("получил короткое имя", short_name)
+        file_path = await doc_service.get_documents_path(user_id=user.id, debtor_short_name=short_name)
+
+        # if not file_path.is_relative_to(OUTPUT_DIR.resolve()) or not file_path.exists():
+        #     return HTMLResponse("Файл не найден", status_code=404)
+        
+        return FileResponse(
+            file_path,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            filename=filename,
+        )
