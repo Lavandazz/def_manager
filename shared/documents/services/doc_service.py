@@ -4,9 +4,13 @@
 """
 
 import asyncio
+import io
+import zipfile
 from pathlib import Path
-
 from docxtpl import DocxTemplate
+
+from shared.utils.exceptions import DocumentsDirNotFound
+from shared.config.logger_config import gen_logger 
 
 
 BASE_DIR = Path.cwd() / "shared"
@@ -35,6 +39,9 @@ class DocumentGenerator:
     ) -> Path:
         out_dir = OUTPUT_DIR / subdir if subdir else OUTPUT_DIR
         output_path = out_dir / output_filename
+        # имя файла  проверяем - не должно содержать ../..
+        if output_path.resolve().parent != out_dir:
+            raise ValueError(f"Некорректное имя файла: {output_filename}")
         return await asyncio.to_thread(self._render_sync, context, output_path)
 
 
@@ -49,28 +56,28 @@ class DocumentService:
         """Возвращаем ссылку на документ"""
         try:
             subdir = f"user_{user_id}/{short_name}"
-            print("subdir = ", subdir)
             return await self.requests_template.generate(
                 context=context,
                 output_filename=f"{short_name}.docx",
                 subdir=f"{subdir}/requests",
             )
         except Exception as e:
-            print("ошибка банка", e)
+            gen_logger.error(f"Ошибка генерации запросов в госорганы: {e}")
 
     async def _generate_bank_doc(self, user_id: int, context: dict, short_name: str, bank_name: str) -> Path:
         """Возвращаем ссылку на документ"""
-        print("генерирование доков в банки", context)
         subdir = f"user_{user_id}/{short_name}"
-        return await self.bank_template.generate(
-            context=context,
-            output_filename=f"{short_name}_{bank_name}.docx",
-            subdir=f"{subdir}/banks",
-        )
+        try:
+            return await self.bank_template.generate(
+                context=context,
+                output_filename=f"{short_name}_{bank_name}.docx",
+                subdir=f"{subdir}/banks",
+            )
+        except Exception as e:
+            gen_logger.error(f"Ошибка генерации запросов в банки: {e}")
 
     async def generate_banks_docs(self, user_id, contexts: list[dict], short_name: str,) -> list[Path]:
         """Запустить несколько генераций параллельно."""
-        print("генерирование доков в банки", contexts)
         tasks = [
             self._generate_bank_doc(user_id,
                 context=ctx,
@@ -83,8 +90,30 @@ class DocumentService:
 
     async def get_documents_path(self, user_id: int, debtor_short_name: str) -> Path:
         """Получение пути для выгрузки документов"""
-        dir = (OUTPUT_DIR / f"user_{user_id}" / debtor_short_name).resolve()
+        dir_path: Path = (OUTPUT_DIR / f"user_{user_id}" / debtor_short_name).resolve()
+        # is_relative_to — защита от traversal (../../..)
+        #  лежит ли путь внутри OUTPUT_DIR ( не трогает диск, не проверяет существование файла, сравнивает строку пути)
+        if not dir_path.is_relative_to(OUTPUT_DIR.resolve()): 
+            gen_logger.warning(f"Попытка загрузки документов {dir_path} не валидный")
+            raise DocumentsDirNotFound(dir_path)   
+        
+        if not dir_path.is_dir():
+            gen_logger.warning(f"Загрузка пути к документам {dir_path} - путь не существует")
+            raise DocumentsDirNotFound(dir_path)
+        
+        return dir_path
 
-        print("dir = ", dir)
-        return dir
+    @staticmethod
+    def zip_folder(folder: Path) -> io.BytesIO:
+        """Собирает все файлы из folder (включая подпапки) в zip-архив в памяти."""
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+            for f in folder.rglob("*"):        # rglob = рекурсивно, включая подпапки
+                if f.is_file():
+                    # arcname — путь относительно folder, чтобы сохранить структуру подпапок
+                    zf.write(f, arcname=f.relative_to(folder))
+        buffer.seek(0)                          # перемотать в начало, чтобы читать с нуля
+        return buffer
+        
+        
     

@@ -1,8 +1,9 @@
 
+import asyncio
 import re
 
-from fastapi import APIRouter, Depends, Form, Query, Request
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from jinja2 import UndefinedError
 from shared.core.services.user_service import UserService
 from web_app.web_conf import templates
@@ -16,7 +17,7 @@ from shared.documents.services.doc_service import OUTPUT_DIR, DocumentService
 from shared.documents.utils.context_builder import ContextBuilder
 from shared.utils.document_text_helper import document_helper
 from shared.config.logger_config import fastapi_logger
-from shared.utils.exceptions import AccessForbidden
+from shared.utils.exceptions import AccessForbidden, DocumentsDirNotFound
 
 router = APIRouter()
 
@@ -96,7 +97,6 @@ async def add_case(
     case = await case_service.add_case(new_case)
     
     # Создается таска для парсинга дела
-
     task = parsing_task.delay(case_number=number_case)
     fastapi_logger.info(f"Дело - {number_case} успешно добавлено, таска парсинга дела - {task} ")
 
@@ -298,7 +298,7 @@ async def generate_documents(
     short_name = document_helper.get_short_name(context.get("debtor_full_name")) # создаем наименование файла
     
     template = (template or "requests").lower()
-
+    file_path = ""
     try:
         if template == "requests":
             await doc_service.generate_request_doc(user_id=user.id, context=context, short_name=short_name)
@@ -339,29 +339,45 @@ async def generate_documents(
         }
     )
 
-@router.get("/download/{case_id}/{filename}")
+@router.get("/download/{debtor_id}")
 async def download_document(
-    subdir: str,
-    # filename: str,
+    request: Request, 
     debtor_id: int,
     user: User = Depends(get_optional_user),
     debtor_service: DebtorService = Depends(get_debtor_service),
     doc_service: DocumentService = Depends(get_document_service),
 ):
+    from urllib.parse import quote
     if not user:
         return HTMLResponse("Необходимо авторизоваться", status_code=401)
-    
-    debtor = await debtor_service.get_short_debtor(user_id=user.id, debtor_id=debtor_id)
-    if debtor:
-        short_name = document_helper.get_short_name(debtor.name) # создаем наименование файла
-        print("получил короткое имя", short_name)
-        file_path = await doc_service.get_documents_path(user_id=user.id, debtor_short_name=short_name)
 
-        # if not file_path.is_relative_to(OUTPUT_DIR.resolve()) or not file_path.exists():
-        #     return HTMLResponse("Файл не найден", status_code=404)
+    # Сверка должника с пользователем
+    debtor = await debtor_service.get_short_debtor(user_id=user.id, debtor_id=debtor_id)
+
+    if debtor is None:
+        raise HTTPException(404, "Должник не найден")
+    short_name = document_helper.get_short_name(debtor.name) # получаем ФИО Иванов И.И.
+
+    try:
+        dir_path = await doc_service.get_documents_path(user.id, short_name)
+
+    except DocumentsDirNotFound as e:
+        fastapi_logger.warning(f"Папки с документами для {short_name} не существует")
+        raise HTTPException(404, "Сначала сгенерируйте документы")
+
+    # Сбор zip (в отдельном потоке - блокирующий I/O)
+    buffer = await asyncio.to_thread(doc_service.zip_folder, dir_path)
+    zip_name = f"{short_name}.zip"
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/zip",
+        headers={
+            # filename* с UTF-8 — кириллица
+            "Content-Disposition": (
+                f"attachment; filename=\"documents.zip\"; " # attachment — это команда браузеру для скачивания файлов.
+                f"filename*=UTF-8''{quote(zip_name)}"
+            ),
+        },
+    )
         
-        return FileResponse(
-            file_path,
-            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            filename=filename,
-        )

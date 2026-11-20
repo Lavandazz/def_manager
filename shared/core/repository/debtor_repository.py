@@ -29,7 +29,8 @@ class DebtorAlchemyRepository(AbstractDebtorRepository):
         stmt = (select(Debtor)
         .join(Debtor.cases)
         .where(Debtor.id == debtor_id, Case.id_user == user_id)).distinct()
-        return await self.session.execute(stmt).scalars().unique().first()
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
 
     async def get_debtor(self, user_id, debtor_id) -> Debtor | None:
         """Получаем должника, отфильтрованного по айди и пользователю"""

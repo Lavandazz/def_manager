@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+import asyncio
 
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
+
+from shared.documents.services.doc_service import DocumentService
+from shared.utils.exceptions import DocumentsDirNotFound
 from web_app.web_conf import templates
 from web_app.utils.caches_data import get_cases_from_cache
 
 from shared.core.services.address_service import ResidentialAddressService
 from shared.core.services.bank_service import BankService
 from shared.core.services.case_service import CaseService
-from web_app.utils.dependensy import get_bank_service, get_case_service, get_debtor_service, get_optional_user, get_region_service, get_residential_address_service
-
+from web_app.utils.dependensy import get_bank_service, get_case_service, get_debtor_service, get_document_service, get_optional_user, get_region_service, get_residential_address_service
 from shared.config.db.models import Case, Debtor, DebtorType, User
 from shared.core.services.debtor_service import DebtorService
 from shared.core.services.region_service import RegionService
@@ -226,3 +229,51 @@ async def debtor_edit_post(
         url=request.url_for("debtor_edit", debtor_id=debtor_id),
         status_code=303,
     )
+
+# @router.get("/download/{debtor_id}")
+# async def download_document(
+#     request: Request, 
+#     debtor_id: int,
+#     user: User = Depends(get_optional_user),
+#     debtor_service: DebtorService = Depends(get_debtor_service),
+#     doc_service: DocumentService = Depends(get_document_service),
+# ):
+#     from urllib.parse import quote
+#     if not user:
+#         return HTMLResponse("Необходимо авторизоваться", status_code=401)
+#     print("получаю должника")
+#     debtor = await debtor_service.get_short_debtor(user_id=user.id, debtor_id=debtor_id)
+
+#     if debtor is None:
+#         raise HTTPException(404, "Должник не найден")
+#     short_name = document_helper.get_short_name(debtor.name) # получаем ФИО Иванов И.И.
+#     print("получил короткое имя", short_name)
+#     try:
+#         dir_path = await doc_service.get_documents_path(user.id, short_name)
+#     except DocumentsDirNotFound as e:
+#         return templates.TemplateResponse(
+#             request=request,
+#             name="debtor/debtor_edit.html",
+#             context={
+#                 "message": f"Документы для «{e.path.name}» не найдены",
+#                 "back_url": request.headers.get("referer", "/"),
+#             },
+#             status_code=404,               # статус сохраняем корректный
+#         )
+
+#         # 4. Собрать zip (в отдельном потоке — это блокирующий I/O)
+#     buffer = await asyncio.to_thread(doc_service.zip_folder, dir_path)
+#     # 5. Отдать как поток с Content-Disposition
+#     zip_name = f"{short_name}.zip"
+#     return StreamingResponse(
+#         buffer,
+#         media_type="application/zip",
+#         headers={
+#             # filename* с UTF-8 — кириллица
+#             "Content-Disposition": (
+#                 f"attachment; filename=\"documents.zip\"; "
+#                 f"filename*=UTF-8''{quote(zip_name)}"
+#             ),
+#         },
+#     )
+        

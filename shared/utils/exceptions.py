@@ -1,4 +1,7 @@
 # core/exceptions.py (или где угодно рядом с сервисом)
+from anyio import Path
+
+
 class VerificationCodeAlreadySent(Exception):
     """Код уже отправлен, повторная отправка пока недоступна."""
     pass
@@ -16,3 +19,10 @@ class UserNotFoundError(Exception):
 
 class Forbidden(Exception):
     status_code = 403
+
+
+class DocumentsDirNotFound(Exception):
+    """Папка должника с документами не найдена"""
+    def __init__(self, path: Path):
+        self.path = path
+        super().__init__(f"Путь с path={path} не найден")
